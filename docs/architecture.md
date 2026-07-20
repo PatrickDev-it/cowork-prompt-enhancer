@@ -30,7 +30,9 @@ flowchart LR
     end
 
     subgraph PE["Python: modules/prompt_enhancer (RFC-0018)"]
-        Workflow["workflow.py\ncompiler / single_pass / field_loop"]
+        Workflow["workflow.py\nrun_enhancement orchestration"]
+        Strategies["strategies.py\ncompiler / single_pass / field_loop"]
+        Coercion["coercion.py\nparsing, coercion, rendering"]
         Search["search.py\nDuckDuckGo grounding (opt-in, RFC-0020)"]
     end
 
@@ -45,6 +47,7 @@ flowchart LR
     Runtime --> FsCap
     FsCap -- "fileop event" --> CLI
     Runtime -- "spawn / stdin-stdout" --> Workflow
+    Workflow --> Strategies --> Coercion
     Workflow -- "opt-in web lookup" --> Search
     Search -. "HTTPS, only when gated on" .-> Internet[("DuckDuckGo")]
     Workflow -- "HTTP, OpenAI-compatible" --> LlamaServer
@@ -88,7 +91,9 @@ sequenceDiagram
 | `server/tools/fs.ts` | Server-side capability enforcement — refusing an unadvertised fileop before it's sent (RFC-0008) | Path confinement (that's the client's job) |
 | `server/modules/llm/supervisor.ts` | `llama-server` process lifecycle: spawn, health, restart, shutdown (RFC-0014) | Prompt content, sampling parameters |
 | `server/modules/context_compressor` | Condensing oversized input via the shared model (RFC-0015) | Deciding *which* fields need compression (that's `PromptDescriptor.compress`) |
-| `server/modules/prompt_enhancer` | Compiling intent into a specification (RFC-0018); three strategies, deterministic fallbacks | The model itself, GPU/process concerns |
+| `server/modules/prompt_enhancer/workflow.py` | `run_enhancement` orchestration: strategy selection, the shared fallback boundary, grounding/deep-research gathering | Individual strategy implementations, parsing |
+| `server/modules/prompt_enhancer/strategies.py` | The three generation strategies — compiler, single_pass, field_loop (RFC-0018) | Rendering, parsing raw model output |
+| `server/modules/prompt_enhancer/coercion.py` | Pure parsing/coercion/rendering of model output — zero model calls, zero I/O | Strategy selection, prompt templates |
 | `client/lib/ws.ts` | The client half of the wire protocol, symmetric to the server's | — |
 | `client/events/fileop.ts` | Executing fileops, confined to the session folder (RFC-0008 § 6) | Deciding which ops are safe to advertise (`SUPPORTED_OPS` is the static contract) |
 
