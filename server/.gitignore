@@ -1,0 +1,14 @@
+node_modules/
+*.log
+
+# Venv Python condivisa dei moduli e cache runtime (RFC-0006)
+modules/.venv/
+**/__pycache__/
+
+# Cache KV su SSD del prompt-enhancer (dati runtime pesanti, ricostruibili)
+modules/prompt_enhancer/.cache/
+
+# Modelli .gguf vendored: attesi nel workspace, ma troppo pesanti per git
+models/*.gguf
+.sinapsi-out/
+bin/
