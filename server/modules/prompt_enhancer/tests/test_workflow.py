@@ -1,14 +1,18 @@
-"""Tests for the pure parsing/coercion/rendering functions in `workflow.py`.
+"""Tests for the pure parsing/coercion/classification/rendering functions behind the prompt
+enhancer's three generation strategies.
 
 These functions absorb an LLM's unpredictable output (mixed JSON, missing fields, wrong types) and
 are the highest-risk, zero-external-dependency code in the compiler — see RFC-0025 Phase 1.1. They
 take plain values in and return plain values out, so they are tested directly with no mocking and
 no model involved.
+
+Written against `workflow.py` when it was a single 915-line file; RFC-0025 Phase 2.3 later split
+that file into `prompts.py` / `coercion.py` / `strategies.py` / a thinned `workflow.py`. This suite
+was the safety net for that split — it stayed green throughout with only these import lines
+changed, verifying the refactor by test, not by re-reading.
 """
-from workflow import (
+from coercion import (
     build_compiled_prompt,
-    build_specification,
-    classify_target,
     coerce_value_from_raw,
     extract_json_objects,
     extract_value_from_mixed_output,
@@ -16,6 +20,8 @@ from workflow import (
     normalize_field_value,
     normalize_generated_prompt,
 )
+from strategies import classify_target
+from workflow import build_specification
 
 # --- normalize_generated_prompt --------------------------------------------------------------
 
