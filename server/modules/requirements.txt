@@ -1,0 +1,15 @@
+# Requirements condivisi da TUTTI i moduli/tool Python del server — un'unica venv: modules/.venv.
+# Aggiungere qui le dipendenze di ogni nuovo modulo Python: una sola venv, un solo file, tutti
+# i moduli ne beneficiano (RFC-0006).
+#
+# `engine.py`/`providers/` restano stdlib-only (`urllib`, `json`): l'inferenza passa via HTTP/API
+# OpenAI a un `llama-server` esterno supervisionato (RFC-0014). Il binario `llama-server` + DLL CUDA
+# vivono in `server/bin/` (vendored, git-ignored), non sono un pacchetto Python.
+#
+# Storico: fino a RFC-0013 qui viveva il wheel CUDA `llama-cpp-python==0.3.30-cu125`. Rimosso con
+# l'hard cutover di RFC-0014 (il modulo era diventato stdlib-only).
+
+# Web-search grounding del prompt-enhancer — RFC-0020. DuckDuckGo metasearch, zero-API-key, gratuito.
+# Emenda lo stato "stdlib-only" di RFC-0014: `prompt_enhancer/search.py` importa `ddgs` (lazy), usato
+# per superare il knowledge cutoff del modello con un lookup web opzionale e gated.
+ddgs>=9.14.4
