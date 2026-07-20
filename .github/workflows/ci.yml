@@ -1,0 +1,55 @@
+name: ci
+
+# Validates the TypeScript and Python logic only. The GPU inference path (llama-server.exe +
+# vendored CUDA DLLs, server/bin/ and server/models/*.gguf) is Windows-only, ~7.9 GB, and out of
+# CI's reach by design — see RFC-0025. Nothing here starts or depends on llama-server.
+
+on: [push, pull_request]
+
+jobs:
+  server:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+
+      - name: Install TS dependencies
+        run: bun install
+        working-directory: server
+      - name: Typecheck
+        run: bun run typecheck
+        working-directory: server
+      - name: Lint (Biome)
+        run: bunx @biomejs/biome ci .
+        working-directory: server
+      - name: Test (bun test)
+        run: bun test
+        working-directory: server
+
+      - name: Install Python dependencies
+        run: pip install -r modules/requirements.txt -r modules/requirements-dev.txt
+        working-directory: server
+      - name: Lint (Ruff)
+        run: ruff check modules/prompt_enhancer
+        working-directory: server
+      - name: Test (pytest)
+        run: pytest modules/prompt_enhancer
+        working-directory: server
+
+  client:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies
+        run: bun install
+        working-directory: client
+      - name: Typecheck
+        run: bun run typecheck
+        working-directory: client
+      - name: Lint (Biome)
+        run: bunx @biomejs/biome ci .
+        working-directory: client
