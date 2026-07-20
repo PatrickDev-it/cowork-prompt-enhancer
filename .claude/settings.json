@@ -1,0 +1,52 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "hooks": [
+          {
+            "command": "C:\\Users\\Patrick\\.cargo\\bin\\sinapsi.exe hook post-tool-use",
+            "type": "command"
+          }
+        ],
+        "matcher": "Edit|Write|MultiEdit"
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "command": "C:\\Users\\Patrick\\.cargo\\bin\\sinapsi.exe hook session-start",
+            "type": "command"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "command": "C:\\Users\\Patrick\\.cargo\\bin\\sinapsi.exe hook stop",
+            "type": "command"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "command": "C:\\Users\\Patrick\\.cargo\\bin\\sinapsi.exe hook user-prompt-submit",
+            "type": "command"
+          }
+        ]
+      }
+    ]
+  },
+  "permissions": {
+    "allow": [
+      "Bash(sinapsi:*)",
+      "mcp__sinapsi__*",
+      "Read(.sinapsi/**)"
+    ]
+  }
+}

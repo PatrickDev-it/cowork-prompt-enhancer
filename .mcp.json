@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "sinapsi": {
+      "args": [
+        "serve",
+        ".sinapsi/graph.json"
+      ],
+      "command": "C:\\Users\\Patrick\\.cargo\\bin\\sinapsi.exe"
+    }
+  }
+}
