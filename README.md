@@ -65,9 +65,11 @@ A deeper component/module-boundary diagram and an explicit threat model live in
 - **Resilient process supervision.** The `llama-server` child process has polling health checks,
   exponential-backoff restart with a cap, and shutdown hooks on `exit`/`SIGINT`/`SIGTERM`
   independent of whichever module started it ([`server/modules/llm/supervisor.ts`](server/modules/llm/supervisor.ts)).
-- **Layered defense against LLM non-determinism.** Three nested generation strategies, a parser
-  that extracts JSON from noisy/mixed model output, and a deterministic fallback for every single
-  field ([`server/modules/prompt_enhancer/workflow.py`](server/modules/prompt_enhancer/workflow.py)).
+- **Layered defense against LLM non-determinism.** Three nested generation strategies
+  ([`strategies.py`](server/modules/prompt_enhancer/strategies.py)), a parser that extracts JSON
+  from noisy/mixed model output, and a deterministic fallback for every single field
+  ([`coercion.py`](server/modules/prompt_enhancer/coercion.py)), orchestrated by
+  [`workflow.py`](server/modules/prompt_enhancer/workflow.py).
 - **`strict` TypeScript, for real.** `strict` and `noUncheckedIndexedAccess` are on for both
   `client/` and `server/` — not the minimal config, the one that actually prevents unchecked-access
   bugs.
