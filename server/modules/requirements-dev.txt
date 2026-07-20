@@ -1,0 +1,4 @@
+# Test-only dependencies for the Python modules under server/modules/. Kept separate from
+# requirements.txt on purpose: that file is intentionally minimal (stdlib-first, RFC-0014/0020) and
+# a test dependency does not belong in the production requirement set.
+pytest>=8.0

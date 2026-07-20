@@ -1,0 +1,13 @@
+[tool.ruff]
+target-version = "py312"
+line-length = 120
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP"]
+# E501 (line too long) is off: much of this module's value is in dense, measured rationale
+# comments (RFC citations, benchmark numbers) — mechanical wrapping would hurt readability more
+# than a long line does.
+ignore = ["E501"]
+
+[tool.pytest.ini_options]
+testpaths = ["prompt_enhancer/tests"]
