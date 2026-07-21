@@ -147,3 +147,10 @@ configs now reference public type package `bun`, not its non-hoisted transitive 
 workspace integration suite enforces this invariant. **Breaking changes:** none. **Validation:** format,
 lint, both typechecks, 15 Bun server tests, 32 pytest tests and 2 integration tests pass. **Status:** ready
 to push and re-run hosted CI.
+
+## 2026-07-22T04:39:00+02:00 — Phase 0 dependency-audit repair
+
+**Goal:** remove hosted audit finding `PYSEC-2026-1845`. **Change:** upgraded the test runner from
+pytest 8.4.1 to 9.0.3 and regenerated the hash-verified development lock. **Breaking changes:** none.
+**Validation:** 32 pytest cases pass on 9.0.3; complete local check passes; Bun and pip-audit report zero
+known vulnerabilities. **Status:** ready for hosted CI confirmation.

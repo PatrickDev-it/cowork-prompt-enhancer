@@ -19,7 +19,7 @@ unrelated modification existed. Python formatting was required to make the forma
 - Biome format/lint and Ruff format/lint pass.
 - Client/server typecheck pass.
 - 15 Bun server tests, 32 pytest tests and 2 root integration tests pass.
-- Bun and Python dependency audits report no known vulnerabilities.
+- Bun and Python dependency audits report no known vulnerabilities; pytest is pinned to fixed 9.0.3.
 - Root and package `node_modules/` trees are ignored; no candidate source file exceeds 10 MiB.
 - Local RTX 3070 Ti and expected artifacts exist; llama endpoint was not running during baseline.
 - No runtime protocol/provider behavior changed.
@@ -27,8 +27,9 @@ unrelated modification existed. Python formatting was required to make the forma
 ## Phase 0 external gate
 
 Create `PatrickDev-it/cowork-prompt-enhancer` privately, push the phase branch, apply description/homepage/
-topics, and verify hosted CI. The first CI run caught and locally repaired clean-install Bun type resolution;
-push the repair and confirm green. Do not make the repository public before all Phase 4 gates pass.
+topics, and verify hosted CI. CI exposed clean-install Bun type resolution and a vulnerable pytest pin;
+both are repaired locally. Push the audit repair and confirm green. Do not make the repository public
+before all Phase 4 gates pass.
 
 ## Remaining root RFC work
 
