@@ -55,6 +55,7 @@ patch: the project's shape (above), the last sessions at a glance, and a short r
 agent at the end of every patch, at the same time it appends session.md. Drop the
 11th; the full history is in session.md and, once archived, in archive/. -->
 
+- 2026-07-22T04:48:00+02:00 — Accepted RFC-0026 for provider profiles, typed errors, validated configuration and preflight.
 - 2026-07-22T04:39:00+02:00 — Removed pytest security finding PYSEC-2026-1845 by upgrading to 9.0.3 and regenerating the hashed lock.
 - 2026-07-22T04:28:00+02:00 — Repaired clean-install CI Bun type resolution and added a workspace regression test.
 - 2026-07-22T04:10:00+02:00 — Completed root RFC Phase 0 locally: frozen workspace, pinned tools, policy/provenance docs, owner links and green root validation.
@@ -70,7 +71,7 @@ at the end of every patch. If it grows past 10 lines it has stopped being a summ
 - One pinned Bun workspace now owns frozen install, format, lint, typecheck, tests, audits, demo and benchmark commands.
 - Phase 0 local gate is green: 15 Bun server, 32 pytest and 2 integration tests; formatter, lint, typecheck and audits pass.
 - Owner links target `PatrickDev-it`; security, support, release, environment and artifact provenance policies exist; dependency trees are ignored.
-- Private remote and metadata exist; push both CI repairs and confirm hosted CI before Phase 1.
-- Phase 1 provider profiles, setup/preflight, conformance and mock E2E are next.
+- Private remote and metadata exist; hosted CI run 29877887313 is green.
+- RFC-0026 is accepted; Phase 1 provider profiles, setup/preflight, conformance and mock E2E are next.
 - Protocol hardening, evaluation corpus/report and final recruiter release remain open.
 - Preserve the historical field-loop fallback and never commit local runtime artifacts or credentials.

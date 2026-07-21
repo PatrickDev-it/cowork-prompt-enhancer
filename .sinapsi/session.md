@@ -154,3 +154,11 @@ to push and re-run hosted CI.
 pytest 8.4.1 to 9.0.3 and regenerated the hash-verified development lock. **Breaking changes:** none.
 **Validation:** 32 pytest cases pass on 9.0.3; complete local check passes; Bun and pip-audit report zero
 known vulnerabilities. **Status:** ready for hosted CI confirmation.
+
+## 2026-07-22T04:48:00+02:00 — RFC-0026 provider profiles
+
+**Goal:** decide the Phase 1 public provider/configuration boundary before implementation. **Change:**
+accepted RFC-0026 defining mock/local/openai-compatible profiles, typed failures, compatibility aliases,
+preflight and conformance requirements. **Breaking changes:** mock becomes the reviewer default; explicit
+local deployments select `local`. **Validation:** RFC cross-checked against root P-02/P-03/P-16/P-19 and
+RFC-0014. **Status:** boundary accepted; implementation next.

@@ -26,10 +26,9 @@ unrelated modification existed. Python formatting was required to make the forma
 
 ## Phase 0 external gate
 
-Create `PatrickDev-it/cowork-prompt-enhancer` privately, push the phase branch, apply description/homepage/
-topics, and verify hosted CI. CI exposed clean-install Bun type resolution and a vulnerable pytest pin;
-both are repaired locally. Push the audit repair and confirm green. Do not make the repository public
-before all Phase 4 gates pass.
+`PatrickDev-it/cowork-prompt-enhancer` is private with the intended metadata. CI exposed clean-install
+Bun type resolution and a vulnerable pytest pin; both were repaired and run 29877887313 is green. Do not
+make the repository public before all Phase 4 gates pass.
 
 ## Remaining root RFC work
 
@@ -42,6 +41,9 @@ before all Phase 4 gates pass.
 - Phase 4 / P-17–P-20: recruiter README, demo, synchronized architecture/threat model, release assets,
   green PR/CI, stable release and final public transition.
 
+RFC-0026 now governs Phase 1 provider profiles, typed errors, compatibility aliases, validation and
+preflight behavior. It preserves RFC-0014 local process supervision.
+
 ## Invariants
 
 - Do not alter `run_enhancement_field_loop` without an explicit equivalence-tested migration.
@@ -53,6 +55,5 @@ before all Phase 4 gates pass.
 
 ## Next action
 
-Finish the external Phase 0 gate, then implement provider/config RFC decisions and Phase 1 tests before
-touching protocol security. Root `demo:mock` and `benchmark` command names are reserved now and become
-executable at their owning phase gates.
+Implement RFC-0026 providers, validation, setup/preflight and Phase 1 tests before touching protocol
+security. Root `demo:mock` becomes executable in this phase; `benchmark` follows in Phase 3.
