@@ -11,6 +11,7 @@ deviation from RFC-0025's literal Phase 2.3 wording: it is called both by `strat
 placing it in either of those two modules would create an import cycle. As a pure spec→string
 renderer with no strategy-specific logic, it belongs with the rest of this module's pure functions
 at least as much as it belongs in either caller — see `.sinapsi/decisions.md`."""
+
 import json
 import re
 
@@ -229,7 +230,10 @@ def build_compiled_prompt(spec: dict) -> str:
     # `directive` (a second-person conversational CTA) and uses the rest as its guide. It no longer
     # echoes the user's raw prompt (no `# Context` block = user_input verbatim): that echo made a
     # downstream AI mistake it for a meta-prompt / prompt injection and refuse it.
-    directive = str(spec.get("directive", "")).strip() or "Complete the task described below and deliver a complete, production-ready result."
+    directive = (
+        str(spec.get("directive", "")).strip()
+        or "Complete the task described below and deliver a complete, production-ready result."
+    )
     role = spec.get("role", "Senior Software Engineer")
     objective = spec.get("objective", "Deliver a complete, production-ready result.")
     overall_context = spec.get("overall_context", "")

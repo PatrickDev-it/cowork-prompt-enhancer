@@ -9,6 +9,7 @@ prompt_toolkit, nessuna scrittura di debug_logs. Due modalità:
   legge questo stdout): un oggetto JSON per riga in entrambe le direzioni, contratto
   macchina-a-macchina esplicito. I log del modello (llama.cpp, caricamento) vanno su
   stderr, separati dal risultato — invariato rispetto a RFC-0007."""
+
 import argparse
 import json
 import sys
@@ -18,9 +19,18 @@ from engine import LLMEngine, resolve_model_id
 from workflow import run_enhancement
 
 
-def run_once(engine: LLMEngine, prompt: str, mode: str, spec_only: bool, think: bool = False,
-             search: bool | None = None, deep_research: bool = False) -> None:
-    result = run_enhancement(engine=engine, user_input=prompt, mode=mode, think=think, search=search, deep_research=deep_research)
+def run_once(
+    engine: LLMEngine,
+    prompt: str,
+    mode: str,
+    spec_only: bool,
+    think: bool = False,
+    search: bool | None = None,
+    deep_research: bool = False,
+) -> None:
+    result = run_enhancement(
+        engine=engine, user_input=prompt, mode=mode, think=think, search=search, deep_research=deep_research
+    )
 
     if spec_only:
         print(json.dumps({"prompt_spec": result["prompt_spec"]}, ensure_ascii=True))
@@ -76,13 +86,27 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--mode", type=str, default="production-grade", help="Modalità di enhancement")
     parser.add_argument("--spec-only", action="store_true", help="Stampa solo il prompt_spec JSON")
     parser.add_argument("--health", action="store_true", help="Stampa lo stato del backend ed esce")
-    parser.add_argument("--serve", action="store_true", help="Avvia il worker persistente (JSON-lines su stdin/stdout) — RFC-0010")
-    parser.add_argument("--think", action="store_true", help="Abilita il reasoning del modello (default off) — RFC-0013")
+    parser.add_argument(
+        "--serve", action="store_true", help="Avvia il worker persistente (JSON-lines su stdin/stdout) — RFC-0010"
+    )
+    parser.add_argument(
+        "--think", action="store_true", help="Abilita il reasoning del modello (default off) — RFC-0013"
+    )
     # store_const con default None: assente ⇒ decide il gate (env COWORK_PROMPT_ENHANCER_SEARCH); presente ⇒ forza — RFC-0020.
-    parser.add_argument("--search", dest="search", action="store_const", const=True, default=None,
-                        help="Forza il grounding web (DuckDuckGo) per questa richiesta — RFC-0020")
-    parser.add_argument("--deep-research", dest="deep_research", action="store_true",
-                        help="Passaggio di ricerca multi-query + report separato (opt-in, lento) — RFC-0022")
+    parser.add_argument(
+        "--search",
+        dest="search",
+        action="store_const",
+        const=True,
+        default=None,
+        help="Forza il grounding web (DuckDuckGo) per questa richiesta — RFC-0020",
+    )
+    parser.add_argument(
+        "--deep-research",
+        dest="deep_research",
+        action="store_true",
+        help="Passaggio di ricerca multi-query + report separato (opt-in, lento) — RFC-0022",
+    )
     return parser
 
 
@@ -102,8 +126,15 @@ def main() -> None:
     if not args.prompt:
         raise SystemExit("--prompt è obbligatorio in modalità single-shot")
 
-    run_once(engine=engine, prompt=args.prompt, mode=args.mode, spec_only=args.spec_only, think=args.think,
-             search=args.search, deep_research=args.deep_research)
+    run_once(
+        engine=engine,
+        prompt=args.prompt,
+        mode=args.mode,
+        spec_only=args.spec_only,
+        think=args.think,
+        search=args.search,
+        deep_research=args.deep_research,
+    )
 
 
 if __name__ == "__main__":

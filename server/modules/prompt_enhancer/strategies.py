@@ -4,6 +4,7 @@
 here verbatim, unchanged, from `workflow.py`). `workflow.py`'s `run_enhancement` orchestrates
 across all three and owns their shared fallback boundary; this module only implements each
 strategy in isolation."""
+
 import json
 import os
 import re
@@ -49,7 +50,9 @@ def classify_target(user_input: str) -> str:
     return "technical" if _TECHNICAL_SIGNAL.search(user_input or "") else "conversational"
 
 
-def generate_field(engine, target_field: str, user_input: str, mode: str, current_context: dict, think: bool = False) -> object:
+def generate_field(
+    engine, target_field: str, user_input: str, mode: str, current_context: dict, think: bool = False
+) -> object:
     prompt = SINGLE_ENHANCER_PROMPT.format(
         mode=mode,
         user_input=user_input,
@@ -144,7 +147,9 @@ _COMPILER_LIST_FIELDS = {
     "output_requirements",
 }
 _COMPILER_TASK_FALLBACK = "Complete the task described below and deliver a complete, correct, production-ready result."
-_COMPILER_DIRECTIVE_FALLBACK = "Complete the task described in the specification below and deliver a complete, correct, production-ready result."
+_COMPILER_DIRECTIVE_FALLBACK = (
+    "Complete the task described in the specification below and deliver a complete, correct, production-ready result."
+)
 
 
 def normalize_compiler_field(field_name: str, raw_value: object) -> object:
@@ -163,7 +168,9 @@ def normalize_compiler_field(field_name: str, raw_value: object) -> object:
     return text
 
 
-def compile_intent(engine, user_input: str, mode: str, think: bool = False, grounding: str = "", project_context: str = "") -> tuple:
+def compile_intent(
+    engine, user_input: str, mode: str, think: bool = False, grounding: str = "", project_context: str = ""
+) -> tuple:
     """Compiles the intent into a specification, in ONE call — RFC-0018. Returns `(spec, task_kind)`.
     The compiler's phases live inside the prompt (single-call: RFC-0011 § latency). `grounding` is
     the raw text of web results (RFC-0020, evidence); `project_context` is the user's real project

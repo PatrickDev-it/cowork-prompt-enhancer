@@ -25,10 +25,7 @@
     "enabled": true,
     "rules": {
       "preset": "recommended",
-      "suspicious": {
-        "noExplicitAny": "off",
-        "noAssignInExpressions": "off"
-      },
+      "suspicious": { "noExplicitAny": "off", "noAssignInExpressions": "off" },
       "style": {
         "noNonNullAssertion": "off"
       }

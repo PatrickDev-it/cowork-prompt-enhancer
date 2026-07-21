@@ -1,6 +1,6 @@
 # Cowork — Prompt Enhancer
 
-[![CI](https://github.com/emanuelecella/cowork-prompt-enhancer/actions/workflows/ci.yml/badge.svg)](https://github.com/emanuelecella/cowork-prompt-enhancer/actions/workflows/ci.yml)
+[![CI](https://github.com/PatrickDev-it/cowork-prompt-enhancer/actions/workflows/ci.yml/badge.svg)](https://github.com/PatrickDev-it/cowork-prompt-enhancer/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 Cowork is a locally-supervised LLM infrastructure that compiles incomplete, natural-language
@@ -100,7 +100,7 @@ cp .env.example .env   # point COWORK_SERVER_IP/PORT at the server above
 bun run dev
 ```
 
-See [`docs/DEV.md`](docs/DEV.md) for typechecking, linting, and running the test suite.
+See [`docs/DEV.md`](docs/DEV.md) for the reproducible root command surface and development workflow.
 
 ## Decision log
 
@@ -126,4 +126,5 @@ was written, the documents were not. The remaining cited RFCs (0003–0007, 0009
 
 ## License
 
-[MIT](LICENSE)
+[MIT](LICENSE). External runtime and model licenses are documented in
+[`THIRD_PARTY.md`](THIRD_PARTY.md).

@@ -1,3 +1,6 @@
 .sinapsi/graph.json
 .sinapsi/.watcher
 .sinapsi/orchestration.jsonl
+.sinapsi/journal
+.tools/
+node_modules/

@@ -4,6 +4,7 @@
 Reasoning per-richiesta nativo (verificato sul build b9893): `chat_template_kwargs.enable_thinking`
 attiva/spegne il thinking a livello di singola richiesta, e il ragionamento finisce in
 `message.reasoning_content` separato — `content` resta sempre pulito (niente strip lato client)."""
+
 import json
 import os
 import urllib.error
@@ -18,8 +19,10 @@ _CONTEXT_HINTS = ("context", "exceed", "too large", "too long", "n_ctx", "kv cac
 class LlamaServerProvider:
     def __init__(self, base_url: str, request_timeout: float | None = None) -> None:
         self.base_url = base_url.rstrip("/")
-        self.request_timeout = request_timeout if request_timeout is not None else float(
-            os.getenv("COWORK_LLAMA_REQUEST_TIMEOUT_S", "600")
+        self.request_timeout = (
+            request_timeout
+            if request_timeout is not None
+            else float(os.getenv("COWORK_LLAMA_REQUEST_TIMEOUT_S", "600"))
         )
 
     def _post(self, path: str, body: dict, timeout: float) -> dict:
