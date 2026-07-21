@@ -18,7 +18,7 @@ unrelated modification existed. Python formatting was required to make the forma
 - Root frozen Bun install and hash-verified Python install pass.
 - Biome format/lint and Ruff format/lint pass.
 - Client/server typecheck pass.
-- 15 Bun server tests, 32 pytest tests and 1 root integration test pass.
+- 15 Bun server tests, 32 pytest tests and 2 root integration tests pass.
 - Bun and Python dependency audits report no known vulnerabilities.
 - Root and package `node_modules/` trees are ignored; no candidate source file exceeds 10 MiB.
 - Local RTX 3070 Ti and expected artifacts exist; llama endpoint was not running during baseline.
@@ -27,7 +27,8 @@ unrelated modification existed. Python formatting was required to make the forma
 ## Phase 0 external gate
 
 Create `PatrickDev-it/cowork-prompt-enhancer` privately, push the phase branch, apply description/homepage/
-topics, and verify hosted CI. Do not make the repository public before all Phase 4 gates pass.
+topics, and verify hosted CI. The first CI run caught and locally repaired clean-install Bun type resolution;
+push the repair and confirm green. Do not make the repository public before all Phase 4 gates pass.
 
 ## Remaining root RFC work
 

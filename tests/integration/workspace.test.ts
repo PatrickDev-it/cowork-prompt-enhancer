@@ -17,4 +17,11 @@ describe('root workspace contract', () => {
 
     for (const command of required) expect(manifest.scripts[command]).toBeString();
   });
+
+  test('references the public Bun type package from clean workspace installs', async () => {
+    for (const workspace of ['client', 'server']) {
+      const config = await Bun.file(new URL(`../../${workspace}/tsconfig.json`, import.meta.url)).json();
+      expect(config.compilerOptions.types).toEqual(['bun']);
+    }
+  });
 });

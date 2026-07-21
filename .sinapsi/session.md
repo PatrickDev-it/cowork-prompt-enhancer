@@ -139,3 +139,11 @@ remaining external gate actions before Phase 1 begins.
 
 **Validation addendum:** the candidate-file scan exposed root `node_modules/` as newly unignored after
 workspace consolidation. Root `.gitignore` now excludes it; a repeat scan found no candidate over 10 MiB.
+
+## 2026-07-22T04:28:00+02:00 — Phase 0 clean-install CI repair
+
+**Goal:** repair hosted CI failure `TS2688` from a clean workspace install. **Change:** both TypeScript
+configs now reference public type package `bun`, not its non-hoisted transitive package `bun-types`; the
+workspace integration suite enforces this invariant. **Breaking changes:** none. **Validation:** format,
+lint, both typechecks, 15 Bun server tests, 32 pytest tests and 2 integration tests pass. **Status:** ready
+to push and re-run hosted CI.
