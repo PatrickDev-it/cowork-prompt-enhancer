@@ -11,6 +11,7 @@ that file into `prompts.py` / `coercion.py` / `strategies.py` / a thinned `workf
 was the safety net for that split — it stayed green throughout with only these import lines
 changed, verifying the refactor by test, not by re-reading.
 """
+
 from coercion import (
     build_compiled_prompt,
     coerce_value_from_raw,
@@ -38,7 +39,7 @@ def test_normalize_generated_prompt_strips_leading_preamble_line():
 
 
 def test_normalize_generated_prompt_strips_code_fence():
-    assert normalize_generated_prompt("```json\n{\"a\": 1}\n```") == '{"a": 1}'
+    assert normalize_generated_prompt('```json\n{"a": 1}\n```') == '{"a": 1}'
     assert normalize_generated_prompt("```\nplain\n```") == "plain"
 
 
@@ -206,9 +207,7 @@ def test_build_specification_renders_directive_head_when_present():
 
 def test_build_compiled_prompt_falls_back_when_directive_blank():
     result = build_compiled_prompt({})
-    assert result.startswith(
-        "Complete the task described below and deliver a complete, production-ready result."
-    )
+    assert result.startswith("Complete the task described below and deliver a complete, production-ready result.")
 
 
 def test_build_compiled_prompt_renders_provided_directive():

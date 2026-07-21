@@ -1,5 +1,6 @@
 """LLM provider interface — RFC-0014. The minimal "Chat Completions" contract the engine talks to,
 independent of the backend. Stdlib only."""
+
 from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Protocol
@@ -18,6 +19,7 @@ class ProviderContextError(ProviderError):
 @dataclass
 class ChatResult:
     """Backend-independent, normalized result of a chat completion."""
+
     text: str
     finish_reason: str
     prompt_tokens: int
@@ -46,11 +48,8 @@ class LLMProvider(Protocol):
         repeat_penalty: float,
         think: bool = False,
         response_format: dict | None = None,
-    ) -> ChatResult:
-        ...
+    ) -> ChatResult: ...
 
-    def health(self) -> bool:
-        ...
+    def health(self) -> bool: ...
 
-    def info(self) -> dict:
-        ...
+    def info(self) -> dict: ...

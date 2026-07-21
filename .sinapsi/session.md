@@ -77,3 +77,65 @@ import at runtime, not just under pytest's import machinery.
 tree). Phase 3 (stretch) is not started. See `.sinapsi/handoff.md` for what remains, what's fragile,
 and the two placeholder values (GitHub badge/RFC-link paths) that need updating once this repo is
 actually pushed to a remote.
+
+## 2026-07-22T00:53:47+02:00 — Root portfolio-alignment RFC
+
+**Goal:** give implementation agents a single root-level, portfolio-oriented plan that aligns Cowork
+Prompt Enhancer with its intended role as the portfolio flagship, while preserving the authority of
+the accepted decision records under `.sinapsi/rfc/`.
+
+**Changes made:** documentation only. Added `RFC.md` with the verified baseline, 20 prioritized
+problem statements, target architecture and provider modes, public contracts, explicit simplification
+decisions, a five-phase implementation plan, recruiter-facing skill projection, definition of done,
+agent operating contract and rejected alternatives. The RFC proposes public ownership, a GPU-free mock
+path, OpenAI-compatible provider support, protocol/resource hardening and a reproducible semantic
+evaluation harness. It explicitly does not supersede accepted RFCs and freezes new tool categories until
+the launch/evaluation gates are closed.
+
+**Files touched:** `RFC.md` (new), `.sinapsi/session.md`, `.sinapsi/handoff.md`,
+`.sinapsi/summary.md`. Three sibling portfolio repositories received their own independent root RFCs;
+they are outside this repository and do not change Cowork behavior.
+
+**Breaking changes:** none. **Regressions introduced/removed:** none; no source, dependency, protocol,
+configuration or generated artifact was changed.
+
+**Validation performed:** verified `RFC.md` structure and problem count; confirmed all referenced
+paths exist; confirmed the document is Proposed and subordinate to existing accepted RFCs; checked that
+the only repository changes introduced by this patch are the RFC and required Sinapsi memory updates.
+
+**Final status:** root portfolio RFC is documented but not accepted or implemented. The next execution
+patch should start with Phase 0 only after explicit user direction, map work to the root RFC problem IDs
+and applicable accepted `.sinapsi/rfc/` decisions, and preserve the pre-existing dirty worktree.
+
+### Validation addendum
+
+Sinapsi automatically refreshed tracked `.sinapsi/project-map.md` after root `RFC.md` was created; this
+derived change was not manually edited. Final structural validation counted 425 lines and 20 problem
+statements in the Cowork RFC, confirmed balanced Markdown fences and all mandatory execution sections,
+kept `handoff.md` below 150 lines, and ran `git diff --check` without whitespace errors. Across the four
+portfolio projects, the new RFC set totals 1,542 lines and 71 explicitly tracked problems.
+
+## 2026-07-22T04:10:00+02:00 — Root RFC Phase 0: ownership foundation
+
+**Goal:** close P-01 and the repository portions of P-16–P-19 without losing the pre-existing
+Sinapsi 0.2.6 and root-RFC worktree changes.
+
+**Changes made:** accepted root `RFC.md`; added a Bun workspace and root command surface; pinned Bun,
+Node, Python, Biome, TypeScript and direct dependencies; generated hash-verified Python locks; added
+security, contribution, support, release, environment and third-party provenance documentation; corrected
+GitHub ownership; consolidated CI on frozen root commands; added a root-command integration test; applied
+the previously missing Ruff formatter baseline. Pre-existing Sinapsi-generated changes were preserved.
+
+**Breaking changes:** root installation is now lock-authoritative; package-local locks remain historical.
+No runtime protocol or provider behavior changed. **Regressions:** none observed.
+
+**Validation:** frozen install passed; Biome format/lint passed; Ruff format/lint passed; both TypeScript
+packages typechecked; 15 Bun server tests, 32 pytest tests and 1 root integration test passed; Bun and
+Python audits reported no known vulnerabilities; `git diff --check` passed. Local artifacts and GPU were
+present, while the non-running local endpoint correctly reported unreachable.
+
+**Final status:** Phase 0 implementation is complete locally. Remote creation, push and hosted CI are the
+remaining external gate actions before Phase 1 begins.
+
+**Validation addendum:** the candidate-file scan exposed root `node_modules/` as newly unignored after
+workspace consolidation. Root `.gitignore` now excludes it; a repeat scan found no candidate over 10 MiB.

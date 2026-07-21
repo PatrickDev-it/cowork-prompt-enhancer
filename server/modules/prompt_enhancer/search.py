@@ -12,6 +12,7 @@ grounding vuoto — mai un catch silenzioso, mai il crash della richiesta (AGENT
 
 `ddgs` è importato LAZY dentro `web_search`, così `workflow.py` resta importabile e testabile con engine
 stubbato anche senza il pacchetto installato."""
+
 import json
 import os
 import re
@@ -128,12 +129,14 @@ WEB RESULTS:
 
 
 def _plan_subqueries(engine, user_input: str, think: bool = False) -> list:
-    raw = engine.generate(_SUBQUERIES_PROMPT.format(user_input=(user_input or "")[:2000]), max_new_tokens=256, think=think)
+    raw = engine.generate(
+        _SUBQUERIES_PROMPT.format(user_input=(user_input or "")[:2000]), max_new_tokens=256, think=think
+    )
     start, end = raw.find("["), raw.rfind("]")
     if start == -1 or end == -1 or end <= start:
         return []
     try:
-        parsed = json.loads(raw[start:end + 1])
+        parsed = json.loads(raw[start : end + 1])
     except json.JSONDecodeError:
         return []
     if not isinstance(parsed, list):
@@ -150,7 +153,9 @@ def run_deep_research(engine, user_input: str, per_query_results: int = 5, think
     try:
         queries = _plan_subqueries(engine, user_input, think=think)
     except Exception as exc:  # noqa: BLE001 - confine modello: pianificazione fallita ⇒ fallback a una query.
-        print(f"[prompt-enhancer] deep-research: pianificazione sotto-query fallita ({exc}).", file=sys.stderr, flush=True)
+        print(
+            f"[prompt-enhancer] deep-research: pianificazione sotto-query fallita ({exc}).", file=sys.stderr, flush=True
+        )
         queries = []
     if not queries:
         queries = [build_query(user_input)]

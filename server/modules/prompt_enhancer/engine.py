@@ -3,6 +3,7 @@
 `LLMEngine` conserva la STESSA API pubblica usata da workflow.py (`generate`, `extract_json`,
 `gpu_info`), così i chiamanti non cambiano — supera il backend in-process di RFC-0005/0010.
 Solo stdlib; nessun import di llama_cpp, nessuna gestione CUDA/PATH (è responsabilità di llama-server)."""
+
 import json
 import os
 import re
@@ -88,7 +89,7 @@ class LLMEngine:
                 content = messages[0]["content"]
                 if len(content) <= 256:
                     raise
-                messages[0]["content"] = content[-max(256, int(len(content) * 0.75)):]
+                messages[0]["content"] = content[-max(256, int(len(content) * 0.75)) :]
                 effective_tokens = min(effective_tokens, 128)
                 continue
 
