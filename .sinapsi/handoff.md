@@ -4,24 +4,23 @@ Living project context during root RFC launch on 2026-07-22.
 
 ## Current state
 
-Root `RFC.md` is accepted. Phases 0–4 implementation, delivery automation and recruiter documentation are
-committed on `feat/rfc-completion`. The private repository is `PatrickDev-it/cowork-prompt-enhancer` and
-must remain private through every launch gate. PR #1 is open. A workspace-relative CodeQL artifact-path
-correction is the only uncommitted source change.
+Root `RFC.md` is accepted. Phases 0–4 implementation, automation and recruiter delivery merged through
+PR #1 as `74e511e`. The private repository is `PatrickDev-it/cowork-prompt-enhancer` and must stay private
+through the remaining launch gates. Branch `fix/reproducible-python-audit` contains one uncommitted
+deterministic-audit patch discovered by mandatory merged-main verification.
 
 RFC-0026 owns provider profiles, RFC-0027 protocol/security/resource hardening and RFC-0028 evaluation.
-The launch patch adds no provider, protocol, authentication or artifact-format decision.
+The audit patch changes no provider, protocol, authentication, storage or release format.
 
 ## Verified gate
 
-- A fresh Windows clone completed the exact mock quickstart in 8.092 seconds.
-- Its full release gate passed in 93.428 seconds with clean diff/status.
-- 53 Bun unit, 79 pytest and 8 integration tests pass.
-- Formatter, Biome/Ruff, client/server typecheck, 39-file docs and repository scan pass.
-- Bun and Python audits report zero findings.
-- The demo proves compiler success, malformed-output field-loop fallback, artifact and 264 records.
-- The release builder emits 11 assets with 108 dependencies, CycloneDX 1.6 and full SHA-256 coverage.
-- Provider, protocol/security/path, supervisor failure and E2E suites remain green.
+- PR #1 merged after two CI and four CodeQL checks passed; private SARIF artifacts are retained.
+- A merged-main fresh clone installed frozen/hash-locked dependencies in 6.643 seconds.
+- Formatter, Biome/Ruff, both typechecks, 53 Bun unit, 79 pytest and 8 integration tests passed there.
+- Deterministic Bun/Python audits now pass with zero findings and have a workspace regression.
+- A prior clean Windows clone completed quickstart in 8.092 seconds and the release gate in 93.428 seconds.
+- Docs cover 39 files; repository scanning, demo, 264-record benchmark and release validation are green.
+- Release output is 11 assets, 108 dependencies, CycloneDX 1.6 and complete SHA-256 coverage.
 
 ## Evaluation evidence
 
@@ -32,11 +31,11 @@ The launch patch adds no provider, protocol, authentication or artifact-format d
 
 ## Remaining launch work
 
-- Commit/push private SARIF retention and require CI plus both CodeQL language matrices green.
-- Open the P-01–P-20 mapped PR, repair any failure and merge without rewriting history.
-- Repeat mandatory final verification on merged `main`, including supported local inference smoke.
+- Commit/push the deterministic pip-audit patch, open a follow-up PR and require CI/CodeQL green.
+- Merge without rewriting history and repeat the complete mandatory verification from fresh `main`.
+- Run the supported local-provider smoke on the workstation artifacts.
 - Tag v1.0.0, require tag validation green and publish the checksummed release assets.
-- Apply final personal-repository security/branch settings and make the repository public only last.
+- Make the repository public last, then enable native code scanning, secret scanning and required checks.
 
 ## Invariants
 
@@ -48,4 +47,4 @@ The launch patch adds no provider, protocol, authentication or artifact-format d
 
 ## Next action
 
-Commit/push the CodeQL artifact-path correction, then require refreshed hosted CI and CodeQL green on PR #1.
+Commit/push `fix/reproducible-python-audit`, open the follow-up PR and require all hosted checks green.
