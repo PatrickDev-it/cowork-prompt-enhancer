@@ -36,6 +36,7 @@ export const MAX_ACTIVE_COMMANDS = Number(process.env.COWORK_MAX_ACTIVE_COMMANDS
 export const MAX_SESSION_COMMANDS = Number(process.env.COWORK_MAX_SESSION_COMMANDS ?? 2);
 export const MAX_QUEUED_COMMANDS = Number(process.env.COWORK_MAX_QUEUED_COMMANDS ?? 32);
 export const COMMAND_TIMEOUT_MS = Number(process.env.COWORK_COMMAND_TIMEOUT_MS ?? 600_000);
+export const METRICS_ENABLED = process.env.COWORK_METRICS === 'true';
 
 export function isLoopbackHost(host: string): boolean {
   const normalized = host
@@ -102,6 +103,9 @@ export function assertValidConfig(env: NodeJS.ProcessEnv = process.env): void {
   }
   if (remote && (env.COWORK_AUTH_SECRET ?? '').length < 32) {
     throw new Error('Non-loopback binding requires COWORK_AUTH_SECRET with at least 32 characters');
+  }
+  if (remote && env.COWORK_METRICS === 'true') {
+    throw new Error('COWORK_METRICS is supported only on a loopback binding');
   }
   const maxFrame = Number(env.COWORK_MAX_FRAME_BYTES ?? DEFAULT_MAX_FRAME_BYTES);
   const maxPayload = Number(env.COWORK_MAX_PAYLOAD_BYTES ?? DEFAULT_MAX_PAYLOAD_BYTES);

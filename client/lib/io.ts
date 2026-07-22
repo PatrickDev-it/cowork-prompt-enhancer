@@ -3,18 +3,16 @@ import chalk from 'chalk';
 import { INPUT_DIR, ROOT } from '@/config';
 
 /**
- * Crea `(io)/input` e `(io)/output` se assenti — controllato allo start del client, non solo
- * all'apertura di una sessione: `INPUT_DIR` deve esistere già perché l'utente ci depositi un
- * file prima ancora di connettersi al server (RFC-0009 § 1); `ROOT` viene predisposto qui per
- * lo stesso motivo, oltre alla sottocartella di sessione creata poi da `events/session.ts`.
+ * Create the input and output roots during client startup. `INPUT_DIR` must exist before connection so
+ * the operator can place a request file there; the session handler creates the final session subdirectory.
  */
 export function ensureIODirs() {
   for (const dir of [INPUT_DIR, ROOT]) {
     try {
       mkdirSync(dir, { recursive: true });
     } catch (err) {
-      console.error(chalk.red(`Impossibile creare ${dir}: ${err instanceof Error ? err.message : String(err)}`));
+      console.error(chalk.red(`Unable to create ${dir}: ${err instanceof Error ? err.message : String(err)}`));
     }
   }
-  console.log(chalk.gray(`(io) pronta — input: ${INPUT_DIR} | output: ${ROOT}`));
+  console.log(chalk.gray(`I/O ready - input: ${INPUT_DIR} | output: ${ROOT}`));
 }

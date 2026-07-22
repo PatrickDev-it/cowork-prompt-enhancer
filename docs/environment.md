@@ -33,6 +33,7 @@ and `openai_compatible` maps to `openai-compatible`; conflicts are rejected.
 | `COWORK_MAX_SESSION_COMMANDS` | `2` | Per-connection active-command bound. |
 | `COWORK_MAX_QUEUED_COMMANDS` | `32` | Global queued-command bound. |
 | `COWORK_COMMAND_TIMEOUT_MS` | `600000` | End-to-end command deadline. |
+| `COWORK_METRICS` | `false` | Expose bounded, credential-free request traces at loopback-only `/metrics`. |
 | `COWORK_ROOT` | current working directory | Session capability root. |
 | `COWORK_INPUT_DIR` | profile-specific | Optional project input root. |
 | `COWORK_PYTHON` | `server/modules/.venv/.../python` | Python worker executable. |

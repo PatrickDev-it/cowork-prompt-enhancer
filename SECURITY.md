@@ -26,3 +26,6 @@ Frames and decoded payloads, active/queued work, reconnect attempts and command 
 File operations are capability-limited and confined through canonical path checks beneath the session
 root. Provider credentials must be supplied only through environment variables and are redacted from
 logs and errors.
+
+Request metrics are disabled by default. When explicitly enabled they expose only bounded, sanitized
+traces on loopback; configuration fails if metrics and non-loopback binding are combined.

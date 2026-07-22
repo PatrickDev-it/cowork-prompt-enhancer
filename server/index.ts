@@ -4,6 +4,7 @@ import {
   AUTH_SECRET,
   HOST,
   MAX_FRAME_BYTES,
+  METRICS_ENABLED,
   PORT,
   PROFILE,
   assertValidConfig,
@@ -12,11 +13,12 @@ import {
 import { init } from '@/events/init';
 import { openSession } from '@/events/session';
 import { ChallengeStore } from '@/lib/auth';
+import { requestMetrics } from '@/lib/metrics';
 import { $WSWrapper, type SocketData } from '@/lib/ws';
 import { startLlm } from '@/modules/llm';
 import { warmUpPromptEnhancer } from '@/modules/prompt_enhancer';
 import { tools } from '@/tools';
-import { bindScheduler, cancelSessionCommands, registerTool } from '@/tools/runtime';
+import { bindScheduler, cancelSessionCommands, commandScheduler, registerTool } from '@/tools/runtime';
 
 assertValidConfig();
 if (PROFILE === 'local') startLlm();
@@ -40,6 +42,13 @@ Bun.serve<SocketData>({
       const clientId = url.searchParams.get('clientId') ?? '';
       if (!clientIdPattern.test(clientId)) return jsonError(400, 'invalid_client_id');
       return Response.json(challenges.issue(), { headers: { 'Cache-Control': 'no-store' } });
+    }
+    if (url.pathname === '/metrics') {
+      if (!METRICS_ENABLED || remoteBinding) return jsonError(404, 'not_found');
+      const { active, queued } = commandScheduler.stats();
+      return Response.json(requestMetrics.snapshot({ active, queued }), {
+        headers: { 'Cache-Control': 'no-store' },
+      });
     }
 
     const requestedClientId = url.searchParams.get('clientId') ?? '';

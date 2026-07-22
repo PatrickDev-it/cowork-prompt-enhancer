@@ -2,8 +2,10 @@
 
 import argparse
 import json
+import os
 import sys
 import threading
+import time
 
 from correlation import reset_correlation_id, set_correlation_id
 from engine import LLMEngine, resolve_model_id
@@ -43,6 +45,8 @@ def run_serve(engine: LLMEngine) -> None:
             request = json.loads(raw_line)
             request_id = request.get("id")
             correlation_token = set_correlation_id(str(request_id or ""))
+            engine.reset_metrics()
+            started = time.perf_counter()
             result = run_enhancement(
                 engine=engine,
                 user_input=request["prompt"],
@@ -52,7 +56,27 @@ def run_serve(engine: LLMEngine) -> None:
                 project_context=str(request.get("project_context", "") or ""),
                 deep_research=bool(request.get("deep_research", False)),
             )
-            response = {"id": request_id, "prompt": result["compiled_prompt"], "research": result.get("research", "")}
+            calls = engine.snapshot_metrics()
+            generation_mode = str(result["debug"]["generation_mode"])
+            requested_strategy = os.getenv("COWORK_PROMPT_ENHANCER_STRATEGY", "compiler").strip().lower()
+            fallback_used = requested_strategy in {"compiler", "single_pass"} and generation_mode == (
+                "single_generic_prompt_template"
+            )
+            response = {
+                "id": request_id,
+                "prompt": result["compiled_prompt"],
+                "research": result.get("research", ""),
+                "trace": {
+                    "generationMs": round((time.perf_counter() - started) * 1000, 3),
+                    "providerMs": round(sum(float(call["generation_ms"]) for call in calls), 3),
+                    "providerCalls": len(calls),
+                    "promptTokens": sum(int(call["prompt_tokens"]) for call in calls),
+                    "completionTokens": sum(int(call["completion_tokens"]) for call in calls),
+                    "generationMode": generation_mode,
+                    "fallbackUsed": fallback_used,
+                    "grounded": bool(result["debug"]["grounded"]),
+                },
+            }
         except Exception as exc:  # noqa: BLE001 - process boundary: one bad request must not kill the worker.
             response = {"id": request_id, "error": str(exc), "error_code": getattr(exc, "code", "internal_error")}
         finally:

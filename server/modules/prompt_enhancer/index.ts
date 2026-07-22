@@ -2,23 +2,29 @@ import { randomUUID } from 'node:crypto';
 import { LLAMA_SERVER_URL, PROFILE, PROMPT_ENHANCER_DIR, PYTHON_BIN } from '@/config';
 import { ensureLlmReady } from '@/modules/llm';
 
+export interface EnhancementTrace {
+  generationMs: number;
+  providerMs: number;
+  providerQueueMs: number;
+  providerCalls: number;
+  promptTokens: number;
+  completionTokens: number;
+  generationMode: string;
+  fallbackUsed: boolean;
+  grounded: boolean;
+}
+
 /**
- * Manager del prompt-enhancer — RFC-0014 (supera il worker in-process di RFC-0010). Due processi
- * supervisionati: (1) `llama-server` esterno che tiene il modello e serve l'API OpenAI-compatible
- * (ciclo di vita in `llama_server.ts`); (2) un worker Python persistente (`cli.py --serve`) che
- * orchestra la generazione e parla al server **solo via API OpenAI** (engine.py = client HTTP,
- * niente più `Llama()` in-process).
- *
- * Concorrenza (RFC-0014, requisito 9): il server gira con `--parallel N` (continuous batching). Il
- * worker Python processa le richieste in thread concorrenti; qui le richieste sono correlate per
- * `id` (le risposte possono tornare fuori ordine) con una finestra di concorrenza configurabile
- * (`COWORK_PROMPT_ENHANCER_CONCURRENCY`). Il contratto sul filo resta JSON-lines.
+ * Prompt-enhancer manager (RFC-0014). A persistent Python worker orchestrates generation through the
+ * selected provider; only the local profile owns a supervised external llama-server process. Concurrent
+ * JSON-lines requests are correlated by ID and bounded to the configured provider slot count.
  */
 
 interface EnhanceResult {
   prompt: string;
-  /** Report di deep-research (RFC-0022): presente e non vuoto solo se `deepResearch` era attivo. */
+  /** Deep-research report; non-empty only when explicitly requested and successfully produced. */
   research?: string;
+  trace: EnhancementTrace;
 }
 
 interface WorkerResponse {
@@ -27,6 +33,7 @@ interface WorkerResponse {
   research?: string;
   error?: string;
   error_code?: string;
+  trace?: Omit<EnhancementTrace, 'providerQueueMs'>;
 }
 
 export class EnhancementError extends Error {
@@ -39,7 +46,7 @@ export class EnhancementError extends Error {
   }
 }
 
-/** Parametri opzionali del run — RFC-0021 (project_context), RFC-0022 (deep_research). */
+/** Optional request controls (RFC-0021 project context, RFC-0022 deep research). */
 export interface EnhanceOptions {
   search?: boolean;
   projectContext?: string;
@@ -54,17 +61,15 @@ interface WorkerHandle {
 
 let handle: WorkerHandle | null = null;
 
-/** Richieste in volo, correlate per id (le risposte arrivano potenzialmente fuori ordine). */
+/** In-flight requests correlated by ID; responses may arrive out of order. */
 const pending = new Map<string, { resolve: (r: WorkerResponse) => void; reject: (e: Error) => void }>();
 
-/** Serializza le SCRITTURE su stdin (una riga JSON atomica per volta); il PROCESSING resta concorrente. */
+/** Serialize atomic JSON-lines writes to stdin while processing remains concurrent. */
 let writeChain: Promise<void> = Promise.resolve();
 
 /**
- * Finestra di concorrenza lato app: **deve combaciare con `--parallel` del server** (RFC-0024) — se il
- * worker manda più richieste degli slot, si crea una coda inutile; se ne manda meno, gli slot restano idle.
- * Default 4 = 4 slot llama-server (config production 3-4 utenti, benchmark 2026-07-08). Override coerente:
- * cambiare INSIEME `COWORK_PROMPT_ENHANCER_CONCURRENCY` e `LLAMA_PARALLEL`.
+ * Application concurrency should match the local server's `--parallel` slot count (RFC-0024). The
+ * default is four; override `COWORK_PROMPT_ENHANCER_CONCURRENCY` and `LLAMA_PARALLEL` together.
  */
 const CONCURRENCY = Math.max(1, Number(process.env.COWORK_PROMPT_ENHANCER_CONCURRENCY ?? 4));
 let inFlight = 0;
@@ -106,7 +111,7 @@ function release(): void {
   } else inFlight -= 1;
 }
 
-/** Log del worker (stderr): minimale ormai (il modello è in llama-server). Va sulla console. */
+/** Forward the worker's minimal stderr diagnostics. */
 function pumpStderr(stream: ReadableStream<Uint8Array>): void {
   void (async () => {
     const decoder = new TextDecoder();
@@ -123,7 +128,7 @@ function pumpStderr(stream: ReadableStream<Uint8Array>): void {
   })();
 }
 
-/** Legge le righe JSON del worker e le smista alla richiesta corrispondente per `id`. */
+/** Dispatch JSON-lines worker responses to the matching request ID. */
 function pumpStdout(stream: ReadableStream<Uint8Array>): void {
   void (async () => {
     const decoder = new TextDecoder();
@@ -139,7 +144,7 @@ function pumpStdout(stream: ReadableStream<Uint8Array>): void {
         try {
           response = JSON.parse(line);
         } catch {
-          console.log(`[prompt-enhancer] riga non-JSON ignorata: ${line.slice(0, 120)}`);
+          console.log(`[prompt-enhancer] ignored non-JSON worker line: ${line.slice(0, 120)}`);
           continue;
         }
         const waiter = pending.get(response.id);
@@ -149,8 +154,7 @@ function pumpStdout(stream: ReadableStream<Uint8Array>): void {
         }
       }
     }
-    // stdout chiuso: il worker è morto, fallisci tutte le richieste in volo.
-    failAllPending(new Error('stdout del worker prompt-enhancer chiuso'));
+    failAllPending(new Error('prompt-enhancer worker stdout closed'));
   })();
 }
 
@@ -164,8 +168,7 @@ function failAllPending(err: Error): void {
 function spawnWorker(): WorkerHandle {
   const proc = Bun.spawn([PYTHON_BIN, 'cli.py', '--serve'], {
     cwd: PROMPT_ENHANCER_DIR,
-    // Il worker non carica più un modello: è un orchestratore che parla a llama-server via HTTP.
-    // Gli passiamo l'URL del server (RFC-0014). Nessuna dipendenza GPU/CUDA nel processo Python.
+    // The worker is an HTTP orchestrator with no embedded model or GPU dependency.
     env: { ...process.env, COWORK_LLAMA_SERVER_URL: LLAMA_SERVER_URL },
     stdin: 'pipe',
     stdout: 'pipe',
@@ -178,7 +181,7 @@ function spawnWorker(): WorkerHandle {
 
   proc.exited.then(() => {
     if (handle === created) handle = null;
-    failAllPending(new Error('worker prompt-enhancer terminato'));
+    failAllPending(new Error('prompt-enhancer worker terminated'));
   });
 
   return created;
@@ -190,19 +193,16 @@ function ensureWorker(): WorkerHandle {
 }
 
 /**
- * Avvia il worker Python subito, senza attendere una richiesta reale — RFC-0014/0015. Il modello
- * (llama-server) è avviato dall'infra LLM condivisa (`@/modules/llm`, in `server/index.ts`), non
- * qui: prompt_enhancer è solo un consumatore del modello condiviso. Spawn fire-and-forget.
+ * Start the Python worker before the first request. Shared LLM infrastructure owns llama-server;
+ * this module owns only the provider-orchestration worker.
  */
 export function warmUpPromptEnhancer(): void {
   ensureWorker();
 }
 
 /**
- * Potenzia un prompt. Attende `/health` del server (semantica RFC-0010: la prima richiesta attende
- * il caricamento), poi invia al worker sotto una finestra di concorrenza (RFC-0014). Le richieste
- * concorrenti sono correlate per `id` e aggregate da llama-server (continuous batching). `onLog`
- * resta nell'API per compatibilità; il log significativo (caricamento modello) è ora del supervisor.
+ * Compile a request after local readiness, bounded by the provider concurrency window. `onLog` remains
+ * for compatibility; lifecycle diagnostics are owned by the supervisor.
  */
 export async function enhancePrompt(
   prompt: string,
@@ -213,7 +213,9 @@ export async function enhancePrompt(
 ): Promise<EnhanceResult> {
   if (options.signal?.aborted) throw options.signal.reason;
   if (PROFILE === 'local') await ensureLlmReady(options.signal);
+  const providerQueuedAt = performance.now();
   await acquire(options.signal);
+  const providerQueueMs = performance.now() - providerQueuedAt;
   try {
     const worker = ensureWorker();
     const id = options.correlationId ?? randomUUID();
@@ -234,8 +236,7 @@ export async function enhancePrompt(
     };
     options.signal?.addEventListener('abort', abort, { once: true });
 
-    // Campi opzionali inviati solo se presenti: il worker Python li tratta come default se assenti
-    // (search=None ⇒ gate RFC-0020; project_context="" ; deep_research=false).
+    // Send optional fields only when present; the worker owns their defaults.
     const request: Record<string, unknown> = { id, prompt, mode, think };
     if (options.search !== undefined) request.search = options.search;
     if (options.projectContext) request.project_context = options.projectContext;
@@ -268,7 +269,22 @@ export async function enhancePrompt(
     if (typeof response.prompt !== 'string' || !response.prompt) {
       throw new Error('The prompt-enhancer worker produced no prompt.');
     }
-    return { prompt: response.prompt, research: response.research ?? '' };
+    const trace = response.trace;
+    return {
+      prompt: response.prompt,
+      research: response.research ?? '',
+      trace: {
+        generationMs: trace?.generationMs ?? 0,
+        providerMs: trace?.providerMs ?? 0,
+        providerQueueMs,
+        providerCalls: trace?.providerCalls ?? 0,
+        promptTokens: trace?.promptTokens ?? 0,
+        completionTokens: trace?.completionTokens ?? 0,
+        generationMode: trace?.generationMode ?? 'unknown',
+        fallbackUsed: trace?.fallbackUsed ?? false,
+        grounded: trace?.grounded ?? false,
+      },
+    };
   } finally {
     release();
   }
@@ -276,7 +292,7 @@ export async function enhancePrompt(
 
 function shutdownWorker(): void {
   handle?.proc.kill();
-  // Il modello condiviso (llama-server) è fermato dall'infra LLM (@/modules/llm), non qui.
+  // Shared LLM infrastructure owns llama-server shutdown.
 }
 
 process.once('exit', shutdownWorker);

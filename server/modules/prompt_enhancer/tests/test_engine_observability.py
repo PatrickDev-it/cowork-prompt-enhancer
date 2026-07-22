@@ -1,5 +1,7 @@
 """Credential-free provider-call observations used by the evaluation pipeline."""
 
+import threading
+
 from config import ProviderConfig
 from engine import LLMEngine
 from providers import ProviderContextError
@@ -46,3 +48,22 @@ def test_engine_observation_reduces_model_paths_to_artifact_name():
     metrics = engine.snapshot_metrics()
     assert metrics[0]["model"] == "fixture.gguf"
     assert "private" not in str(metrics)
+
+
+def test_engine_observations_are_isolated_between_worker_threads():
+    engine = LLMEngine(config=mock_config())
+    observed: list[list[dict]] = []
+
+    def generate(request: str) -> None:
+        engine.reset_metrics()
+        engine.generate(f"REQUEST:\n{request}\nCompile the REQUEST")
+        observed.append(engine.snapshot_metrics())
+
+    threads = [threading.Thread(target=generate, args=(f"request-{index}",)) for index in range(2)]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join()
+
+    assert len(observed) == 2
+    assert all(len(calls) == 1 and calls[0]["call"] == 1 for calls in observed)
