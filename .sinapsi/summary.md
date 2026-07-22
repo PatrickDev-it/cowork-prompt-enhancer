@@ -55,6 +55,7 @@ patch: the project's shape (above), the last sessions at a glance, and a short r
 agent at the end of every patch, at the same time it appends session.md. Drop the
 11th; the full history is in session.md and, once archived, in archive/. -->
 
+- 2026-07-22T04:26:10+02:00 — Made CodeQL evidence portable across private and public repository visibility.
 - 2026-07-22T04:20:04+02:00 — Passed the clean-clone launch gate and repaired least-privilege CodeQL access.
 - 2026-07-22T04:15:01+02:00 — Fixed CRLF formatter drift exposed by the first clean Windows clone.
 - 2026-07-22T04:12:41+02:00 — Replaced the public narrative with measured recruiter-first documentation.
@@ -64,7 +65,6 @@ agent at the end of every patch, at the same time it appends session.md. Drop th
 - 2026-07-22T03:50:09+02:00 — Added bounded end-to-end request traces and completed runtime English output cleanup.
 - 2026-07-22T03:27:34+02:00 — Published 296 sanitized mock/local reference records with measured results and provenance.
 - 2026-07-22T03:17:25+02:00 — Excluded generated Python bytecode from evaluation and release commits.
-- 2026-07-22T03:15:15+02:00 — Implemented the 64-case deterministic evaluation, evidence pipeline and real local comparison.
 
 ## Where things stand
 
@@ -79,6 +79,6 @@ at the end of every patch. If it grows past 10 lines it has stopped being a summ
 - Mock/local/openai-compatible providers, protocol v1, remote HMAC auth, bounded resources and tracing are implemented.
 - `cowork-eval/v1` has 64 balanced cases and 296/296 successful sanitized mock/local reference records.
 - The 133-line README leads with measured evidence; demo, 11-asset SBOM/checksum release and provenance align.
-- Private GitHub CI is green; CodeQL needs the pending least-privilege `actions: read` repair pushed and verified.
+- PR #1 is open and CI is green; pending CodeQL repair retains private SARIF and uploads natively once public.
 - Remaining work is hosted PR/merge, merged-main verification, v1.0.0 release, security settings and final public launch.
 - Preserve the field-loop fallback; never commit local artifacts/credentials or touch unrelated repositories.

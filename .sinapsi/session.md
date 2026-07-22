@@ -447,3 +447,24 @@ documentation links, repository scanning and `git diff --check` pass.
 
 **Final status:** all local implementation and clean-clone gates are complete. Commit/push the permission
 repair, require CI and both CodeQL matrices green, then open/merge the mapped PR and publish v1.0.0.
+
+## 2026-07-22T04:26:10+02:00 — Portable CodeQL evidence across repository visibility
+
+**Goal:** keep CodeQL mandatory while respecting GitHub's availability boundary for a personal private
+repository and preserving the rule that public visibility is the final launch action.
+
+**Hosted evidence:** push and PR CI both passed, and CodeQL completed TypeScript and Python extraction and
+analysis. Both jobs failed only when GitHub rejected SARIF upload because code scanning is unavailable for
+this private repository; the previous workflow-metadata permission error is resolved.
+
+**Fix:** CodeQL now always generates language-specific SARIF. While private it retains each result as a
+seven-day workflow artifact without requesting the unavailable code-scanning endpoint; once public it
+automatically uploads results to native code scanning. The matrix, queries and failure behavior are
+unchanged. Official GitHub documentation confirms code scanning availability for public repositories and
+the CodeQL `never` upload mode.
+
+**Validation:** workflow YAML and expression structure parse, 39 documentation files validate, the tracked
+repository scan is green and `git diff --check` passes.
+
+**Final status:** commit/push the visibility-aware evidence path and require refreshed CI plus both CodeQL
+matrices green before merging PR #1.
