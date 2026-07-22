@@ -2,7 +2,8 @@
 
 Releases follow Semantic Versioning. Stable releases are tagged `vMAJOR.MINOR.PATCH` from a green `main`
 branch and contain source, changelog, SBOM/dependency inventory, third-party provenance, benchmark report,
-and checksums for produced text artifacts.
+and checksums for every produced asset. Tag pushes rebuild the bundle from the tagged commit; release
+publication is a deliberate maintainer action after the validation workflow passes.
 
 The repository remains private until frozen installation, tests, audits, secret scanning, documentation
 links, mock quickstart, and release-package validation all pass from a clean checkout. Models, executables,

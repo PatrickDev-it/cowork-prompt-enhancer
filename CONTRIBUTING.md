@@ -13,6 +13,8 @@ Before opening a pull request, run:
 ```bash
 bun run check
 bun run audit
+bun run docs:check
+bun run security:scan
 ```
 
 Changes must retain strict TypeScript, Ruff and Biome enforcement. Every defect fix requires a

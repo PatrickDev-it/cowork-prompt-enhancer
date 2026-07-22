@@ -55,6 +55,7 @@ patch: the project's shape (above), the last sessions at a glance, and a short r
 agent at the end of every patch, at the same time it appends session.md. Drop the
 11th; the full history is in session.md and, once archived, in archive/. -->
 
+- 2026-07-22T04:08:46+02:00 — Added expanded CI, CodeQL, Dependabot and tag-based release validation.
 - 2026-07-22T04:04:50+02:00 — Made credential-scan regression fixtures inert without weakening detection.
 - 2026-07-22T04:01:42+02:00 — Added the reproducible demo, scans, SBOM and checksummed release bundle gate.
 - 2026-07-22T03:50:09+02:00 — Added bounded end-to-end request traces and completed runtime English output cleanup.
@@ -64,7 +65,6 @@ agent at the end of every patch, at the same time it appends session.md. Drop th
 - 2026-07-22T02:55:00+02:00 — Accepted RFC-0028 for versioned deterministic evaluation and evidence governance.
 - 2026-07-22T02:45:57+02:00 — Completed Phase 2 authenticated protocol, bounded resources, cancellation, confinement and E2E hardening.
 - 2026-07-22T02:15:00+02:00 — Accepted RFC-0027 for authenticated protocol v1, bounded resources and canonical confinement.
-- 2026-07-22T02:05:52+02:00 — Completed Phase 1 portable providers, setup/preflight, offline demo and real local smoke.
 
 ## Where things stand
 
@@ -82,5 +82,6 @@ at the end of every patch. If it grows past 10 lines it has stopped being a summ
 - `cowork-eval/v1` has 64 balanced cases and 296/296 successful sanitized mock/local reference records.
 - Bounded end-to-end request tracing is opt-in, sanitized and loopback-only; public runtime output is English.
 - The offline demo proves fallback/artifact/benchmark paths; repository scans and the 11-file release bundle validate.
-- Recruiter documentation, hosted security/PR/CI, v1.0.0 and final public launch remain.
+- Hosted CI now covers the full delivery gate; CodeQL, dependency updates and tag validation are configured.
+- Recruiter documentation, hosted execution/PR, v1.0.0 and final public launch remain.
 - Preserve the historical field-loop fallback and never commit local runtime artifacts or credentials.

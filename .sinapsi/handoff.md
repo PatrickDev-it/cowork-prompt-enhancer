@@ -5,7 +5,7 @@ Living project context during root RFC Phase 4 on 2026-07-22.
 ## Current state
 
 Root `RFC.md` is accepted. Phases 0–3, P-15/P-18 observability and Phase 4 delivery tooling are committed.
-An inert secret-scan fixture fix is awaiting commit. The private repository is `PatrickDev-it/cowork-prompt-enhancer`;
+Hosted security/release automation is complete and awaiting commit. The private repository is `PatrickDev-it/cowork-prompt-enhancer`;
 hosted CI run 29884245471 for `d13fcf5` is green. Keep it private through all launch gates.
 
 RFC-0026 owns provider profiles, RFC-0027 protocol/security/resource hardening and RFC-0028 evaluation.
@@ -30,7 +30,7 @@ The delivery tooling adds no public provider, protocol, authentication or artifa
 ## Remaining root RFC work
 
 - Commit/push the delivery tooling and require hosted CI green.
-- Add current CodeQL, Dependabot, release workflow and expanded CI launch gates.
+- Push the expanded CI, CodeQL, Dependabot and tag-release automation; repair every hosted failure.
 - Replace the long README with recruiter-first measured evidence; synchronize support, architecture,
   threat, release and provenance documentation.
 - Validate a clean clone, open the mapped PR, repair CI, merge without history rewriting, tag/release
@@ -46,4 +46,4 @@ The delivery tooling adds no public provider, protocol, authentication or artifa
 
 ## Next action
 
-Commit the inert scan-fixture fix, rerun the clean release gate, then implement hosted automation.
+Commit/push hosted automation, require CI/CodeQL evidence, then rewrite recruiter-facing documentation.

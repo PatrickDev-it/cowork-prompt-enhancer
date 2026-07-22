@@ -365,3 +365,25 @@ so the scanner continues to prove detection while its own tracked source is safe
 `git diff --check` passes. Detection rules and release strictness are unchanged.
 
 **Final status:** commit this regression fix, then rerun the clean official release gate.
+
+## 2026-07-22T04:08:46+02:00 — Hosted security and release automation
+
+**Goal:** complete the repository automation portions of P-17, P-19 and P-20 with current hosted-action
+runtimes and reproducible tag validation.
+
+**Changes made:** expanded CI to run frozen installation, complete format/lint/type/test gates, offline
+preflight/demo/benchmark, dependency audit, repository scan, documentation validation, release build and
+checksum validation, then retain the validated bundle. Added matrix CodeQL analysis for TypeScript and
+Python, weekly/tag/PR triggers with least-privilege permissions, weekly Dependabot coverage for Bun/npm,
+Python and GitHub Actions, and a tag workflow that rebuilds the release from the tagged commit.
+
+Actions use the current official major lines verified on 2026-07-22: checkout v7, setup-python v6,
+upload-artifact v7 and CodeQL v4; setup-bun remains the verified v2 line. Contribution and release policy
+now require the repository and documentation gates.
+
+**Validation:** all four YAML files parse successfully, Biome/Ruff and formatting pass, 39 Markdown files
+validate, the tracked repository scan is green and `git diff --check` passes. Hosted execution remains the
+required post-push evidence.
+
+**Final status:** automation is ready to commit and push; repair any hosted CI or CodeQL failure before
+continuing to recruiter documentation.
