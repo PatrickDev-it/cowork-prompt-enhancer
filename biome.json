@@ -12,6 +12,7 @@
       "scripts/**",
       "tests/**",
       "protocol/**",
+      "evaluation/**",
       "*.json",
       "!**/node_modules",
       "!**/.venv",

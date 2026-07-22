@@ -3,6 +3,7 @@
 import json
 import os
 import re
+import time
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -55,6 +56,43 @@ class LLMEngine:
         self.presence_penalty = float(os.getenv("COWORK_PROMPT_ENHANCER_PRESENCE_PENALTY", "0.0"))
         self.repeat_penalty = float(os.getenv("COWORK_PROMPT_ENHANCER_REPEAT_PENALTY", "1.0"))
         self.temperature = float(os.getenv("COWORK_PROMPT_ENHANCER_TEMP", str(self.temperature)))
+        self._generation_metrics: list[dict] = []
+
+    def reset_metrics(self) -> None:
+        """Clear per-call observations before a benchmark case starts."""
+
+        self._generation_metrics.clear()
+
+    def snapshot_metrics(self) -> list[dict]:
+        """Return a credential-free copy of provider call observations."""
+
+        return [dict(item) for item in self._generation_metrics]
+
+    def _record_call(
+        self,
+        started: float,
+        effective_tokens: int,
+        *,
+        prompt_tokens: int = 0,
+        completion_tokens: int = 0,
+        finish_reason: str = "",
+        error_code: str | None = None,
+    ) -> None:
+        self._generation_metrics.append(
+            {
+                "call": len(self._generation_metrics) + 1,
+                "profile": self.backend,
+                "model": str(self.model_source).replace("\\", "/").rsplit("/", 1)[-1],
+                "requested_completion_tokens": effective_tokens,
+                "prompt_tokens": prompt_tokens,
+                "completion_tokens": completion_tokens,
+                "finish_reason": finish_reason,
+                "generation_ms": round((time.perf_counter() - started) * 1000, 3),
+                "queue_ms": 0.0,
+                "success": error_code is None,
+                "error_code": error_code,
+            }
+        )
 
     def generate(
         self,
@@ -68,6 +106,7 @@ class LLMEngine:
         effective_tokens = max(1, int(tokens))
 
         for _ in range(5):
+            started = time.perf_counter()
             try:
                 result = self.provider.chat(
                     messages,
@@ -81,7 +120,8 @@ class LLMEngine:
                     think=think,
                     response_format=response_format,
                 )
-            except ProviderContextError:
+            except ProviderContextError as exc:
+                self._record_call(started, effective_tokens, error_code=exc.code)
                 if effective_tokens > 256:
                     effective_tokens = max(256, effective_tokens // 2)
                     continue
@@ -91,6 +131,17 @@ class LLMEngine:
                 messages[0]["content"] = content[-max(256, int(len(content) * 0.75)) :]
                 effective_tokens = min(effective_tokens, 128)
                 continue
+            except Exception as exc:
+                self._record_call(started, effective_tokens, error_code=getattr(exc, "code", "provider_error"))
+                raise
+
+            self._record_call(
+                started,
+                effective_tokens,
+                prompt_tokens=result.prompt_tokens,
+                completion_tokens=result.completion_tokens,
+                finish_reason=result.finish_reason,
+            )
 
             if response_format is not None:
                 return result.text

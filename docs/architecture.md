@@ -24,6 +24,12 @@ flowchart LR
 The historical `run_enhancement_field_loop` remains unchanged. Provider, transport and scheduling
 failures cannot remove the deterministic fallback from the workflow.
 
+The versioned evaluation boundary is outside the production request path. `cowork-eval/v1` supplies
+public cases and timestamped grounding fixtures to raw, thin, compiler and field-loop strategies. The
+runner records credential-free provider observations, deterministic quality metrics and separate
+compiler/fallback outcomes as JSONL plus environment, summary and report artifacts. Reference runs
+never perform live retrieval; blinded human ratings are an optional import and are not synthesized.
+
 ## Protocol and request lifecycle
 
 All application frames are discriminated protocol-v1 envelopes defined once in `protocol/index.ts`:

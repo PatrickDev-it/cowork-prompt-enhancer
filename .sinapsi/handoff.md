@@ -1,58 +1,59 @@
 # Handoff
 
-Living project context after root RFC Phase 2 implementation on 2026-07-22.
+Living project context after root RFC Phase 3 implementation on 2026-07-22.
 
 ## Current state
 
-Root `RFC.md` is accepted. Phases 0–2 close P-01–P-07 and P-11–P-13 locally, plus applicable
-P-15/P-16/P-19 work. The private repository is `PatrickDev-it/cowork-prompt-enhancer`; Phase 1 hosted CI
-run 29879307065 is green. Keep it private until every Phase 4 launch gate passes.
+Root `RFC.md` is accepted. Phases 0–3 close P-01–P-15 locally, plus applicable P-16/P-19 work.
+The private repository is `PatrickDev-it/cowork-prompt-enhancer`; Phase 2 hosted CI run 29881246507 is
+green. Keep it private until every Phase 4 launch gate passes.
 
-RFC-0026 owns deterministic `mock` (default), supervised `local`, and credentialed vendor-neutral
-`openai-compatible` profiles. RFC-0027 owns loopback-default binding, HMAC challenge authentication,
-protocol-v1 envelopes, stable errors, bounded scheduling/cancellation/reconnect, canonical filesystem
-confinement and the injectable llama supervisor.
+RFC-0026 owns the three provider profiles. RFC-0027 owns protocol-v1, remote HMAC authentication,
+bounded scheduling/cancellation/reconnect, canonical paths and supervisor state. RFC-0028 owns the
+`cowork-eval/v1` dataset, deterministic evidence formats and blinded review protocol.
 
-RFC-0028 now owns Phase 3 evidence: `cowork-eval/v1`, 64 balanced cases, deterministic primary metrics,
-complete mock comparison, declared stratified local comparison, provenance, immutable raw/report formats
-and blinded human-review exchange without invented ratings.
+## Verified Phase 3 implementation gate
 
-## Verified Phase 2 gate
-
-- Formatter, Biome/Ruff lint and client/server typecheck pass.
-- 46 Bun unit, 62 pytest and 7 integration tests pass.
-- Named suites: provider 25, protocol/security/path 26, supervisor failure injection 5, E2E 4.
-- E2E proves full mock artifact delivery, remote anonymous/replay rejection, provider cancellation, and
-  server restart/client reconnect without duplicate execution.
-- Real RTX 3070 Ti local-provider smoke passes; no llama-server or Python worker remains orphaned.
-- Bun and pip audits report no vulnerabilities; secret-pattern scan and `git diff --check` pass.
+- Formatter, Biome/Ruff, client/server typecheck, 46 Bun unit and 7 integration tests pass.
+- Pytest rises from 62 to 77 full-suite tests; 80 targeted checks passed after the final observability
+  regression addition. Provider conformance remains 25/25.
+- Full mock evaluation produces 264 records across all 64 balanced cases and five applicable strategies.
+- Real local evaluation produces 32 records across eight categories and four core strategies on an RTX
+  3070 Ti; no owned llama-server process remains.
+- Local compiler: recall 1.000, precision 1.000, structure 0.833, executability 0.975, p50 8979 ms.
+- Local raw: recall 1.000, precision 1.000, structure 0.333, executability 0.725. This is an eight-case
+  lexical-metric reference, not a full-corpus or human result.
 
 ## Important implementation facts
 
-- Protocol source of truth is `protocol/index.ts`; legacy frames are intentionally invalid.
-- Default bounds: 1 MiB frame, 512 KiB payload, 4 global active, 2/session, 32 queued, 600 s deadline.
-- Remote bind requires explicit opt-in and a minimum 32-character secret; challenge/proof values are not
-  logged. TLS termination remains an operator responsibility beyond a trusted network.
-- Cancellation kills the shared Python worker to terminate its provider request; concurrent requests fail
-  safely and are not replayed.
-- Path confinement rejects absolute/traversal/mixed/reserved paths and symlink/junction ancestors.
+- `evaluation/datasets/v1/cases.jsonl` has 64 public non-sensitive cases, eight per category.
+- `evaluation/benchmark.py` writes records, summary, environment and report files; live search is off.
+- Provider observations expose calls, tokens, queue/generation timing and basename-only model identity.
+- Python bytecode and benchmark working outputs are repository-wide ignored and must remain unstaged.
+- Compiler success, fallback-delivered success and parse recovery are never conflated.
+- `evaluation/human_review.py` randomizes opaque IDs and rejects invalid/incomplete imports; no human
+  results exist or are claimed.
+- Curated reference results are pending until the implementation commit exists, so their recorded commit
+  can identify the exact runner.
 
 ## Remaining root RFC work
 
-- Phase 3 / P-08–P-10, P-14, P-15: 60-case versioned dataset, deterministic scoring, strategy/grounding
-  comparison, provenance/timings, human-review exchange, raw results and evidence-linked report.
-- Phase 4 / P-17–P-20: recruiter README/demo, public English cleanup, release/SBOM/checksums, green PR/CI,
-  stable release and final public transition.
+- Commit Phase 3 source, rerun sanitized mock/local references with the implementation commit and push;
+  require hosted CI green.
+- Phase 4 / P-17–P-20: recruiter README, public English cleanup, demo recording, threat/docs sync,
+  changelog/SBOM/checksums, CodeQL/secret/dependency automation, release validation and clean-clone gate.
+- Open the mapped feature PR, repair CI, merge without rewriting history, tag/release v1.0.0, then make
+  the personal repository public as the final launch action.
 
 ## Invariants
 
 - Do not alter `run_enhancement_field_loop` without an explicit equivalence-tested migration.
-- Never commit models, binaries, CUDA libraries, virtual environments, `.env`, credentials or I/O.
-- Keep reconstructed RFC labels/dates truthful and public output in professional English.
+- Never commit models, binaries, CUDA libraries, virtual environments, `.env`, credentials or user I/O.
+- Keep public output in professional English and reconstructed RFC metadata truthful.
 - Do not touch Ignoryx, Privacy, organizations or unrelated repositories.
 - Finish each patch with session, handoff, then summary updates.
 
 ## Next action
 
-Phase 2 commit `e9f9062` is pushed and hosted CI run 29881246507 is green. Implement RFC-0028 corpus,
-schema, runner, tests, mock reference and real local stratified comparison before making claims.
+Commit the Phase 3 implementation, rerun both references with that commit identifier and add the curated
+evidence as a second atomic commit before beginning Phase 4.

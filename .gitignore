@@ -3,6 +3,9 @@
 .sinapsi/orchestration.jsonl
 .sinapsi/journal
 .tools/
+.artifacts/
+__pycache__/
+*.py[cod]
 node_modules/
 demo-output/
 server/.setup/

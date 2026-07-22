@@ -30,5 +30,6 @@ jobs:
         run: |
           bun run preflight
           bun run demo:mock
+          bun run benchmark
       - name: Dependency audit
         run: bun run audit
