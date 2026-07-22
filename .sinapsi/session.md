@@ -485,3 +485,24 @@ handling and the public native-upload branch are unchanged.
 `git diff --check` is clean.
 
 **Final status:** push the two-line hosted path correction and require CI plus both CodeQL matrices green.
+
+## 2026-07-22T04:40:02+02:00 — Deterministic hash-locked Python audit
+
+**Goal:** remove the last host-dependent operation exposed by mandatory merged-main verification without
+reducing the dependency-audit inventory or acceptance criteria.
+
+**Evidence:** PR #1 merged as `74e511e` after both duplicated CI runs and all four CodeQL jobs passed. A
+fresh clone installed from frozen/hash-locked manifests in 6.643 seconds; format, lint, both typechecks,
+53 Bun tests, 79 pytest tests and 8 integration tests passed. The release gate then failed solely because
+pip-audit's implicit temporary resolver could not bootstrap pip through Windows `ensurepip`. The same
+complete lock audited successfully when pip resolution was disabled.
+
+**Fix:** the root audit command now passes `--disable-pip` for the fully transitive, exact-version,
+hash-locked `requirements-dev.lock`. This audits every listed component while eliminating an unnecessary
+temporary virtual environment. A workspace contract regression enforces the deterministic command.
+
+**Validation:** the new regression passes; Bun and Python audits report zero findings; formatter, Biome,
+Ruff, both typechecks and `git diff --check` pass.
+
+**Final status:** push this atomic follow-up branch, merge only after CI/CodeQL, then restart merged-main
+clean-clone verification from the corrected commit.

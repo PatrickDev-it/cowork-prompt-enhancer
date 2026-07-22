@@ -30,6 +30,13 @@ describe('root workspace contract', () => {
     }
   });
 
+  test('audits the complete hash-locked Python inventory without a temporary resolver', async () => {
+    const manifest = await Bun.file(new URL('../../package.json', import.meta.url)).json();
+    expect(manifest.scripts.audit).toContain(
+      'python -m pip_audit --disable-pip -r server/modules/requirements-dev.lock'
+    );
+  });
+
   test('forces portable LF checkouts for formatter reproducibility', () => {
     const result = Bun.spawnSync(['git', 'check-attr', 'eol', '--', 'package.json', 'README.md', 'server/config.ts'], {
       cwd: fileURLToPath(new URL('../..', import.meta.url)),
