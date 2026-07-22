@@ -4,8 +4,8 @@ Living project context during root RFC Phase 4 on 2026-07-22.
 
 ## Current state
 
-Root `RFC.md` is accepted. Phases 0–3, observability, delivery tooling and hosted automation are committed.
-Recruiter documentation is complete and awaiting commit. The private repository is `PatrickDev-it/cowork-prompt-enhancer`;
+Root `RFC.md` is accepted. Phases 0–3, observability, delivery, automation and recruiter docs are committed.
+A clean-clone LF portability fix is awaiting commit. The private repository is `PatrickDev-it/cowork-prompt-enhancer`;
 hosted CI run 29884245471 for `d13fcf5` is green. Keep it private through all launch gates.
 
 RFC-0026 owns provider profiles, RFC-0027 protocol/security/resource hardening and RFC-0028 evaluation.
@@ -32,7 +32,7 @@ The delivery tooling adds no public provider, protocol, authentication or artifa
 - Commit/push the delivery tooling and require hosted CI green.
 - Push the expanded CI, CodeQL, Dependabot and tag-release automation; repair every hosted failure.
 - Push recruiter documentation and require refreshed CI plus both CodeQL languages green.
-- Execute and time the clean external-clone mock quickstart and final release gate.
+- Push the LF fix, create a new external clone, repeat the quickstart and complete release gate.
 - Validate a clean clone, open the mapped PR, repair CI, merge without history rewriting, tag/release
   v1.0.0, then make the personal repository public as the final launch action.
 
@@ -46,4 +46,4 @@ The delivery tooling adds no public provider, protocol, authentication or artifa
 
 ## Next action
 
-Commit/push recruiter documentation, then run the clean-clone and GitHub PR/release/publication sequence.
+Commit/push LF normalization, repeat a new clean clone, then execute the PR/release/publication sequence.

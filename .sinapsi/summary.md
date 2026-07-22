@@ -55,6 +55,7 @@ patch: the project's shape (above), the last sessions at a glance, and a short r
 agent at the end of every patch, at the same time it appends session.md. Drop the
 11th; the full history is in session.md and, once archived, in archive/. -->
 
+- 2026-07-22T04:15:01+02:00 — Fixed CRLF formatter drift exposed by the first clean Windows clone.
 - 2026-07-22T04:12:41+02:00 — Replaced the public narrative with measured recruiter-first documentation.
 - 2026-07-22T04:08:46+02:00 — Added expanded CI, CodeQL, Dependabot and tag-based release validation.
 - 2026-07-22T04:04:50+02:00 — Made credential-scan regression fixtures inert without weakening detection.
@@ -64,7 +65,6 @@ agent at the end of every patch, at the same time it appends session.md. Drop th
 - 2026-07-22T03:17:25+02:00 — Excluded generated Python bytecode from evaluation and release commits.
 - 2026-07-22T03:15:15+02:00 — Implemented the 64-case deterministic evaluation, evidence pipeline and real local comparison.
 - 2026-07-22T02:55:00+02:00 — Accepted RFC-0028 for versioned deterministic evaluation and evidence governance.
-- 2026-07-22T02:45:57+02:00 — Completed Phase 2 authenticated protocol, bounded resources, cancellation, confinement and E2E hardening.
 
 ## Where things stand
 
@@ -84,5 +84,6 @@ at the end of every patch. If it grows past 10 lines it has stopped being a summ
 - The offline demo proves fallback/artifact/benchmark paths; repository scans and the 11-file release bundle validate.
 - Hosted CI now covers the full delivery gate; CodeQL, dependency updates and tag validation are configured.
 - The 133-line README now leads with measured evidence, quickstart, security, architecture and limitations.
-- Clean-clone validation, hosted PR, v1.0.0 and final public launch remain.
+- First clean clone completed mock setup in 8.339 seconds; its CRLF gate failure is fixed with enforced LF.
+- Repeated clean-clone validation, hosted PR, v1.0.0 and final public launch remain.
 - Preserve the historical field-loop fallback and never commit local runtime artifacts or credentials.

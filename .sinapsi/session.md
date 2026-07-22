@@ -410,3 +410,21 @@ owner reference remains; `git diff --check` passes.
 
 **Final status:** recruiter documentation is ready to commit/push. Require refreshed CI and CodeQL green,
 then execute the clean-clone and GitHub PR/release/publication sequence.
+
+## 2026-07-22T04:15:01+02:00 — Portable line endings for clean Windows clones
+
+**Goal:** make the documented release gate reproducible from a clean Windows checkout under the common
+`core.autocrlf=true` configuration.
+
+**Defect found:** the external private-repository clone completed frozen setup, preflight and mock artifact
+generation in 8.339 seconds, but the subsequent formatter gate rejected 72 CRLF-converted files. Hosted
+Linux CI and the long-lived working tree were green, so only the mandated clean Windows clone exposed it.
+
+**Fix:** root Git attributes now force LF for all auto-detected text, retaining the existing explicit
+evaluation-result rule. A workspace integration regression asserts `eol: lf` for root docs/config and
+server source through Git's own attribute resolver.
+
+**Validation:** all three workspace contract tests pass, Git resolves LF for every sampled boundary and
+`git diff --check` passes. The fix must be committed/pushed before repeating a new clean clone.
+
+**Final status:** clean-clone portability defect fixed locally without altering source semantics.

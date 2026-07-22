@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'bun:test';
+import { fileURLToPath } from 'node:url';
 
 describe('root workspace contract', () => {
   test('exposes every required command from one package', async () => {
@@ -27,5 +28,15 @@ describe('root workspace contract', () => {
       const config = await Bun.file(new URL(`../../${workspace}/tsconfig.json`, import.meta.url)).json();
       expect(config.compilerOptions.types).toEqual(['bun']);
     }
+  });
+
+  test('forces portable LF checkouts for formatter reproducibility', () => {
+    const result = Bun.spawnSync(['git', 'check-attr', 'eol', '--', 'package.json', 'README.md', 'server/config.ts'], {
+      cwd: fileURLToPath(new URL('../..', import.meta.url)),
+      stdout: 'pipe',
+    });
+    expect(result.exitCode).toBe(0);
+    const output = new TextDecoder().decode(result.stdout);
+    expect(output.match(/: eol: lf/g)).toHaveLength(3);
   });
 });
