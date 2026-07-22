@@ -22,6 +22,7 @@ describe('provider profile configuration', () => {
   test('rejects invalid ports and mock scenarios before workers start', () => {
     expect(() => assertValidConfig({ COWORK_PORT: '70000' })).toThrow('valid port');
     expect(() => assertValidConfig({ COWORK_MOCK_SCENARIO: 'random' })).toThrow('COWORK_MOCK_SCENARIO');
+    expect(() => assertValidConfig({ COWORK_MOCK_DELAY_MS: '-1' })).toThrow('COWORK_MOCK_DELAY_MS');
   });
 
   test('requires a complete vendor-neutral remote profile', () => {
@@ -34,5 +35,30 @@ describe('provider profile configuration', () => {
         COWORK_OPENAI_API_KEY: 'secret',
       })
     ).not.toThrow();
+  });
+
+  test('binds loopback by default and requires explicit authenticated remote operation', () => {
+    expect(() => assertValidConfig({ COWORK_HOST: '127.0.0.1' })).not.toThrow();
+    expect(() => assertValidConfig({ COWORK_HOST: '0.0.0.0' })).toThrow('COWORK_ALLOW_REMOTE');
+    expect(() => assertValidConfig({ COWORK_HOST: '0.0.0.0', COWORK_ALLOW_REMOTE: 'true' })).toThrow(
+      'COWORK_AUTH_SECRET'
+    );
+    expect(() =>
+      assertValidConfig({
+        COWORK_HOST: '0.0.0.0',
+        COWORK_ALLOW_REMOTE: 'true',
+        COWORK_AUTH_SECRET: 'a'.repeat(32),
+      })
+    ).not.toThrow();
+  });
+
+  test('rejects inconsistent resource bounds before workers start', () => {
+    expect(() => assertValidConfig({ COWORK_MAX_FRAME_BYTES: '100', COWORK_MAX_PAYLOAD_BYTES: '101' })).toThrow(
+      'cannot exceed'
+    );
+    expect(() => assertValidConfig({ COWORK_MAX_ACTIVE_COMMANDS: '1', COWORK_MAX_SESSION_COMMANDS: '2' })).toThrow(
+      'cannot exceed'
+    );
+    expect(() => assertValidConfig({ COWORK_MAX_QUEUED_COMMANDS: '0' })).toThrow('positive integer');
   });
 });

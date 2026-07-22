@@ -51,9 +51,13 @@ export interface FileOps {
 
 export interface ToolContext {
   uuid: string;
+  correlationId: string;
+  clientId: string;
+  sessionId: string;
   payload: Record<string, unknown>;
   status: (update: StatusUpdate) => void;
   fs: FileOps;
+  signal: AbortSignal;
 }
 
 /** Un tool remoto — RFC-0003 § 1. Aggiungere un file in tools/ che esporta uno di questi basta a registrarlo. */

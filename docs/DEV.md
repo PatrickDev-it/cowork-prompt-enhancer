@@ -30,10 +30,14 @@ python -m piptools compile --generate-hashes -o requirements-dev.lock requiremen
 | `bun run typecheck` | Typecheck server and client. |
 | `bun run test:unit` | Run Bun and pytest unit suites. |
 | `bun run test:integration` | Run integration suites. |
+| `bun run test:providers` | Run shared provider conformance and failure contracts. |
+| `bun run test:protocol` | Run protocol, authentication, resource and path-adversarial suites. |
+| `bun run test:supervisor` | Run deterministic supervisor failure injection. |
+| `bun run test:e2e` | Run WebSocket-to-Python mock E2E, remote auth, cancellation and reconnect. |
 | `bun run audit` | Audit Bun and Python dependency locks. |
 | `bun run preflight` | Validate the selected runtime profile. |
 | `bun run demo:mock` | Run the offline deterministic demonstration. |
-| `COWORK_PROFILE=local bun run smoke:local` | Start/verify local inference and shut down owned processes. |
+| `bun run smoke:local` | Start/verify local inference and shut down owned processes. |
 | `bun run benchmark` | Execute the versioned evaluation harness. |
 | `bun run check` | Run the complete local format/lint/type/test gate. |
 

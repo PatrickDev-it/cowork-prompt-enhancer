@@ -11,6 +11,7 @@
       "server/**",
       "scripts/**",
       "tests/**",
+      "protocol/**",
       "*.json",
       "!**/node_modules",
       "!**/.venv",

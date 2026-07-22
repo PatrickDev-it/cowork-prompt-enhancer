@@ -5,6 +5,7 @@ import json
 import sys
 import threading
 
+from correlation import reset_correlation_id, set_correlation_id
 from engine import LLMEngine, resolve_model_id
 from workflow import run_enhancement
 
@@ -37,9 +38,11 @@ def run_serve(engine: LLMEngine) -> None:
 
     def handle(raw_line: str) -> None:
         request_id = None
+        correlation_token = None
         try:
             request = json.loads(raw_line)
             request_id = request.get("id")
+            correlation_token = set_correlation_id(str(request_id or ""))
             result = run_enhancement(
                 engine=engine,
                 user_input=request["prompt"],
@@ -50,8 +53,11 @@ def run_serve(engine: LLMEngine) -> None:
                 deep_research=bool(request.get("deep_research", False)),
             )
             response = {"id": request_id, "prompt": result["compiled_prompt"], "research": result.get("research", "")}
-        except Exception as exc:  # noqa: BLE001 - confine di processo: una richiesta guasta non deve uccidere il worker.
-            response = {"id": request_id, "error": str(exc)}
+        except Exception as exc:  # noqa: BLE001 - process boundary: one bad request must not kill the worker.
+            response = {"id": request_id, "error": str(exc), "error_code": getattr(exc, "code", "internal_error")}
+        finally:
+            if correlation_token is not None:
+                reset_correlation_id(correlation_token)
 
         with stdout_lock:
             print(json.dumps(response, ensure_ascii=True), flush=True)

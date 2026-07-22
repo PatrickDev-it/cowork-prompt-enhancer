@@ -6,6 +6,8 @@ import urllib.error
 import urllib.request
 from collections.abc import Sequence
 
+from correlation import get_correlation_id
+
 from .base import ChatResult, ProviderContextError, ProviderError, ProviderTimeoutError
 
 _CONTEXT_HINTS = ("context", "exceed", "too large", "too long", "n_ctx", "kv cache")
@@ -22,9 +24,11 @@ class LlamaServerProvider:
 
     def _post(self, path: str, body: dict, timeout: float) -> dict:
         data = json.dumps(body).encode("utf-8")
-        request = urllib.request.Request(
-            self.base_url + path, data=data, headers={"Content-Type": "application/json"}, method="POST"
-        )
+        headers = {"Content-Type": "application/json"}
+        correlation_id = get_correlation_id()
+        if correlation_id:
+            headers["X-Correlation-ID"] = correlation_id
+        request = urllib.request.Request(self.base_url + path, data=data, headers=headers, method="POST")
         try:
             with urllib.request.urlopen(request, timeout=timeout) as response:
                 return json.load(response)

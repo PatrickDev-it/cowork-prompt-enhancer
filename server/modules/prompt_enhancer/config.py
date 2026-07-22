@@ -19,6 +19,7 @@ class ProviderConfig:
     model: str
     timeout_seconds: float
     mock_scenario: str = "success"
+    mock_delay_seconds: float = 0.0
     credential: str = field(default="", repr=False)
 
     def public_metadata(self) -> dict:
@@ -28,6 +29,7 @@ class ProviderConfig:
             "model": self.model,
             "timeout_seconds": self.timeout_seconds,
             "mock_scenario": self.mock_scenario if self.profile == "mock" else None,
+            "mock_delay_seconds": self.mock_delay_seconds if self.profile == "mock" else None,
             "credential_configured": bool(self.credential),
         }
 
@@ -65,7 +67,13 @@ def load_provider_config(env: Mapping[str, str] | None = None) -> ProviderConfig
         scenario = source.get("COWORK_MOCK_SCENARIO", "success").strip().lower()
         if scenario not in MOCK_SCENARIOS:
             raise ProviderConfigurationError(f"unsupported mock scenario '{scenario}'")
-        return ProviderConfig(profile, "mock://offline", "cowork-deterministic-v1", timeout, scenario)
+        try:
+            delay_seconds = float(source.get("COWORK_MOCK_DELAY_MS", "0")) / 1000
+        except ValueError as exc:
+            raise ProviderConfigurationError("COWORK_MOCK_DELAY_MS must be numeric") from exc
+        if delay_seconds < 0 or delay_seconds > 60:
+            raise ProviderConfigurationError("COWORK_MOCK_DELAY_MS must be between 0 and 60000")
+        return ProviderConfig(profile, "mock://offline", "cowork-deterministic-v1", timeout, scenario, delay_seconds)
 
     if profile == "local":
         base_url = _url(source.get("COWORK_LLAMA_SERVER_URL", "http://127.0.0.1:8081"), "COWORK_LLAMA_SERVER_URL")

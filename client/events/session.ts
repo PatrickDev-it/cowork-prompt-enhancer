@@ -9,7 +9,8 @@ import type { $WS } from '@/lib/ws';
  * server, crea subito la cartella di sessione $ROOT/{uuid}/, e annuncia al server le fileop
  * che questo client sa eseguire. Nessuna conoscenza di dominio: pura predisposizione.
  */
-export function handleSession(WS: $WS, data: { uuid: string }) {
+export function handleSession(WS: $WS, data: Record<string, unknown>): void {
+  if (typeof data.uuid !== 'string') throw new Error('Malformed session event');
   setSession(data.uuid);
   const dir = sessionDir()!;
   try {
