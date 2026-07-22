@@ -1,14 +1,16 @@
 """Deterministic offline provider for CI, demos, and failure injection (RFC-0026)."""
 
 import json
+import time
 from collections.abc import Sequence
 
 from .base import ChatResult, ProviderContextError, ProviderError, ProviderTimeoutError
 
 
 class MockProvider:
-    def __init__(self, scenario: str = "success") -> None:
+    def __init__(self, scenario: str = "success", delay_seconds: float = 0.0) -> None:
         self.scenario = scenario
+        self.delay_seconds = delay_seconds
 
     @staticmethod
     def _request(prompt: str) -> str:
@@ -49,6 +51,8 @@ class MockProvider:
         response_format: dict | None = None,
     ) -> ChatResult:
         del max_tokens, temperature, top_p, top_k, min_p, presence_penalty, repeat_penalty, think, response_format
+        if self.delay_seconds:
+            time.sleep(self.delay_seconds)
         if self.scenario == "context_overflow":
             raise ProviderContextError("mock context window exceeded")
         if self.scenario == "timeout":

@@ -1,3 +1,4 @@
+import { PROFILE } from '@/config';
 import { chatCompletion, countTokens, ensureLlmReady } from '@/modules/llm';
 
 /**
@@ -75,11 +76,15 @@ export interface CompressResult {
  * Condensa `text` se supera la soglia; altrimenti lo ritorna intatto. `onLog` riceve messaggi di
  * avanzamento (adatti a `status:log` verso il client).
  */
-export async function compressContext(text: string, onLog?: (line: string) => void): Promise<CompressResult> {
+export async function compressContext(
+  text: string,
+  onLog?: (line: string) => void,
+  signal?: AbortSignal
+): Promise<CompressResult> {
   const log = (m: string) => onLog?.(m);
-  await ensureLlmReady();
+  if (PROFILE === 'local') await ensureLlmReady(signal);
 
-  const inputTokens = await countTokens(text);
+  const inputTokens = await countTokens(text, signal);
   if (inputTokens <= THRESHOLD) {
     return { text, compressed: false, inputTokens, outputTokens: inputTokens, chunks: 0 };
   }
@@ -96,6 +101,7 @@ export async function compressContext(text: string, onLog?: (line: string) => vo
       maxTokens: 1024,
       temperature: 0.3,
       think: false,
+      signal,
     });
     log(`Segmento ${idx + 1}/${chunks.length} estratto.`);
     return res.content.trim();
@@ -114,10 +120,11 @@ export async function compressContext(text: string, onLog?: (line: string) => vo
     maxTokens: TARGET_TOKENS,
     temperature: 0.3,
     think: false,
+    signal,
   });
 
   const condensed = `# Condensed context (compressed from ~${inputTokens} tokens of raw input)\n\n${synth.content.trim()}`;
-  const outputTokens = await countTokens(condensed);
+  const outputTokens = await countTokens(condensed, signal);
   log(`Compressione completata: ~${inputTokens} → ~${outputTokens} token.`);
   return { text: condensed, compressed: true, inputTokens, outputTokens, chunks: chunks.length };
 }

@@ -5,6 +5,8 @@ import urllib.error
 import urllib.request
 from collections.abc import Sequence
 
+from correlation import get_correlation_id
+
 from .base import ChatResult, ProviderContextError, ProviderError, ProviderTimeoutError, redact_secret
 
 _CONTEXT_HINTS = ("context", "exceed", "too large", "too long", "maximum tokens", "n_ctx")
@@ -19,6 +21,9 @@ class OpenAICompatibleProvider:
 
     def _request(self, path: str, *, body: dict | None = None, timeout: float | None = None) -> dict:
         headers = {"Accept": "application/json", "Authorization": f"Bearer {self._credential}"}
+        correlation_id = get_correlation_id()
+        if correlation_id:
+            headers["X-Correlation-ID"] = correlation_id
         data = None
         method = "GET"
         if body is not None:

@@ -26,6 +26,17 @@ interface WorkerResponse {
   prompt?: string;
   research?: string;
   error?: string;
+  error_code?: string;
+}
+
+export class EnhancementError extends Error {
+  constructor(
+    message: string,
+    public readonly code: 'provider_error' | 'timeout' | 'internal_error'
+  ) {
+    super(message);
+    this.name = 'EnhancementError';
+  }
 }
 
 /** Parametri opzionali del run — RFC-0021 (project_context), RFC-0022 (deep_research). */
@@ -33,6 +44,8 @@ export interface EnhanceOptions {
   search?: boolean;
   projectContext?: string;
   deepResearch?: boolean;
+  signal?: AbortSignal;
+  correlationId?: string;
 }
 
 interface WorkerHandle {
@@ -55,20 +68,42 @@ let writeChain: Promise<void> = Promise.resolve();
  */
 const CONCURRENCY = Math.max(1, Number(process.env.COWORK_PROMPT_ENHANCER_CONCURRENCY ?? 4));
 let inFlight = 0;
-const gate: Array<() => void> = [];
+interface GateWaiter {
+  resolve: () => void;
+  reject: (error: Error) => void;
+  signal?: AbortSignal;
+  abort: () => void;
+}
+const gate: GateWaiter[] = [];
 
-function acquire(): Promise<void> {
+function acquire(signal?: AbortSignal): Promise<void> {
+  if (signal?.aborted) return Promise.reject(signal.reason);
   if (inFlight < CONCURRENCY) {
     inFlight += 1;
     return Promise.resolve();
   }
-  return new Promise<void>((resolve) => gate.push(resolve));
+  return new Promise<void>((resolve, reject) => {
+    const waiter: GateWaiter = {
+      resolve,
+      reject,
+      signal,
+      abort: () => {
+        const index = gate.indexOf(waiter);
+        if (index >= 0) gate.splice(index, 1);
+        reject(signal?.reason instanceof Error ? signal.reason : new Error('Enhancement cancelled'));
+      },
+    };
+    signal?.addEventListener('abort', waiter.abort, { once: true });
+    gate.push(waiter);
+  });
 }
 
 function release(): void {
   const next = gate.shift();
-  if (next) next();
-  else inFlight -= 1;
+  if (next) {
+    next.signal?.removeEventListener('abort', next.abort);
+    next.resolve();
+  } else inFlight -= 1;
 }
 
 /** Log del worker (stderr): minimale ormai (il modello è in llama-server). Va sulla console. */
@@ -176,14 +211,28 @@ export async function enhancePrompt(
   _onLog: (line: string) => void,
   options: EnhanceOptions = {}
 ): Promise<EnhanceResult> {
-  if (PROFILE === 'local') await ensureLlmReady();
-  await acquire();
+  if (options.signal?.aborted) throw options.signal.reason;
+  if (PROFILE === 'local') await ensureLlmReady(options.signal);
+  await acquire(options.signal);
   try {
     const worker = ensureWorker();
-    const id = randomUUID();
+    const id = options.correlationId ?? randomUUID();
     const responsePromise = new Promise<WorkerResponse>((resolve, reject) => {
       pending.set(id, { resolve, reject });
     });
+    const abort = () => {
+      const reason = options.signal?.reason;
+      const waiter = pending.get(id);
+      if (waiter) {
+        pending.delete(id);
+        waiter.reject(reason instanceof Error ? reason : new Error('Enhancement cancelled'));
+      }
+      if (handle?.proc === worker.proc) {
+        handle.proc.kill();
+        handle = null;
+      }
+    };
+    options.signal?.addEventListener('abort', abort, { once: true });
 
     // Campi opzionali inviati solo se presenti: il worker Python li tratta come default se assenti
     // (search=None ⇒ gate RFC-0020; project_context="" ; deep_research=false).
@@ -200,14 +249,24 @@ export async function enhancePrompt(
       await writeChain;
     } catch (err) {
       pending.delete(id);
-      handle = null; // trasporto rotto: si ricrea il worker alla prossima richiesta.
+      options.signal?.removeEventListener('abort', abort);
+      handle = null;
+      writeChain = Promise.resolve();
       throw err instanceof Error ? err : new Error(String(err));
     }
 
-    const response = await responsePromise;
-    if (response.error) throw new Error(response.error);
+    const response = await responsePromise.finally(() => options.signal?.removeEventListener('abort', abort));
+    if (response.error) {
+      const code =
+        response.error_code === 'provider_timeout'
+          ? 'timeout'
+          : response.error_code?.startsWith('provider_')
+            ? 'provider_error'
+            : 'internal_error';
+      throw new EnhancementError(response.error, code);
+    }
     if (typeof response.prompt !== 'string' || !response.prompt) {
-      throw new Error('Il worker prompt-enhancer non ha prodotto alcun prompt.');
+      throw new Error('The prompt-enhancer worker produced no prompt.');
     }
     return { prompt: response.prompt, research: response.research ?? '' };
   } finally {

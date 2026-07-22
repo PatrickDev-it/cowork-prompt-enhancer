@@ -6,6 +6,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 import pytest
 from config import load_provider_config
+from correlation import reset_correlation_id, set_correlation_id
 from providers import (
     LlamaServerProvider,
     MockProvider,
@@ -60,7 +61,13 @@ class CompatibleHandler(BaseHTTPRequestHandler):
         size = int(self.headers.get("Content-Length", "0"))
         body = json.loads(self.rfile.read(size))
         self.requests.append(
-            {"method": "POST", "path": self.path, "authorization": self.headers.get("Authorization"), "body": body}
+            {
+                "method": "POST",
+                "path": self.path,
+                "authorization": self.headers.get("Authorization"),
+                "correlation_id": self.headers.get("X-Correlation-ID"),
+                "body": body,
+            }
         )
         if self.mode == "context":
             self._json(400, {"error": "context window exceeded"})
@@ -136,6 +143,12 @@ def test_mock_malformed_scenario_is_deterministic():
     assert first == second == "malformed mock output without a JSON envelope"
 
 
+def test_mock_delay_configuration_is_bounded():
+    assert load_provider_config({"COWORK_PROFILE": "mock", "COWORK_MOCK_DELAY_MS": "250"}).mock_delay_seconds == 0.25
+    with pytest.raises(ProviderConfigurationError, match="between"):
+        load_provider_config({"COWORK_PROFILE": "mock", "COWORK_MOCK_DELAY_MS": "60001"})
+
+
 def test_local_context_error_is_typed(compatible_server):
     CompatibleHandler.mode = "context"
     with pytest.raises(ProviderContextError):
@@ -162,6 +175,21 @@ def test_openai_adapter_sends_standard_fields_and_bearer_credential(compatible_s
     assert request["body"]["model"] == "chosen-model"
     assert "top_k" not in request["body"]
     assert "min_p" not in request["body"]
+
+
+@pytest.mark.parametrize("provider_kind", ["local", "remote"])
+def test_provider_receives_worker_correlation_id(compatible_server, provider_kind):
+    token = set_correlation_id("correlation-123")
+    try:
+        provider = (
+            LlamaServerProvider(compatible_server, 2)
+            if provider_kind == "local"
+            else OpenAICompatibleProvider(compatible_server, "model", "secret", 2)
+        )
+        provider.chat(**CHAT_ARGS)
+    finally:
+        reset_correlation_id(token)
+    assert CompatibleHandler.requests[-1]["correlation_id"] == "correlation-123"
 
 
 def test_openai_info_never_contains_credential(compatible_server):

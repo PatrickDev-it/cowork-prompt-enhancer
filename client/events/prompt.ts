@@ -33,12 +33,18 @@ async function resolvePrompts(target: Record<string, unknown>, prompts: PromptDe
  * Esecutore generico del prompt bridge — RFC-0002 § 6. Non contiene alcuna conoscenza
  * di dominio: interpreta solo la struttura dati ricevuta dal server.
  */
-export async function handlePrompt(WS: $WS, data: { uuid: string; payload: PromptEventPayload }) {
+export async function handlePrompt(WS: $WS, data: Record<string, unknown>): Promise<void> {
+  if (typeof data.uuid !== 'string' || typeof data.payload !== 'object' || data.payload === null) {
+    throw new Error('Malformed prompt event');
+  }
+  const eventPayload = data.payload as unknown as PromptEventPayload;
+  if (typeof eventPayload.prompt !== 'object' || eventPayload.prompt === null)
+    throw new Error('Malformed prompt schema');
   const {
     prompt: { key, props },
     sub_prompts,
     ...rest
-  } = data.payload;
+  } = eventPayload;
   const value = await prompt(key, props);
   const sps = sub_prompts?.[String(value)] ?? {};
 

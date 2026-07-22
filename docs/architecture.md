@@ -1,147 +1,132 @@
-# Architecture
+# Architecture and threat model
 
 ## System overview
 
-One operator drives a Bun client and server. The Python **`prompt_enhancer`** compiles intent behind a
-validated provider contract: deterministic offline `mock`, supervised `local` llama-server, or a configured
-vendor-neutral `openai-compatible` endpoint. Only the local profile starts the model child process.
+Cowork compiles a user request through a Bun client/server bridge and a Python workflow. The provider
+profile is explicit: deterministic offline `mock`, supervised `local` llama-server, or a configured
+vendor-neutral `openai-compatible` endpoint. Only `local` owns a model process.
 
 ```mermaid
 flowchart LR
-    subgraph Operator["Human operator"]
-        User(("User"))
-    end
-
-    subgraph ClientProc["client/ (Bun CLI process)"]
-        CLI["$WS client\n(lib/ws.ts)"]
-        Prompts["prompt bridge\n(lib/prompts.ts)"]
-        FileopExec["fileop executor\n(events/fileop.ts)\nconfines paths to session/"]
-    end
-
-    subgraph ServerProc["server/ (Bun process)"]
-        WSB["$WSServer bridge\n(lib/ws.ts)"]
-        Registry["tool registry\n(tools/index.ts, auto-discovered)"]
-        Runtime["runtime.ts\ncompression HEAD + dispatch"]
-        FsCap["fs.ts\ncapability-checked fileops"]
-        Compressor["context_compressor\n(RFC-0015)"]
-        Supervisor["llm/supervisor.ts\nprocess lifecycle (RFC-0014)"]
-    end
-
-    subgraph PE["Python: modules/prompt_enhancer (RFC-0018)"]
-        Workflow["workflow.py\nrun_enhancement orchestration"]
-        Strategies["strategies.py\ncompiler / single_pass / field_loop"]
-        Coercion["coercion.py\nparsing, coercion, rendering"]
-        Search["search.py\nDuckDuckGo grounding (opt-in, RFC-0020)"]
-        Providers["providers/\nmock / local / openai-compatible\n(RFC-0026)"]
-    end
-
-    LlamaServer[["llama-server\n(external process, OpenAI-compatible API)"]]
-
-    User <--> CLI
-    CLI <--> Prompts
-    CLI -- "fileop event" --> FileopExec
-    CLI <== "WebSocket (RFC-0002)" ==> WSB
-    WSB --> Registry --> Runtime
-    Runtime --> Compressor
-    Runtime --> FsCap
-    FsCap -- "fileop event" --> CLI
-    Runtime -- "spawn / stdin-stdout" --> Workflow
-    Workflow --> Strategies --> Coercion
-    Strategies --> Providers
-    Workflow -- "opt-in web lookup" --> Search
-    Search -. "HTTPS, only when gated on" .-> Internet[("DuckDuckGo")]
-    Providers -- "local HTTP" --> LlamaServer
-    Providers -. "explicit remote profile" .-> RemoteEndpoint[("Compatible endpoint")]
-    Compressor -- "HTTP, OpenAI-compatible" --> LlamaServer
-    Supervisor -. "spawns + health-checks" .-> LlamaServer
+    User((Operator)) <--> Client["Bun client\nconnection state machine"]
+    Client <== "WebSocket protocol v1" ==> Boundary["Schema, size and auth boundary"]
+    Boundary --> Scheduler["Bounded scheduler\nabort + deadline + deduplication"]
+    Scheduler --> Tools["Capability-aware tool runtime"]
+    Tools --> Worker["Python JSON-lines worker\ncorrelation ID"]
+    Worker --> Workflow["Compiler / single pass / field loop"]
+    Workflow --> Providers["mock | local | openai-compatible"]
+    Providers --> Local["supervised llama-server"]
+    Providers -. explicit remote profile .-> Remote["compatible endpoint"]
+    Tools --> FileOps["client file operation"]
+    FileOps --> Root["canonical session root"]
 ```
 
-## Request sequence
+The historical `run_enhancement_field_loop` remains unchanged. Provider, transport and scheduling
+failures cannot remove the deterministic fallback from the workflow.
 
-A single `prompt-enhancer` invocation, compiler strategy, no grounding:
+## Protocol and request lifecycle
+
+All application frames are discriminated protocol-v1 envelopes defined once in `protocol/index.ts`:
+
+- client command: `{version:1, kind:"command", id, event, payload}`;
+- client cancellation: `{version:1, kind:"cancel", id}`;
+- server event: `{version:1, kind:"event", id, event, payload}`;
+- server error: `{version:1, kind:"error", id, code, message, retryable}`.
+
+Inbound frames are rejected before dispatch unless the version, discriminator, ID, event and payload
+shape are valid. The default limits are 1 MiB per frame and 512 KiB per decoded payload. Binary and
+legacy `{event, props}` frames are unsupported.
 
 ```mermaid
 sequenceDiagram
-    participant CLI as client (Bun CLI)
-    participant WS as server (WS bridge)
-    participant Reg as tools/index.ts (auto-discovered registry)
-    participant Comp as context_compressor (semantic compression HEAD)
-    participant PE as prompt_enhancer (Python, workflow.py)
-    participant LS as llama-server (supervised child process)
+    participant C as Bun client
+    participant S as Protocol boundary
+    participant Q as Bounded scheduler
+    participant T as Tool runtime
+    participant P as Python worker
+    participant L as Provider
 
-    CLI->>WS: emit tool event ("prompt-enhancer") + payload
-    WS->>Reg: registerTool() dispatch (tools/runtime.ts)
-    Reg->>Comp: compress any compress:true field over threshold
-    Comp-->>Reg: condensed payload (or untouched, if under threshold)
-    Reg->>PE: spawn / invoke run_enhancement(engine, input, mode)
-    PE->>LS: POST /v1/chat/completions (OpenAI-compatible)
-    LS-->>PE: ChatResult (text, finish_reason, tokens)
-    PE-->>Reg: {prompt_spec, compiled_prompt, debug}
-    Reg-->>WS: status events (start → progress → done)
-    Reg->>CLI: fileop "write" (prompt_<ts>.md, confined to session/)
-    WS-->>CLI: render result
+    C->>S: command v1 (stable correlation ID)
+    S->>S: schema, size, replay validation
+    S->>Q: admit or overloaded error
+    Q->>T: run(AbortSignal, deadline)
+    T->>P: JSON line with correlation ID
+    P->>L: request + X-Correlation-ID
+    L-->>P: typed result/error
+    P-->>T: correlated result
+    T-->>C: status + confined fileop + terminal event
+    C-->>S: cancel v1 (optional)
+    S-->>P: abort terminates owned worker/provider request
 ```
 
-## Module boundaries
+The scheduler permits four active commands globally, two per connection and 32 queued by default.
+Timeout and disconnect cancellation propagate through `AbortSignal`; an active Python provider request
+is terminated by stopping its owned worker. Non-terminal status updates are coalesced when socket
+backpressure exceeds the configured threshold; terminal status is retained. A bounded TTL replay cache
+keys stable client/command IDs so reconnect cannot duplicate a command within a running server. The
+client never automatically replays a frame already sent.
 
-| Module | Owns | Does not own |
-|---|---|---|
-| `server/lib/ws.ts` | The wire protocol: JSON `{event, props}` frames, one `$WSServer` per connection (RFC-0002) | Tool logic, session state |
-| `server/tools/index.ts` | Auto-discovering `Tool` exports into a registry (RFC-0003) | How a tool executes |
-| `server/tools/runtime.ts` | Wiring a tool into the protocol: compression HEAD, error → `status:error`, loop-back to menu | The tool's domain logic, the compression algorithm itself |
-| `server/tools/fs.ts` | Server-side capability enforcement — refusing an unadvertised fileop before it's sent (RFC-0008) | Path confinement (that's the client's job) |
-| `server/modules/llm/supervisor.ts` | `llama-server` process lifecycle: spawn, health, restart, shutdown (RFC-0014) | Prompt content, sampling parameters |
-| `server/modules/context_compressor` | Condensing oversized input via the shared model (RFC-0015) | Deciding *which* fields need compression (that's `PromptDescriptor.compress`) |
-| `server/modules/prompt_enhancer/workflow.py` | `run_enhancement` orchestration: strategy selection, the shared fallback boundary, grounding/deep-research gathering | Individual strategy implementations, parsing |
-| `server/modules/prompt_enhancer/config.py` | Named provider profile validation and redacted public metadata (RFC-0026) | Process supervision |
-| `server/modules/prompt_enhancer/providers/` | Shared provider contract, typed failures and three adapters | Compiler strategy or artifact delivery |
-| `server/modules/prompt_enhancer/strategies.py` | The three generation strategies — compiler, single_pass, field_loop (RFC-0018) | Rendering, parsing raw model output |
-| `server/modules/prompt_enhancer/coercion.py` | Pure parsing/coercion/rendering of model output — zero model calls, zero I/O | Strategy selection, prompt templates |
-| `client/lib/ws.ts` | The client half of the wire protocol, symmetric to the server's | — |
-| `client/events/fileop.ts` | Executing fileops, confined to the session folder (RFC-0008 § 6) | Deciding which ops are safe to advertise (`SUPPORTED_OPS` is the static contract) |
+## Connection and authentication
 
-## Threat model
+The server binds `127.0.0.1` by default. A non-loopback `COWORK_HOST` fails preflight unless
+`COWORK_ALLOW_REMOTE=true` and `COWORK_AUTH_SECRET` contains at least 32 characters.
 
-This system has **one trust boundary that matters: the WebSocket connection between client and
-server**, and it is currently unauthenticated. Stated explicitly, since an unstated boundary reads
-as "wasn't considered" rather than "was decided":
+Remote authentication is a short-lived session challenge:
 
-- **No authentication at the protocol layer.** `server/index.ts`'s `Bun.serve` upgrades any
-  incoming WebSocket request to a connection; the `Sec-WebSocket-Protocol` header is read into
-  `SocketData.role` for logging only, not checked as a credential. Anyone who can open a TCP
-  connection to the listening port can act as a client: invoke any registered tool, consume GPU
-  inference time, and read whatever a tool's `status`/response payloads expose (`system-info`
-  reports the server host's platform, CPU count, and memory to any connected client).
-- **The server does not bind to loopback by default.** `server/index.ts` passes no `hostname` to
-  `Bun.serve`, so it binds using Bun's own default rather than an explicit `127.0.0.1`. This
-  project is designed to be run by a single operator on a trusted network — but that is a
-  deployment assumption, not something the code enforces. Anyone deploying this with the port
-  reachable beyond their own machine (LAN, a port-forward, a cloud VM with an open security group)
-  is relying on network-level controls they set up themselves, not on anything in this repository.
-  **Recommended follow-up** (not yet implemented — noted here rather than silently fixed, since
-  changing the default could break an existing operator's remote-access setup without warning):
-  default to `hostname: '127.0.0.1'`, with wider binding opt-in via an explicit environment
-  variable.
-- **File operations are client-enforced, not server-enforced, for path confinement.** The server
-  can only ask a connected client to write/append/mkdir/delete/move a file; `client/events/fileop.ts`
-  confines every path to the session folder and rejects absolute paths or `..` traversal before
-  touching disk (RFC-0008 § 6). A malicious actor who can pose as the *server* to a real client
-  is bounded by that confinement — they cannot direct writes outside the session folder — but they
-  could still ask the client to write attacker-chosen content inside it.
-- **Outbound network is profile- and request-gated.**
-  `server/modules/prompt_enhancer/search.py`'s DuckDuckGo lookup (RFC-0020) is gated by
-  `COWORK_PROMPT_ENHANCER_SEARCH` (default `auto`, heuristic-triggered) and a per-request flag; with
-  the mode set to `off` it never runs. `mock` is offline, `local` uses loopback, and
-  `openai-compatible` sends prompt content only to the base URL and model explicitly configured by the
-  operator. Remote credentials are redacted from diagnostics and never enter artifacts.
-- **Secrets:** the codebase has none committed (verified during RFC-0025's Phase 0 secret sweep).
-  `client/.env` carries only the server's host/port, not a credential — see `.env.example`.
+1. the client requests a 30-second random challenge for its stable client ID;
+2. it computes HMAC-SHA-256 over challenge ID, nonce, expiry and client ID;
+3. the server compares the fixed-length proof in constant time and consumes the challenge;
+4. expired, anonymous and replayed upgrades return an authentication failure before WebSocket upgrade.
 
-## RFC coverage
+Challenges, proofs and secrets are never logged. The client connection state is explicit:
+`connecting`, `ready`, `degraded`, `reconnecting`, `closed`; reconnect uses capped exponential backoff
+with jitter.
 
-23 distinct RFCs are cited across the codebase (`RFC-0002` … `RFC-0024`). Six have been backfilled
-as real documents in `.sinapsi/rfc/`, chosen to span protocol design, security, ops, cross-cutting
-infrastructure, product design, and performance rather than six variations on one theme — see the
-table in the [README](../README.md#decision-log). The remaining cited RFCs (0003–0007, 0009–0013,
-0016–0017, 0019–0023) are not yet backfilled; that gap is tracked as an open follow-up
-(RFC-0025 Consequences), not hidden.
+## Filesystem boundary
+
+The client advertises supported file operations; the server rejects capability mismatch before sending
+a mutation. The client then resolves every requested path beneath the canonical session root. It rejects:
+
+- empty, absolute, drive, UNC/device and traversal paths;
+- backslash/mixed-separator paths and non-normal segments;
+- Windows reserved names and trailing-dot/space aliases;
+- any existing symlink or junction ancestor and any realpath outside the root.
+
+Existing ancestors are checked before mutation. Rejected paths return the stable `path_rejected` error.
+Generated artifacts remain under the per-session output directory.
+
+## Process supervision
+
+`LlamaSupervisor` is an injectable state machine that owns spawn, health polling, exponential restart,
+restart cap and shutdown. Production uses the same state machine tested with deterministic spawn, health,
+clock and signal doubles. `exit`, `SIGINT` and `SIGTERM` stop the owned child before process exit. The
+model and CUDA artifacts remain outside Git.
+
+## Module ownership
+
+| Module | Responsibility |
+|---|---|
+| `protocol/index.ts` | Shared v1 envelopes, stable errors, frame/payload validation. |
+| `server/lib/auth.ts` | Single-use challenge issuance and constant-time proof verification. |
+| `server/lib/ws.ts` | Per-connection dispatch, replay rejection, outbound backpressure. |
+| `server/lib/scheduler.ts` | Queue/concurrency limits, deadlines and cancellation. |
+| `server/tools/runtime.ts` | Compression head, scheduled tool execution and public errors. |
+| `server/tools/fs.ts` | Client-advertised capability enforcement. |
+| `client/events/fileop.ts` | Canonical path confinement and local mutation. |
+| `server/modules/llm/supervisor.ts` | Local inference process ownership and recovery. |
+| `server/modules/prompt_enhancer/` | Intent compiler, deterministic fallbacks and provider adapters. |
+
+## Threat model and residual limitations
+
+- Loopback is trusted as the local operator boundary. Local zero-configuration sessions intentionally do
+  not require a secret; another process already running as the same user may connect to the local port.
+- Path checks prevent network-directed escape but are not an operating-system sandbox against a malicious
+  same-user process that races filesystem entries between validation and mutation.
+- Remote transport authentication provides integrity of the upgrade, not TLS. Operators exposing traffic
+  beyond a trusted network must terminate TLS and use `wss://` through an appropriate reverse proxy.
+- A configured remote provider receives request content. The endpoint/model are operator-selected and
+  credentials are process-environment only; no claim is made about that provider's retention policy.
+- Optional DuckDuckGo grounding is outbound network access. Set `COWORK_PROMPT_ENHANCER_SEARCH=off` for
+  a strictly offline run.
+- Cancellation terminates the shared Python worker. Concurrent requests in that worker fail safely and
+  may be retried explicitly; they are never replayed automatically.

@@ -2,6 +2,10 @@ import type { $WSServer } from '@/lib/ws';
 import type { FileOp, FileOpRequest, FileOps } from './types';
 
 const KNOWN: readonly FileOp[] = ['write', 'append', 'mkdir', 'delete', 'move'];
+
+export class CapabilityMismatchError extends Error {
+  readonly code = 'capability_mismatch' as const;
+}
 function isFileOp(value: string): value is FileOp {
   return (KNOWN as readonly string[]).includes(value);
 }
@@ -23,12 +27,12 @@ export function rememberAdvertisedOps(WS: $WSServer, ops: unknown) {
  * the op is in the set the client advertised (§ 2) and emits `fileop` with the session uuid. An
  * op that wasn't advertised is a loud error (→ `status: error` in the runtime), never silently dropped.
  */
-export function createFileOps(WS: $WSServer): FileOps {
+export function createFileOps(WS: $WSServer, correlationId = WS.sessionId): FileOps {
   const send = (req: FileOpRequest) => {
     if (!advertised.get(WS)?.has(req.op)) {
-      throw new Error(`Operation '${req.op}' is not supported by this session's client.`);
+      throw new CapabilityMismatchError(`Operation '${req.op}' is not supported by this session's client.`);
     }
-    WS.emit('fileop', { uuid: WS.sessionId, payload: req });
+    WS.emit('fileop', { uuid: correlationId, payload: req });
   };
   return {
     write: (path, content) => send({ op: 'write', path, content }),

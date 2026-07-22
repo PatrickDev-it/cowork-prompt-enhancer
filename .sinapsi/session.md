@@ -202,3 +202,31 @@ filesystem confinement; and an injectable supervisor state machine.
 released together. Tool wrapper APIs and the Python field-loop workflow remain stable. **Validation:**
 cross-checked against root P-04–P-07, P-11–P-13/P-15 and accepted RFC-0002/0008/0014. **Status:** boundary
 accepted; implementation is next.
+
+## 2026-07-22T02:45:57+02:00 — Root RFC Phase 2: protocol, security and resource hardening
+
+**Goal:** close P-04–P-07, P-11–P-13 and the Phase 2 portions of P-15 under RFC-0027.
+
+**Changes made:** implemented shared discriminated protocol-v1 schemas and stable errors; explicit
+loopback binding; single-use HMAC remote challenges with constant-time verification, expiry and replay
+rejection; frame/payload limits; bounded global/per-session scheduling, queue deadlines, cancellation,
+status backpressure and reconnect deduplication; explicit client connection states with capped jittered
+backoff and bounded outbox; correlation IDs from WebSocket through Python/provider; canonical path
+confinement including Windows reserved names and symlink/junction rejection; and an injectable
+llama-supervisor state machine. Architecture, threat model, environment and security guidance now match.
+
+**Breaking changes:** legacy `{event, props}` frames are rejected; client and server must ship together.
+Local zero-configuration operation remains functional. Cancelling one provider request terminates the
+shared Python worker, safely failing its concurrent work without automatic replay. The historical
+field-loop code is unchanged. **Regressions:** tool auto-discovery now excludes `*.test.ts`, fixing a
+server-start defect exposed by the new colocated tests.
+
+**Validation:** formatter/lint/typecheck pass; 46 Bun unit, 62 pytest and 7 integration tests pass.
+Named gates pass: 25 provider, 26 protocol/security/path, 5 supervisor failure-injection and 4 full E2E
+tests. E2E covers WebSocket→tool→Python→mock→artifact, anonymous/replayed remote rejection, provider
+cancellation and server restart/client reconnect without replay. Real local inference smoke passes;
+zero llama-server/Python orphans remain. Bun/pip audits are zero, secret-pattern scan has no matches and
+`git diff --check` passes.
+
+**Final status:** Phase 2 is complete locally. Commit/push, require hosted CI green, then implement the
+versioned evaluation system before changing compiler prompts.

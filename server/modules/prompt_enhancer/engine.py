@@ -39,7 +39,7 @@ class LLMEngine:
         config = self.config or load_provider_config()
         self.config = config
         if config.profile == "mock":
-            self.provider = MockProvider(config.mock_scenario)
+            self.provider = MockProvider(config.mock_scenario, config.mock_delay_seconds)
         elif config.profile == "local":
             self.provider = LlamaServerProvider(config.base_url, config.timeout_seconds)
         else:

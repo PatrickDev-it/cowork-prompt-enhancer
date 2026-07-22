@@ -44,7 +44,7 @@ export async function runEnhancement(
     'production-grade',
     think,
     (message) => ctx.status({ sub_event: 'log', message }),
-    options
+    { ...options, signal: ctx.signal, correlationId: ctx.correlationId }
   );
 
   ctx.status({ sub_event: 'progress', percent: 95, message: 'Generato, consegna al client...' });

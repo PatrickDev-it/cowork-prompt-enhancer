@@ -1,5 +1,6 @@
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
+import { DEFAULT_MAX_FRAME_BYTES, DEFAULT_MAX_PAYLOAD_BYTES } from '../protocol';
 
 export type ProviderProfile = 'mock' | 'local' | 'openai-compatible';
 
@@ -26,6 +27,27 @@ export function resolveProviderProfile(env: NodeJS.ProcessEnv = process.env): Pr
 export const PROFILE = resolveProviderProfile();
 
 export const PORT = Number(process.env.COWORK_PORT ?? 8080);
+export const HOST = process.env.COWORK_HOST ?? '127.0.0.1';
+export const ALLOW_REMOTE = process.env.COWORK_ALLOW_REMOTE === 'true';
+export const AUTH_SECRET = process.env.COWORK_AUTH_SECRET ?? '';
+export const MAX_FRAME_BYTES = Number(process.env.COWORK_MAX_FRAME_BYTES ?? DEFAULT_MAX_FRAME_BYTES);
+export const MAX_PAYLOAD_BYTES = Number(process.env.COWORK_MAX_PAYLOAD_BYTES ?? DEFAULT_MAX_PAYLOAD_BYTES);
+export const MAX_ACTIVE_COMMANDS = Number(process.env.COWORK_MAX_ACTIVE_COMMANDS ?? 4);
+export const MAX_SESSION_COMMANDS = Number(process.env.COWORK_MAX_SESSION_COMMANDS ?? 2);
+export const MAX_QUEUED_COMMANDS = Number(process.env.COWORK_MAX_QUEUED_COMMANDS ?? 32);
+export const COMMAND_TIMEOUT_MS = Number(process.env.COWORK_COMMAND_TIMEOUT_MS ?? 600_000);
+
+export function isLoopbackHost(host: string): boolean {
+  const normalized = host
+    .trim()
+    .toLowerCase()
+    .replace(/^\[|\]$/g, '');
+  return normalized === '127.0.0.1' || normalized === 'localhost' || normalized === '::1';
+}
+
+function positiveInteger(value: number, variable: string): void {
+  if (!Number.isSafeInteger(value) || value < 1) throw new Error(`${variable} must be a positive integer`);
+}
 
 /**
  * Python interpreter for tools that spawn Python processes — RFC-0005 § 3, RFC-0006.
@@ -72,10 +94,37 @@ export function assertValidConfig(env: NodeJS.ProcessEnv = process.env): void {
   const profile = resolveProviderProfile(env);
   const port = Number(env.COWORK_PORT ?? 8080);
   if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error('COWORK_PORT must be a valid port');
+  const host = (env.COWORK_HOST ?? '127.0.0.1').trim();
+  if (!host) throw new Error('COWORK_HOST cannot be empty');
+  const remote = !isLoopbackHost(host);
+  if (remote && env.COWORK_ALLOW_REMOTE !== 'true') {
+    throw new Error('Non-loopback binding requires COWORK_ALLOW_REMOTE=true');
+  }
+  if (remote && (env.COWORK_AUTH_SECRET ?? '').length < 32) {
+    throw new Error('Non-loopback binding requires COWORK_AUTH_SECRET with at least 32 characters');
+  }
+  const maxFrame = Number(env.COWORK_MAX_FRAME_BYTES ?? DEFAULT_MAX_FRAME_BYTES);
+  const maxPayload = Number(env.COWORK_MAX_PAYLOAD_BYTES ?? DEFAULT_MAX_PAYLOAD_BYTES);
+  const maxActive = Number(env.COWORK_MAX_ACTIVE_COMMANDS ?? 4);
+  const maxSession = Number(env.COWORK_MAX_SESSION_COMMANDS ?? 2);
+  const maxQueued = Number(env.COWORK_MAX_QUEUED_COMMANDS ?? 32);
+  const timeout = Number(env.COWORK_COMMAND_TIMEOUT_MS ?? 600_000);
+  positiveInteger(maxFrame, 'COWORK_MAX_FRAME_BYTES');
+  positiveInteger(maxPayload, 'COWORK_MAX_PAYLOAD_BYTES');
+  positiveInteger(maxActive, 'COWORK_MAX_ACTIVE_COMMANDS');
+  positiveInteger(maxSession, 'COWORK_MAX_SESSION_COMMANDS');
+  positiveInteger(maxQueued, 'COWORK_MAX_QUEUED_COMMANDS');
+  positiveInteger(timeout, 'COWORK_COMMAND_TIMEOUT_MS');
+  if (maxPayload > maxFrame) throw new Error('COWORK_MAX_PAYLOAD_BYTES cannot exceed COWORK_MAX_FRAME_BYTES');
+  if (maxSession > maxActive) throw new Error('COWORK_MAX_SESSION_COMMANDS cannot exceed COWORK_MAX_ACTIVE_COMMANDS');
   if (profile === 'mock') {
     const scenario = env.COWORK_MOCK_SCENARIO ?? 'success';
     if (!['success', 'malformed', 'context_overflow', 'timeout', 'provider_failure'].includes(scenario)) {
       throw new Error(`Unsupported COWORK_MOCK_SCENARIO '${scenario}'`);
+    }
+    const delay = Number(env.COWORK_MOCK_DELAY_MS ?? 0);
+    if (!Number.isFinite(delay) || delay < 0 || delay > 60_000) {
+      throw new Error('COWORK_MOCK_DELAY_MS must be between 0 and 60000');
     }
     return;
   }

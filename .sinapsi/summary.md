@@ -55,6 +55,7 @@ patch: the project's shape (above), the last sessions at a glance, and a short r
 agent at the end of every patch, at the same time it appends session.md. Drop the
 11th; the full history is in session.md and, once archived, in archive/. -->
 
+- 2026-07-22T02:45:57+02:00 — Completed Phase 2 authenticated protocol, bounded resources, cancellation, confinement and E2E hardening.
 - 2026-07-22T02:15:00+02:00 — Accepted RFC-0027 for authenticated protocol v1, bounded resources and canonical confinement.
 - 2026-07-22T02:05:52+02:00 — Completed Phase 1 portable providers, setup/preflight, offline demo and real local smoke.
 - 2026-07-22T04:48:00+02:00 — Accepted RFC-0026 for provider profiles, typed errors, validated configuration and preflight.
@@ -69,11 +70,12 @@ agent at the end of every patch, at the same time it appends session.md. Drop th
 fragile, what the next action is. Rewritten (not appended) from session.md + handoff.md
 at the end of every patch. If it grows past 10 lines it has stopped being a summary. -->
 
-- Root `RFC.md` is accepted; Phases 0 and 1 are locally complete.
+- Root `RFC.md` is accepted; Phases 0–2 are locally complete.
 - One pinned Bun workspace now owns frozen install, format, lint, typecheck, tests, audits, demo and benchmark commands.
-- Phase 1 gate is green: 20 Bun unit, 59 pytest and 3 integration tests; formatter, lint, typecheck and audits pass.
+- Phase 2 gate is green: 46 Bun unit, 62 pytest and 7 integration tests; formatter, lint, typecheck and audits pass.
 - Owner links target `PatrickDev-it`; security, support, release, environment and artifact provenance policies exist; dependency trees are ignored.
 - Private remote and metadata exist; Phase 1 hosted CI run 29879307065 is green.
 - Mock/local/openai-compatible profiles, conformance, setup/preflight, offline demo and real local smoke are implemented.
-- RFC-0027 is accepted; authenticated protocol/resource/confinement hardening is next.
+- Protocol v1, remote HMAC auth, bounded cancellation/reconnect, canonical paths and supervisor injection are implemented.
+- Phase 3 evaluation corpus/measurement is next; final recruiter release remains open.
 - Preserve the historical field-loop fallback and never commit local runtime artifacts or credentials.

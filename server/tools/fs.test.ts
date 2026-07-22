@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test';
 import type { $WSServer } from '@/lib/ws';
-import { createFileOps, rememberAdvertisedOps } from './fs';
+import { CapabilityMismatchError, createFileOps, rememberAdvertisedOps } from './fs';
 
 function fakeConnection(sessionId: string) {
   const emitted: Array<{ event: string; args: unknown[] }> = [];
@@ -16,7 +16,12 @@ describe('createFileOps', () => {
     const { WS } = fakeConnection('session-1');
     rememberAdvertisedOps(WS, ['write']);
     const fs = createFileOps(WS);
-    expect(() => fs.delete('secrets.txt')).toThrow();
+    expect(() => fs.delete('secrets.txt')).toThrow(CapabilityMismatchError);
+    try {
+      fs.delete('secrets.txt');
+    } catch (error) {
+      expect(error).toMatchObject({ code: 'capability_mismatch' });
+    }
   });
 
   test('never emits when the op is rejected', () => {
