@@ -1,20 +1,26 @@
 name: ci
 
-# Validates the TypeScript and Python logic only. The GPU inference path (llama-server.exe +
-# vendored CUDA DLLs, server/bin/ and server/models/*.gguf) is Windows-only, ~7.9 GB, and out of
-# CI's reach by design — see RFC-0025. Nothing here starts or depends on llama-server.
+on:
+  push:
+  pull_request:
 
-on: [push, pull_request]
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   verify:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: "1.3.12"
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12.4"
           cache: pip
@@ -24,12 +30,25 @@ jobs:
         run: bun run install:frozen
       - name: Format, lint, typecheck, and test
         run: bun run check
-      - name: Offline reviewer path
+      - name: Offline reviewer and benchmark paths
         env:
           COWORK_PROFILE: mock
         run: |
           bun run preflight
-          bun run demo:mock
-          bun run benchmark
-      - name: Dependency audit
-        run: bun run audit
+          bun run demo:record
+      - name: Dependency and repository security gates
+        run: |
+          bun run audit
+          bun run security:scan
+      - name: Documentation and release validation
+        run: |
+          bun run docs:check
+          bun run release:build
+          bun run release:validate
+      - name: Upload validated release bundle
+        uses: actions/upload-artifact@v7
+        with:
+          name: cowork-prompt-enhancer-v1.0.0-${{ github.sha }}
+          path: .artifacts/release/v1.0.0/
+          if-no-files-found: error
+          retention-days: 7
