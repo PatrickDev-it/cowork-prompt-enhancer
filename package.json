@@ -40,6 +40,6 @@
     "gate:release": "bun run check && bun run audit && bun run docs:check && bun run security:scan && bun run demo:record && bun run release:build && bun run release:validate"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.5.4"
+    "@biomejs/biome": "2.5.5"
   }
 }
