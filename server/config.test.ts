@@ -50,6 +50,14 @@ describe('provider profile configuration', () => {
         COWORK_AUTH_SECRET: 'a'.repeat(32),
       })
     ).not.toThrow();
+    expect(() =>
+      assertValidConfig({
+        COWORK_HOST: '0.0.0.0',
+        COWORK_ALLOW_REMOTE: 'true',
+        COWORK_AUTH_SECRET: 'a'.repeat(32),
+        COWORK_METRICS: 'true',
+      })
+    ).toThrow('only on a loopback');
   });
 
   test('rejects inconsistent resource bounds before workers start', () => {

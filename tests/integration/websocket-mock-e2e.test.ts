@@ -35,6 +35,7 @@ test('WebSocket -> tool runtime -> Python worker -> mock provider -> confined ar
       COWORK_PROFILE: 'mock',
       COWORK_HOST: '127.0.0.1',
       COWORK_PORT: String(port),
+      COWORK_METRICS: 'true',
       COWORK_PROMPT_ENHANCER_SEARCH: 'off',
     },
     stdout: 'pipe',
@@ -112,6 +113,37 @@ test('WebSocket -> tool runtime -> Python worker -> mock provider -> confined ar
     writeFileSync(target!, operation.content, 'utf8');
     expect(await Bun.file(target!).text()).toContain('Build a typed deployment checklist with tests');
     expect(messages.some((message) => message.kind === 'error')).toBeFalse();
+    let metrics: {
+      totals: { requests: number };
+      recent: Array<{
+        correlationId: string;
+        trace: {
+          schedulerQueueMs: number;
+          compressionMs: number;
+          generationMs: number;
+          artifactMs: number;
+          totalMs: number;
+          providerCalls: number;
+          generationMode: string;
+          fallbackUsed: boolean;
+        };
+      }>;
+    } | null = null;
+    await waitUntil(async () => {
+      const response = await fetch(`http://127.0.0.1:${port}/metrics`);
+      metrics = response.ok ? await response.json() : null;
+      return metrics?.totals.requests === 1;
+    });
+    const trace = metrics!.recent[0]!;
+    expect(trace.correlationId).toBe(commandId);
+    expect(trace.trace.schedulerQueueMs).toBeGreaterThanOrEqual(0);
+    expect(trace.trace.compressionMs).toBeGreaterThanOrEqual(0);
+    expect(trace.trace.generationMs).toBeGreaterThanOrEqual(0);
+    expect(trace.trace.artifactMs).toBeGreaterThanOrEqual(0);
+    expect(trace.trace.totalMs).toBeGreaterThanOrEqual(trace.trace.generationMs);
+    expect(trace.trace.providerCalls).toBe(1);
+    expect(trace.trace.generationMode).toStartWith('compiler_');
+    expect(trace.trace.fallbackUsed).toBeFalse();
   } finally {
     socket?.close();
     server.kill();

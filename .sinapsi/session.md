@@ -302,3 +302,28 @@ Bun/pip audits report zero vulnerabilities; 296/296 reference records are succes
 `git diff --check` passes. No human or model-assisted rating is claimed and no local process remains.
 
 **Final status:** Phase 3 is complete. Commit/push evidence, require hosted CI green, then execute Phase 4.
+
+## 2026-07-22T03:50:09+02:00 — Bounded production request observability and English runtime surface
+
+**Goal:** close the production-observability portion of P-15 and the public-language portion of P-18
+before packaging the portfolio release.
+
+**Changes made:** added a correlation-scoped request trace spanning scheduler queue, compression,
+provider queue, Python generation/provider calls, tokens, fallback/grounding state, artifact delivery and
+total time. Traces are recorded in a bounded 100-entry registry, structured local logs and an opt-in
+loopback-only `/metrics` endpoint; prompts, credentials and authentication material are never retained.
+Python provider observations are now thread-local. Runtime prompts, errors, logs and comments in every
+touched module are professional English. Architecture, environment and security guidance document the
+new boundary.
+
+**Security and compatibility:** metrics are disabled by default and configuration rejects them on a
+non-loopback bind. Provider contracts, protocol v1 and artifact formats are unchanged. The historical
+field-loop remains untouched.
+
+**Validation:** format, Biome/Ruff, client/server typecheck, 47 Bun unit, 79 pytest and 7 integration
+tests pass. The full mock E2E verifies a single sanitized trace from WebSocket through artifact delivery;
+the Python concurrency regression proves per-thread observations. Bun and pip audits report zero known
+vulnerabilities and `git diff --check` passes.
+
+**Final status:** P-15 observability and applicable P-18 English output are complete; Phase 4 packaging,
+demo, recruiter documentation and GitHub release work remain.

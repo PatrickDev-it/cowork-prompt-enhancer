@@ -55,6 +55,7 @@ patch: the project's shape (above), the last sessions at a glance, and a short r
 agent at the end of every patch, at the same time it appends session.md. Drop the
 11th; the full history is in session.md and, once archived, in archive/. -->
 
+- 2026-07-22T03:50:09+02:00 — Added bounded end-to-end request traces and completed runtime English output cleanup.
 - 2026-07-22T03:27:34+02:00 — Published 296 sanitized mock/local reference records with measured results and provenance.
 - 2026-07-22T03:17:25+02:00 — Excluded generated Python bytecode from evaluation and release commits.
 - 2026-07-22T03:15:15+02:00 — Implemented the 64-case deterministic evaluation, evidence pipeline and real local comparison.
@@ -63,7 +64,6 @@ agent at the end of every patch, at the same time it appends session.md. Drop th
 - 2026-07-22T02:15:00+02:00 — Accepted RFC-0027 for authenticated protocol v1, bounded resources and canonical confinement.
 - 2026-07-22T02:05:52+02:00 — Completed Phase 1 portable providers, setup/preflight, offline demo and real local smoke.
 - 2026-07-22T04:48:00+02:00 — Accepted RFC-0026 for provider profiles, typed errors, validated configuration and preflight.
-- 2026-07-22T04:39:00+02:00 — Removed pytest security finding PYSEC-2026-1845 by upgrading to 9.0.3 and regenerating the hashed lock.
 
 ## Where things stand
 
@@ -71,13 +71,14 @@ agent at the end of every patch, at the same time it appends session.md. Drop th
 fragile, what the next action is. Rewritten (not appended) from session.md + handoff.md
 at the end of every patch. If it grows past 10 lines it has stopped being a summary. -->
 
-- Root `RFC.md` is accepted; Phases 0–3 are locally complete and Phase 4 remains.
+- Root `RFC.md` is accepted; Phases 0–3 are complete and Phase 4 is in progress.
 - One pinned Bun workspace now owns frozen install, format, lint, typecheck, tests, audits, demo and benchmark commands.
-- Current gate is green: 46 Bun unit, 78 pytest and 7 integration tests; formatter, lint, typecheck and audits pass.
+- Current gate is green: 47 Bun unit, 79 pytest and 7 integration tests; formatter, lint, typecheck and audits pass.
 - Owner links target `PatrickDev-it`; security, support, release, environment and artifact provenance policies exist; dependency trees are ignored.
-- Private remote and metadata exist; Phase 2 hosted CI run 29881246507 is green.
+- Private remote and metadata exist; Phase 3 hosted CI run 29883201459 is green.
 - Mock/local/openai-compatible profiles, conformance, setup/preflight, offline demo and real local smoke are implemented.
 - Protocol v1, remote HMAC auth, bounded cancellation/reconnect, canonical paths and supervisor injection are implemented.
-- `cowork-eval/v1` has 64 balanced cases and 296/296 successful sanitized mock/local reference records tied to commit `1cbbf26`.
-- Phase 4 recruiter documentation, release evidence, hosted PR/CI, v1.0.0 and final public launch remain.
+- `cowork-eval/v1` has 64 balanced cases and 296/296 successful sanitized mock/local reference records.
+- Bounded end-to-end request tracing is opt-in, sanitized and loopback-only; public runtime output is English.
+- Recruiter documentation, release automation, hosted PR/CI, v1.0.0 and final public launch remain.
 - Preserve the historical field-loop fallback and never commit local runtime artifacts or credentials.

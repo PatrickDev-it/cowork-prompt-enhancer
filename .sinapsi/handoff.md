@@ -1,47 +1,40 @@
 # Handoff
 
-Living project context after root RFC Phase 3 completion on 2026-07-22.
+Living project context during root RFC Phase 4 on 2026-07-22.
 
 ## Current state
 
-Root `RFC.md` is accepted. Phases 0–3 close P-01–P-15 locally, plus applicable P-16/P-19 work.
-The private repository is `PatrickDev-it/cowork-prompt-enhancer`; Phase 2 hosted CI run 29881246507 is
-green. Keep it private until every Phase 4 launch gate passes.
+Root `RFC.md` is accepted. Phases 0–3 are complete; the P-15 production observability/P-18 runtime
+English patch is complete and awaiting commit. The private repository is
+`PatrickDev-it/cowork-prompt-enhancer`; hosted Phase 3 CI run 29883201459 is green. Keep the repository
+private until every Phase 4 launch gate passes.
 
-RFC-0026 owns the three provider profiles. RFC-0027 owns protocol-v1, remote HMAC authentication,
-bounded scheduling/cancellation/reconnect, canonical paths and supervisor state. RFC-0028 owns the
-`cowork-eval/v1` dataset, deterministic evidence formats and blinded review protocol.
+RFC-0026 owns provider profiles, RFC-0027 owns protocol/security/resource hardening and RFC-0028 owns
+versioned evaluation evidence. No new protocol or configuration decision was introduced by observability.
 
-## Verified Phase 3 implementation gate
+## Verified gate
 
-- Formatter, Biome/Ruff, client/server typecheck, 46 Bun unit and 7 integration tests pass.
-- Pytest rises from 62 to 78 full-suite tests. Provider conformance remains 25/25.
-- Full mock evaluation produces 264 records across all 64 balanced cases and five applicable strategies.
-- Real local evaluation produces 32 records across eight categories and four core strategies on an RTX
-  3070 Ti; no owned llama-server process remains.
-- Final local compiler: recall 0.917, precision 1.000, structure 0.792, executability 0.975, p50 8674 ms.
-- Final local raw: recall 1.000, precision 1.000, structure 0.333, executability 0.725. This is an eight-case
-  lexical-metric reference, not a full-corpus or human result.
+- Formatter, Biome/Ruff and client/server typecheck pass.
+- 47 Bun unit, 79 pytest and 7 integration tests pass.
+- Provider conformance, protocol/security/path, supervisor failure and full E2E suites remain green.
+- Bun and pip audits report zero known vulnerabilities; `git diff --check` passes.
+- The mock E2E verifies one trace across queue, compression, generation, fallback state and artifact.
+- Request metrics are disabled by default, bounded to 100 entries and rejected off loopback.
 
-## Important implementation facts
+## Evaluation evidence
 
-- `evaluation/datasets/v1/cases.jsonl` has 64 public non-sensitive cases, eight per category.
-- `evaluation/benchmark.py` writes records, summary, environment and report files; live search is off.
-- Provider observations expose calls, tokens, queue/generation timing and basename-only model identity.
-- Python bytecode and benchmark working outputs are repository-wide ignored and must remain unstaged.
-- Compiler success, fallback-delivered success and parse recovery are never conflated.
-- `evaluation/human_review.py` randomizes opaque IDs and rejects invalid/incomplete imports; no human
-  results exist or are claimed.
-- Curated mock/local references contain 296/296 successful sanitized records and identify implementation
-  commit `1cbbf26b63ea81fedc5a6922453ea00ea75090c8`.
+- `cowork-eval/v1` contains 64 balanced, public, non-sensitive cases.
+- Curated mock/local references contain 296/296 successful sanitized records tied to commit `1cbbf26`.
+- Local compiler recall/precision/structure/executability: 0.917/1.000/0.792/0.975.
+- Local raw reference: 1.000/1.000/0.333/0.725; evidence is an eight-case lexical subset, not human proof.
 
 ## Remaining root RFC work
 
-- Commit/push Phase 3 reference evidence and require hosted CI green.
-- Phase 4 / P-17–P-20: recruiter README, public English cleanup, demo recording, threat/docs sync,
-  changelog/SBOM/checksums, CodeQL/secret/dependency automation, release validation and clean-clone gate.
-- Open the mapped feature PR, repair CI, merge without rewriting history, tag/release v1.0.0, then make
-  the personal repository public as the final launch action.
+- Commit/push the P-15/P-18 observability patch and require hosted CI green.
+- Build recruiter-first README, demo transcript, docs/link validation, secret scan and release builder.
+- Add current CodeQL, dependency updates and release workflows; synchronize changelog/support/provenance.
+- Validate a clean clone, open the mapped PR, repair CI, merge without history rewriting, tag/release
+  v1.0.0, then make the personal repository public as the final launch action.
 
 ## Invariants
 
@@ -53,4 +46,4 @@ bounded scheduling/cancellation/reconnect, canonical paths and supervisor state.
 
 ## Next action
 
-Commit and push the Phase 3 reference evidence, confirm hosted CI, then begin Phase 4.
+Commit and push the observability patch, confirm hosted CI, then implement Phase 4 delivery automation.

@@ -30,6 +30,18 @@ runner records credential-free provider observations, deterministic quality metr
 compiler/fallback outcomes as JSONL plus environment, summary and report artifacts. Reference runs
 never perform live retrieval; blinded human ratings are an optional import and are not synthesized.
 
+## Observability
+
+Each admitted request carries one correlation ID across the WebSocket boundary, scheduler, tool runtime,
+Python worker and provider. The structured completion trace records queue, compression, generation,
+provider and artifact timings; token observations; fallback and grounding state; and artifact names.
+Request content, provider credentials and authentication material are excluded.
+
+`COWORK_METRICS=true` enables a bounded snapshot of aggregate counters and the latest 100 traces at
+`/metrics`. The endpoint is disabled by default, sends `Cache-Control: no-store`, and configuration
+validation rejects it for non-loopback binding. Structured `request_trace` logs expose the same sanitized
+record for local diagnostics.
+
 ## Protocol and request lifecycle
 
 All application frames are discriminated protocol-v1 envelopes defined once in `protocol/index.ts`:
@@ -116,6 +128,7 @@ model and CUDA artifacts remain outside Git.
 | `server/lib/auth.ts` | Single-use challenge issuance and constant-time proof verification. |
 | `server/lib/ws.ts` | Per-connection dispatch, replay rejection, outbound backpressure. |
 | `server/lib/scheduler.ts` | Queue/concurrency limits, deadlines and cancellation. |
+| `server/lib/metrics.ts` | Bounded, sanitized request timing and outcome traces. |
 | `server/tools/runtime.ts` | Compression head, scheduled tool execution and public errors. |
 | `server/tools/fs.ts` | Client-advertised capability enforcement. |
 | `client/events/fileop.ts` | Canonical path confinement and local mutation. |
@@ -134,5 +147,7 @@ model and CUDA artifacts remain outside Git.
   credentials are process-environment only; no claim is made about that provider's retention policy.
 - Optional DuckDuckGo grounding is outbound network access. Set `COWORK_PROMPT_ENHANCER_SEARCH=off` for
   a strictly offline run.
+- The optional metrics endpoint is a local diagnostic interface, not an authenticated remote telemetry
+  service; non-loopback metrics are rejected.
 - Cancellation terminates the shared Python worker. Concurrent requests in that worker fail safely and
   may be retried explicitly; they are never replayed automatically.

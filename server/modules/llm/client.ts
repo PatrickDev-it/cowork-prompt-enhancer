@@ -1,12 +1,6 @@
 import { LLAMA_SERVER_URL, PROFILE } from '@/config';
 
-/**
- * Client "Chat Completions" OpenAI-compatible per il modello condiviso — RFC-0015. Lato TS,
- * speculare al provider Python (RFC-0014): qualunque modulo TS (context_compressor, futuri) parla
- * al modello via questa astrazione, non a llama.cpp direttamente. Reasoning nativo per-richiesta
- * (`chat_template_kwargs.enable_thinking`). I chiamanti garantiscono la readiness (`ensureLlmReady`)
- * prima di usare questi metodi.
- */
+/** OpenAI-compatible client for shared TypeScript-side model consumers (RFC-0015). */
 
 export interface ChatMessage {
   role: 'system' | 'user' | 'assistant';
@@ -102,7 +96,7 @@ export async function chatCompletion(opts: ChatOptions): Promise<ChatResult> {
   };
 }
 
-/** Conta i token via il tokenizer del server (fallback: stima chars/4). */
+/** Count with the local tokenizer and fall back to a characters-per-token estimate. */
 export async function countTokens(text: string, signal?: AbortSignal): Promise<number> {
   if (PROFILE !== 'local') return Math.ceil(text.length / 4);
   try {

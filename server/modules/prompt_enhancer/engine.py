@@ -3,6 +3,7 @@
 import json
 import os
 import re
+import threading
 import time
 from dataclasses import dataclass
 from pathlib import Path
@@ -56,17 +57,24 @@ class LLMEngine:
         self.presence_penalty = float(os.getenv("COWORK_PROMPT_ENHANCER_PRESENCE_PENALTY", "0.0"))
         self.repeat_penalty = float(os.getenv("COWORK_PROMPT_ENHANCER_REPEAT_PENALTY", "1.0"))
         self.temperature = float(os.getenv("COWORK_PROMPT_ENHANCER_TEMP", str(self.temperature)))
-        self._generation_metrics: list[dict] = []
+        self._metrics_local = threading.local()
+
+    def _metrics(self) -> list[dict]:
+        metrics = getattr(self._metrics_local, "calls", None)
+        if metrics is None:
+            metrics = []
+            self._metrics_local.calls = metrics
+        return metrics
 
     def reset_metrics(self) -> None:
         """Clear per-call observations before a benchmark case starts."""
 
-        self._generation_metrics.clear()
+        self._metrics_local.calls = []
 
     def snapshot_metrics(self) -> list[dict]:
         """Return a credential-free copy of provider call observations."""
 
-        return [dict(item) for item in self._generation_metrics]
+        return [dict(item) for item in self._metrics()]
 
     def _record_call(
         self,
@@ -78,9 +86,10 @@ class LLMEngine:
         finish_reason: str = "",
         error_code: str | None = None,
     ) -> None:
-        self._generation_metrics.append(
+        metrics = self._metrics()
+        metrics.append(
             {
-                "call": len(self._generation_metrics) + 1,
+                "call": len(metrics) + 1,
                 "profile": self.backend,
                 "model": str(self.model_source).replace("\\", "/").rsplit("/", 1)[-1],
                 "requested_completion_tokens": effective_tokens,
