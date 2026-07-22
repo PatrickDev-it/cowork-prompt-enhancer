@@ -1,5 +1,5 @@
 import { randomUUIDv7 } from 'bun';
-import { PORT } from '@/config';
+import { assertValidConfig, PORT, PROFILE } from '@/config';
 import { init } from '@/events/init';
 import { openSession } from '@/events/session';
 import { $WSWrapper, type SocketData } from '@/lib/ws';
@@ -12,7 +12,8 @@ import { registerTool } from '@/tools/runtime';
 // Bun.serve: il server accetta connessioni da subito, il modello sarà pronto in VRAM per la prima
 // invocazione (che comunque attende `/health` se non lo è ancora). Il modello è condiviso da tutti
 // i moduli (prompt_enhancer, context_compressor, futuri). `warmUpPromptEnhancer` avvia il suo worker.
-startLlm();
+assertValidConfig();
+if (PROFILE === 'local') startLlm();
 warmUpPromptEnhancer();
 
 Bun.serve<SocketData>({
@@ -37,4 +38,4 @@ Bun.serve<SocketData>({
   }),
 });
 
-console.log(`Cowork server in ascolto su ws://localhost:${PORT} — ${Object.keys(tools).length} tool registrati.`);
+console.log(`Cowork server listening on ws://localhost:${PORT} (${PROFILE}) — ${Object.keys(tools).length} tools.`);

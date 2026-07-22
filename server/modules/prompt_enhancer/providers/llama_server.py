@@ -1,9 +1,4 @@
-"""Provider llama-server via API OpenAI-compatible — RFC-0014. Client HTTP con sola stdlib
-(urllib): nessuna dipendenza nuova. L'inferenza passa ESCLUSIVAMENTE per /v1/chat/completions.
-
-Reasoning per-richiesta nativo (verificato sul build b9893): `chat_template_kwargs.enable_thinking`
-attiva/spegne il thinking a livello di singola richiesta, e il ragionamento finisce in
-`message.reasoning_content` separato — `content` resta sempre pulito (niente strip lato client)."""
+"""Local llama-server adapter with typed transport failures (RFC-0014, RFC-0026)."""
 
 import json
 import os
@@ -11,7 +6,7 @@ import urllib.error
 import urllib.request
 from collections.abc import Sequence
 
-from .base import ChatResult, ProviderContextError, ProviderError
+from .base import ChatResult, ProviderContextError, ProviderError, ProviderTimeoutError
 
 _CONTEXT_HINTS = ("context", "exceed", "too large", "too long", "n_ctx", "kv cache")
 
@@ -27,24 +22,25 @@ class LlamaServerProvider:
 
     def _post(self, path: str, body: dict, timeout: float) -> dict:
         data = json.dumps(body).encode("utf-8")
-        req = urllib.request.Request(
+        request = urllib.request.Request(
             self.base_url + path, data=data, headers={"Content-Type": "application/json"}, method="POST"
         )
         try:
-            with urllib.request.urlopen(req, timeout=timeout) as resp:
-                return json.load(resp)
+            with urllib.request.urlopen(request, timeout=timeout) as response:
+                return json.load(response)
         except urllib.error.HTTPError as exc:
-            detail = ""
-            try:
-                detail = exc.read().decode("utf-8", "ignore")
-            except Exception:
-                pass
-            low = detail.lower()
-            if exc.code == 400 and any(h in low for h in _CONTEXT_HINTS):
-                raise ProviderContextError(detail or "context exceeded") from exc
+            detail = exc.read().decode("utf-8", "ignore")
+            if exc.code == 400 and any(hint in detail.lower() for hint in _CONTEXT_HINTS):
+                raise ProviderContextError("llama-server context window exceeded") from exc
             raise ProviderError(f"llama-server HTTP {exc.code}: {detail[:300]}") from exc
+        except TimeoutError as exc:
+            raise ProviderTimeoutError("llama-server request timed out") from exc
         except urllib.error.URLError as exc:
-            raise ProviderError(f"llama-server irraggiungibile: {exc.reason}") from exc
+            if isinstance(exc.reason, TimeoutError):
+                raise ProviderTimeoutError("llama-server request timed out") from exc
+            raise ProviderError(f"llama-server connection failed: {exc.reason}") from exc
+        except (ValueError, json.JSONDecodeError) as exc:
+            raise ProviderError("llama-server returned malformed JSON") from exc
 
     def chat(
         self,
@@ -69,7 +65,6 @@ class LlamaServerProvider:
             "min_p": min_p,
             "presence_penalty": presence_penalty,
             "repeat_penalty": repeat_penalty,
-            # Reasoning nativo per-richiesta (niente prefill hack): OFF di default, ON su richiesta.
             "chat_template_kwargs": {"enable_thinking": bool(think)},
         }
         if response_format is not None:
@@ -81,7 +76,7 @@ class LlamaServerProvider:
             message = choice["message"]
             usage = data.get("usage", {})
         except (KeyError, IndexError, TypeError) as exc:
-            raise ProviderError(f"risposta llama-server malformata: {str(data)[:300]}") from exc
+            raise ProviderError("llama-server returned a malformed chat response") from exc
 
         return ChatResult(
             text=message.get("content") or "",
@@ -93,23 +88,25 @@ class LlamaServerProvider:
 
     def health(self) -> bool:
         try:
-            with urllib.request.urlopen(self.base_url + "/health", timeout=5) as resp:
-                return json.load(resp).get("status") == "ok"
+            with urllib.request.urlopen(self.base_url + "/health", timeout=5) as response:
+                return json.load(response).get("status") == "ok"
         except Exception:
             return False
 
     def info(self) -> dict:
         try:
-            with urllib.request.urlopen(self.base_url + "/props", timeout=5) as resp:
-                props = json.load(resp)
+            with urllib.request.urlopen(self.base_url + "/props", timeout=5) as response:
+                props = json.load(response)
         except Exception as exc:
-            return {"server_url": self.base_url, "reachable": False, "error": str(exc)}
-        gen = props.get("default_generation_settings", {}) or {}
+            return {"profile": "local", "server_url": self.base_url, "reachable": False, "error": str(exc)}
+        generation = props.get("default_generation_settings", {}) or {}
         return {
+            "profile": "local",
             "server_url": self.base_url,
             "reachable": True,
             "model_path": props.get("model_path"),
-            "n_ctx_per_slot": gen.get("n_ctx"),
+            "n_ctx_per_slot": generation.get("n_ctx"),
             "total_slots": props.get("total_slots"),
             "build_info": props.get("build_info"),
+            "capabilities": ["chat", "health", "info", "reasoning", "json-response-format"],
         }

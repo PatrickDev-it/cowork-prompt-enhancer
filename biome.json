@@ -6,7 +6,16 @@
     "useIgnoreFile": true
   },
   "files": {
-    "includes": ["client/**", "server/**", "!**/node_modules", "!**/.venv", "!**/*.gguf"]
+    "includes": [
+      "client/**",
+      "server/**",
+      "scripts/**",
+      "tests/**",
+      "*.json",
+      "!**/node_modules",
+      "!**/.venv",
+      "!**/*.gguf"
+    ]
   },
   "formatter": {
     "enabled": true,

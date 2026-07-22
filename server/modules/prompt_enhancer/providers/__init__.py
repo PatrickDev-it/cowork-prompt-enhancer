@@ -1,8 +1,25 @@
-"""Astrazione provider LLM — RFC-0014. L'applicazione conosce solo un'interfaccia "Chat
-Completions" (OpenAI-compatible), non il backend concreto. Oggi: LlamaServerProvider (llama-server
-via HTTP OpenAI). Domani: OpenAI/vLLM/SGLang con la stessa interfaccia, senza toccare la logica."""
+"""Provider adapters exported behind the RFC-0026 contract."""
 
-from .base import ChatResult, LLMProvider, ProviderContextError, ProviderError
+from .base import (
+    ChatResult,
+    LLMProvider,
+    ProviderConfigurationError,
+    ProviderContextError,
+    ProviderError,
+    ProviderTimeoutError,
+)
 from .llama_server import LlamaServerProvider
+from .mock import MockProvider
+from .openai_compatible import OpenAICompatibleProvider
 
-__all__ = ["ChatResult", "LLMProvider", "ProviderError", "ProviderContextError", "LlamaServerProvider"]
+__all__ = [
+    "ChatResult",
+    "LLMProvider",
+    "LlamaServerProvider",
+    "MockProvider",
+    "OpenAICompatibleProvider",
+    "ProviderConfigurationError",
+    "ProviderContextError",
+    "ProviderError",
+    "ProviderTimeoutError",
+]
