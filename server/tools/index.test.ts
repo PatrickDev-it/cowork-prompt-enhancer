@@ -4,7 +4,16 @@ import type { Tool } from './types';
 
 describe('filterToolFiles', () => {
   test('skips every file in EXCLUDED and anything that is not a .ts file', () => {
-    const files = ['index.ts', 'types.ts', 'runtime.ts', 'fs.ts', 'enhance-run.ts', 'echo.ts', 'README.md'];
+    const files = [
+      'index.ts',
+      'types.ts',
+      'runtime.ts',
+      'fs.ts',
+      'enhance-run.ts',
+      'runtime.test.ts',
+      'echo.ts',
+      'README.md',
+    ];
     expect(filterToolFiles(files)).toEqual(['echo.ts']);
   });
 

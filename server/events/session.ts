@@ -8,8 +8,16 @@ import { rememberAdvertisedOps } from '@/tools/fs';
  * che qualunque tool possa essere invocato.
  */
 export function openSession(WS: $WSServer) {
-  WS.on('fileops', (data: { payload?: { ops?: unknown } }) => {
-    rememberAdvertisedOps(WS, data.payload?.ops);
+  WS.on('fileops', (data) => {
+    const payload = typeof data.payload === 'object' && data.payload !== null ? data.payload : {};
+    rememberAdvertisedOps(WS, (payload as { ops?: unknown }).ops);
+  });
+  WS.on('fileop-result', (data, message) => {
+    const payload = typeof data.payload === 'object' && data.payload !== null ? data.payload : {};
+    const result = payload as { ok?: unknown; code?: unknown; message?: unknown };
+    if (result.ok === false && result.code === 'path_rejected') {
+      WS.sendError(message.id, 'path_rejected', typeof result.message === 'string' ? result.message : 'Path rejected');
+    }
   });
   WS.emit('session', { uuid: WS.sessionId });
 }

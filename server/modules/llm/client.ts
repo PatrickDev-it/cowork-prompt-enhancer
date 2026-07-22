@@ -1,12 +1,6 @@
-import { LLAMA_SERVER_URL } from '@/config';
+import { LLAMA_SERVER_URL, PROFILE } from '@/config';
 
-/**
- * Client "Chat Completions" OpenAI-compatible per il modello condiviso — RFC-0015. Lato TS,
- * speculare al provider Python (RFC-0014): qualunque modulo TS (context_compressor, futuri) parla
- * al modello via questa astrazione, non a llama.cpp direttamente. Reasoning nativo per-richiesta
- * (`chat_template_kwargs.enable_thinking`). I chiamanti garantiscono la readiness (`ensureLlmReady`)
- * prima di usare questi metodi.
- */
+/** OpenAI-compatible client for shared TypeScript-side model consumers (RFC-0015). */
 
 export interface ChatMessage {
   role: 'system' | 'user' | 'assistant';
@@ -33,31 +27,58 @@ export interface ChatOptions {
   think?: boolean;
   responseFormat?: object;
   timeoutMs?: number;
+  signal?: AbortSignal;
+}
+
+function timeoutSignal(timeoutMs: number, signal?: AbortSignal): AbortSignal {
+  const timeout = AbortSignal.timeout(timeoutMs);
+  return signal ? AbortSignal.any([signal, timeout]) : timeout;
 }
 
 export async function chatCompletion(opts: ChatOptions): Promise<ChatResult> {
+  if (PROFILE === 'mock') {
+    const source = opts.messages.at(-1)?.content ?? '';
+    const content = source.length > 24_000 ? `${source.slice(0, 12_000)}\n...\n${source.slice(-12_000)}` : source;
+    return {
+      content,
+      reasoningContent: null,
+      finishReason: 'stop',
+      promptTokens: Math.ceil(source.length / 4),
+      completionTokens: Math.ceil(content.length / 4),
+    };
+  }
   const body: Record<string, unknown> = {
     messages: opts.messages,
     max_tokens: opts.maxTokens,
     temperature: opts.temperature ?? 0.6,
     top_p: opts.topP ?? 0.95,
-    top_k: opts.topK ?? 20,
-    min_p: opts.minP ?? 0,
     presence_penalty: opts.presencePenalty ?? 0,
-    repeat_penalty: opts.repeatPenalty ?? 1,
-    chat_template_kwargs: { enable_thinking: opts.think ?? false },
   };
+  if (PROFILE === 'local') {
+    body.top_k = opts.topK ?? 20;
+    body.min_p = opts.minP ?? 0;
+    body.repeat_penalty = opts.repeatPenalty ?? 1;
+    body.chat_template_kwargs = { enable_thinking: opts.think ?? false };
+  } else {
+    body.model = process.env.COWORK_OPENAI_MODEL;
+  }
   if (opts.responseFormat) body.response_format = opts.responseFormat;
 
-  const res = await fetch(`${LLAMA_SERVER_URL}/v1/chat/completions`, {
+  const baseUrl = PROFILE === 'local' ? LLAMA_SERVER_URL : process.env.COWORK_OPENAI_BASE_URL!;
+  const endpoint = baseUrl.endsWith('/v1') ? `${baseUrl}/chat/completions` : `${baseUrl}/v1/chat/completions`;
+  const credential = PROFILE === 'openai-compatible' ? process.env.COWORK_OPENAI_API_KEY! : '';
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (credential) headers.Authorization = `Bearer ${credential}`;
+  const res = await fetch(endpoint, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers,
     body: JSON.stringify(body),
-    signal: AbortSignal.timeout(opts.timeoutMs ?? 600000),
+    signal: timeoutSignal(opts.timeoutMs ?? 600000, opts.signal),
   });
   if (!res.ok) {
-    const detail = await res.text().catch(() => '');
-    throw new Error(`llama-server HTTP ${res.status}: ${detail.slice(0, 300)}`);
+    const rawDetail = await res.text().catch(() => '');
+    const detail = credential ? rawDetail.replaceAll(credential, '[REDACTED]') : rawDetail;
+    throw new Error(`provider HTTP ${res.status}: ${detail.slice(0, 300)}`);
   }
   const data = (await res.json()) as {
     choices?: Array<{ finish_reason?: string; message?: { content?: string; reasoning_content?: string } }>;
@@ -65,7 +86,7 @@ export async function chatCompletion(opts: ChatOptions): Promise<ChatResult> {
   };
   const choice = data.choices?.[0];
   const message = choice?.message;
-  if (!message) throw new Error(`risposta llama-server malformata: ${JSON.stringify(data).slice(0, 300)}`);
+  if (!message) throw new Error(`Malformed provider response: ${JSON.stringify(data).slice(0, 300)}`);
   return {
     content: message.content ?? '',
     reasoningContent: message.reasoning_content ?? null,
@@ -75,14 +96,15 @@ export async function chatCompletion(opts: ChatOptions): Promise<ChatResult> {
   };
 }
 
-/** Conta i token via il tokenizer del server (fallback: stima chars/4). */
-export async function countTokens(text: string): Promise<number> {
+/** Count with the local tokenizer and fall back to a characters-per-token estimate. */
+export async function countTokens(text: string, signal?: AbortSignal): Promise<number> {
+  if (PROFILE !== 'local') return Math.ceil(text.length / 4);
   try {
     const res = await fetch(`${LLAMA_SERVER_URL}/tokenize`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ content: text }),
-      signal: AbortSignal.timeout(30000),
+      signal: timeoutSignal(30000, signal),
     });
     if (!res.ok) return Math.ceil(text.length / 4);
     const data = (await res.json()) as { tokens?: unknown[] };

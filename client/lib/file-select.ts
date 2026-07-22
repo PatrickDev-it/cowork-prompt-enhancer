@@ -11,10 +11,9 @@ interface FileSelectProps {
 }
 
 /**
- * Elenca i file di `dir` con estensione consentita, ordinati — RFC-0009 § 1. Pura (nessuna
- * interazione TTY), separata da `fileSelect` per essere verificabile senza terminale.
- * Cartella assente = nessun file trovato (confine di sistema: caso normale al primo avvio,
- * non un errore — l'utente non ha ancora creato `input/`).
+ * List files in `dir` with allowed extensions in stable order (RFC-0009 § 1). This pure path remains
+ * separate from `fileSelect` for testing without a TTY. A missing directory returns no files because
+ * an empty input directory is a normal first-run condition.
  */
 export function listCandidateFiles(dir: string, extensions: string[] = DEFAULT_EXTENSIONS): string[] {
   const allowed = new Set(extensions.map((e) => e.toLowerCase()));
@@ -31,19 +30,18 @@ export function listCandidateFiles(dir: string, extensions: string[] = DEFAULT_E
 }
 
 /**
- * Prompt key `file-select` — RFC-0009 § 1, § 2. Sostituisce l'`input` a riga singola per
- * testi lunghi/strutturati: l'utente prepara il testo in un file dentro `INPUT_DIR`, sceglie
- * quale file usare da una `select`, il valore risolto è il contenuto del file (non il nome).
- * Registrato in `promptsByKey` come ogni altro key: nessuna conoscenza di dominio nel client.
+ * `file-select` prompt key (RFC-0009 § 1–2). The operator prepares long or structured text under
+ * `INPUT_DIR`, selects a file, and receives its content rather than its name. Registration through
+ * `promptsByKey` keeps domain knowledge out of the client prompt dispatcher.
  */
 export async function fileSelect(props: FileSelectProps): Promise<string> {
   const extensions = props.extensions ?? DEFAULT_EXTENSIONS;
   const files = listCandidateFiles(INPUT_DIR, extensions);
   if (files.length === 0) {
-    throw new Error(`Nessun file (${extensions.join(', ')}) trovato in ${INPUT_DIR}. Aggiungine uno e riprova.`);
+    throw new Error(`No ${extensions.join(', ')} file found in ${INPUT_DIR}. Add one and retry.`);
   }
   const chosen = await select({
-    message: props.message ?? 'Quale file vuoi usare?',
+    message: props.message ?? 'Which file do you want to use?',
     choices: files.map((name) => ({ name, value: name })),
   });
   return readFileSync(join(INPUT_DIR, chosen), 'utf8');

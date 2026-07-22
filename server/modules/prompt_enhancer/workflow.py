@@ -28,6 +28,7 @@ elsewhere).
 Stdlib only here (`engine` is passed in as a duck-typed parameter); the module's only external
 dependency is `ddgs`, isolated in `search.py` behind a lazy import (RFC-0020) — this file stays
 importable without it."""
+
 import os
 
 from coercion import build_compiled_prompt, normalize_generated_prompt
@@ -68,8 +69,15 @@ def build_specification(spec: dict) -> str:
     return "\n".join(lines).strip()
 
 
-def run_enhancement(engine, user_input: str, mode: str, think: bool = False, search: bool | None = None,
-                    project_context: str = "", deep_research: bool = False) -> dict:
+def run_enhancement(
+    engine,
+    user_input: str,
+    mode: str,
+    think: bool = False,
+    search: bool | None = None,
+    project_context: str = "",
+    deep_research: bool = False,
+) -> dict:
     # think: model reasoning. Default OFF (RFC-0013) — deterministic, no latency spikes; ON lets the
     # model reason (slower, more variable). The client chooses it via the terminal.
     # search: web grounding (RFC-0020). None ⇒ the gate decides (env COWORK_PROMPT_ENHANCER_SEARCH,
@@ -119,7 +127,9 @@ def run_enhancement(engine, user_input: str, mode: str, think: bool = False, sea
             spec = None
 
     if spec is None:
-        spec, compiled_prompt, critique, debug_fields = run_enhancement_field_loop(engine, user_input, mode, think=think)
+        spec, compiled_prompt, critique, debug_fields = run_enhancement_field_loop(
+            engine, user_input, mode, think=think
+        )
         generation_mode = "single_generic_prompt_template"
 
     debug = {

@@ -1,0 +1,19 @@
+{
+  "schema_version": "cowork-eval/v1",
+  "benchmark_version": "1.0.0",
+  "case_file": "cases.jsonl",
+  "case_count": 64,
+  "categories": {
+    "implementation": 8,
+    "debugging": 8,
+    "refactoring": 8,
+    "architecture": 8,
+    "operations": 8,
+    "data_ml": 8,
+    "research": 8,
+    "professional_writing": 8
+  },
+  "license": "CC0-1.0",
+  "content_policy": "Synthetic public tasks only; no proprietary, personal, credential or sensitive content.",
+  "grounding_policy": "Reference runs use only the embedded timestamped fixtures; live retrieval is disabled."
+}

@@ -1,5 +1,9 @@
 import type { $WSServer } from '@/lib/ws';
+import { createRequestTrace, requestMetrics, type RequestTrace } from '@/lib/metrics';
+import { BoundedScheduler, SchedulerError } from '@/lib/scheduler';
 import { compressContext } from '@/modules/context_compressor';
+import { COMMAND_TIMEOUT_MS, MAX_ACTIVE_COMMANDS, MAX_QUEUED_COMMANDS, MAX_SESSION_COMMANDS } from '@/config';
+import type { ErrorCode } from '../../protocol';
 import { createFileOps } from './fs';
 import type { PromptDescriptor, StatusUpdate, Tool } from './types';
 
@@ -33,18 +37,30 @@ export function collectCompressFields(
 async function compressToolInputs(
   tool: Tool,
   payload: Record<string, unknown>,
-  status: (update: StatusUpdate) => void
+  status: (update: StatusUpdate) => void,
+  signal: AbortSignal,
+  trace: RequestTrace
 ): Promise<Record<string, unknown>> {
+  const startedAt = performance.now();
   const fields = [...collectCompressFields(tool.prompts)];
-  if (fields.length === 0) return payload;
+  if (fields.length === 0) {
+    trace.compressionMs = performance.now() - startedAt;
+    return payload;
+  }
 
   const out = { ...payload };
   for (const name of fields) {
     const value = out[name];
     if (typeof value !== 'string' || !value) continue;
-    const result = await compressContext(value, (message) => status({ sub_event: 'log', message }));
-    if (result.compressed) out[name] = result.text;
+    const result = await compressContext(value, (message) => status({ sub_event: 'log', message }), signal);
+    trace.compressionInputTokens += result.inputTokens;
+    trace.compressionOutputTokens += result.outputTokens;
+    if (result.compressed) {
+      out[name] = result.text;
+      trace.compressedFields += 1;
+    }
   }
+  trace.compressionMs = performance.now() - startedAt;
   return out;
 }
 
@@ -53,19 +69,88 @@ async function compressToolInputs(
  * `tool.run`, translates any exception into `status: error`, and always closes with the loop-back
  * to the menu (RFC-0002 § 5, RFC-0003 § 5) — no tool can leave the session stuck.
  */
-export function registerTool(WS: $WSServer, tool: Tool) {
-  WS.on(tool.name, async (data: { uuid: string; payload?: Record<string, unknown> }) => {
-    const { uuid, payload = {} } = data;
-    const status = (update: StatusUpdate) => WS.emit('status', { uuid, payload: { tool: tool.name, ...update } });
-    const fs = createFileOps(WS);
+export const commandScheduler = new BoundedScheduler({
+  maxActive: MAX_ACTIVE_COMMANDS,
+  maxPerSession: MAX_SESSION_COMMANDS,
+  maxQueued: MAX_QUEUED_COMMANDS,
+  timeoutMs: COMMAND_TIMEOUT_MS,
+});
 
-    try {
-      const finalPayload = await compressToolInputs(tool, payload, status);
-      await tool.run(WS, { uuid, payload: finalPayload, status, fs });
-    } catch (err) {
-      status({ sub_event: 'error', message: err instanceof Error ? err.message : String(err) });
-    } finally {
-      WS.emit('init', { uuid });
-    }
+function publicErrorCode(error: unknown): ErrorCode {
+  if (typeof error !== 'object' || error === null || !('code' in error)) return 'internal_error';
+  const code = error.code;
+  if (code === 'capability_mismatch' || code === 'provider_error' || code === 'timeout') return code;
+  return 'internal_error';
+}
+
+export function bindScheduler(WS: $WSServer): void {
+  WS.onCancel((id) => commandScheduler.cancel(WS.sessionId, id));
+}
+
+export function cancelSessionCommands(WS: $WSServer): void {
+  commandScheduler.cancelSession(WS.sessionId);
+}
+
+export function registerTool(WS: $WSServer, tool: Tool): void {
+  WS.on(tool.name, (data, message) => {
+    const rawPayload = data.payload;
+    const payload =
+      typeof rawPayload === 'object' && rawPayload !== null ? (rawPayload as Record<string, unknown>) : {};
+    const uuid = message.id;
+    const status = (update: StatusUpdate) => WS.emit('status', { uuid, payload: { tool: tool.name, ...update } });
+    const fs = createFileOps(WS, uuid);
+    const trace = createRequestTrace();
+    const startedAt = performance.now();
+    let outcome: 'success' | 'error' = 'success';
+
+    void commandScheduler
+      .schedule(WS.sessionId, uuid, async (signal) => {
+        trace.schedulerQueueMs = performance.now() - startedAt;
+        try {
+          const finalPayload = await compressToolInputs(tool, payload, status, signal, trace);
+          await tool.run(WS, {
+            uuid,
+            correlationId: uuid,
+            clientId: message.clientId,
+            sessionId: message.sessionId,
+            payload: finalPayload,
+            status,
+            fs,
+            signal,
+            trace,
+          });
+          if (signal.aborted) throw signal.reason;
+        } catch (error) {
+          outcome = 'error';
+          if (signal.aborted) throw signal.reason;
+          const messageText = error instanceof Error ? error.message : String(error);
+          const code = publicErrorCode(error);
+          status({ sub_event: 'error', message: messageText });
+          WS.sendError(uuid, code, messageText);
+        }
+      })
+      .catch((error: unknown) => {
+        outcome = 'error';
+        const schedulerError = error instanceof SchedulerError ? error : null;
+        const code = schedulerError?.code ?? 'internal_error';
+        const messageText = error instanceof Error ? error.message : String(error);
+        status({ sub_event: 'error', message: messageText });
+        WS.sendError(uuid, code, messageText, code === 'overloaded');
+      })
+      .finally(() => {
+        trace.totalMs = performance.now() - startedAt;
+        requestMetrics.record({ correlationId: uuid, tool: tool.name, outcome, trace });
+        console.log(
+          JSON.stringify({
+            level: 'info',
+            event: 'request_trace',
+            correlationId: uuid,
+            tool: tool.name,
+            outcome,
+            trace,
+          })
+        );
+        WS.emit('init', { uuid });
+      });
   });
 }

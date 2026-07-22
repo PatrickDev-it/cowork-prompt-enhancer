@@ -3,8 +3,8 @@ import type { $WSServer } from '@/lib/ws';
 import { tools } from '@/tools';
 
 /**
- * Menu costruito dinamicamente dal registro dei tool — RFC-0003 § 3.
- * Aggiungere/rimuovere un tool in tools/ cambia questo menu senza toccare questo file.
+ * Build the menu dynamically from the tool registry (RFC-0003 § 3). Adding or removing a tool changes
+ * the menu without changing this module.
  */
 export function init(WS: $WSServer) {
   WS.emit('prompt', {
@@ -13,7 +13,7 @@ export function init(WS: $WSServer) {
       prompt: {
         key: 'select',
         props: {
-          message: 'Quale tool vuoi eseguire sul server?',
+          message: 'Which server tool do you want to run?',
           choices: Object.values(tools).map((tool) => ({
             name: `${tool.name} — ${tool.description}`,
             value: tool.name,

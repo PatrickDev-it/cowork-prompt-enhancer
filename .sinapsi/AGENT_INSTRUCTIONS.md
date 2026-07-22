@@ -3,15 +3,29 @@
 Short on purpose. This file says how to work *here*; it does not repeat your project's
 stack, style or test conventions — those live in your own AGENTS.md, untouched.
 
-## Memory: read first, write last
+## Memory: read one file first, write three last
 
-Before you think, plan or open a source file, read both:
+Before you think, plan or open a source file, read **one** file:
 
-- `.sinapsi/session.md` — what happened before
-- `.sinapsi/handoff.md` — the current working state
+- `.sinapsi/summary.md` — the directory tree, the last 10 sessions, and a short recap
 
-Rewriting `handoff.md` and appending `session.md` is the last action of every patch.
-A patch that leaves either stale is not finished.
+That is the cardinal rule. `session.md` and `handoff.md` are the sources `summary.md` is
+built from; open them only when the summary leaves your actual question unanswered.
+
+At the end of every patch, in this order:
+
+1. **append** `.sinapsi/session.md` — the full entry for this patch
+2. **rewrite** `.sinapsi/handoff.md` — current working state, **≤ 150 lines**
+3. **update** `.sinapsi/summary.md` from both — add one dated line under *Recent
+   sessions* (keep the last 10), rewrite *Where things stand* in 5–10 lines, and leave
+   the tree block at the top alone: Sinapsi maintains it itself, live, and any edit you
+   make inside its markers is thrown away on the next change
+
+A patch that leaves any of the three stale is not finished.
+
+`session.md` archives itself: past 150 lines (or its token budget) Sinapsi moves it to
+`.sinapsi/archive/` and starts a fresh one, whose header names the latest archive. Read
+that one if you must — never the whole folder. `sinapsi compact` forces the same check.
 
 ## Exploring
 

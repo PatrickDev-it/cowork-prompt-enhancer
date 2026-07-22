@@ -2,14 +2,8 @@ import { type EnhanceOptions, enhancePrompt } from '@/modules/prompt_enhancer';
 import type { ToolContext } from './types';
 
 /**
- * Corpo `run()` condiviso dai tool basati sul prompt-enhancer — RFC-0021 § 5. `prompt-enhancer`
- * (generale) e `dev-prompt-enhancer` (verticale) differiscono solo negli input assemblati: l'atto
- * finale — chiamare il modulo e consegnare il/i file in sessione (RFC-0008) — è identico e vive qui,
- * così i due tool non divergono in logica di dominio.
- *
- * Consegna: sempre `prompt_<ts>.md`; se il deep-research (RFC-0022) ha prodotto un report, anche
- * `research_<ts>.md`. La cartella di sessione è condivisa da tutte le invocazioni (RFC-0008 § 1),
- * quindi il nome porta un timestamp al millisecondo per unicità (come il tool storico).
+ * Shared delivery path for both prompt-enhancer tools (RFC-0021). Every run writes a timestamped
+ * prompt artifact; opt-in deep research may add a separate timestamped research artifact.
  */
 
 function sessionFilename(prefix: string): string {
@@ -28,7 +22,7 @@ export async function runEnhancement(
   { request, think, options = {} }: EnhanceRunArgs
 ): Promise<void> {
   const raw = request.trim();
-  if (!raw) throw new Error('Prompt vuoto: niente da potenziare.');
+  if (!raw) throw new Error('The request is empty; nothing can be compiled.');
 
   const flags = [
     `reasoning ${think ? 'ON' : 'OFF'}`,
@@ -37,18 +31,28 @@ export async function runEnhancement(
   ]
     .filter(Boolean)
     .join(', ');
-  ctx.status({ sub_event: 'start', message: `Invio al motore locale (${flags}, worker persistente)...` });
+  ctx.status({ sub_event: 'start', message: `Compiling request (${flags}, persistent worker)...` });
 
-  const { prompt, research } = await enhancePrompt(
+  const { prompt, research, trace } = await enhancePrompt(
     raw,
     'production-grade',
     think,
     (message) => ctx.status({ sub_event: 'log', message }),
-    options
+    { ...options, signal: ctx.signal, correlationId: ctx.correlationId }
   );
+  ctx.trace.providerQueueMs = trace.providerQueueMs;
+  ctx.trace.generationMs = trace.generationMs;
+  ctx.trace.providerMs = trace.providerMs;
+  ctx.trace.providerCalls = trace.providerCalls;
+  ctx.trace.promptTokens = trace.promptTokens;
+  ctx.trace.completionTokens = trace.completionTokens;
+  ctx.trace.generationMode = trace.generationMode;
+  ctx.trace.fallbackUsed = trace.fallbackUsed;
+  ctx.trace.grounded = trace.grounded;
 
-  ctx.status({ sub_event: 'progress', percent: 95, message: 'Generato, consegna al client...' });
+  ctx.status({ sub_event: 'progress', percent: 95, message: 'Compilation complete; delivering artifacts...' });
 
+  const artifactStartedAt = performance.now();
   const delivered: string[] = [];
   if (research?.trim()) {
     const researchFile = sessionFilename('research');
@@ -58,6 +62,8 @@ export async function runEnhancement(
   const promptFile = sessionFilename('prompt');
   ctx.fs.write(promptFile, prompt);
   delivered.push(promptFile);
+  ctx.trace.artifactMs = performance.now() - artifactStartedAt;
+  ctx.trace.artifacts = delivered;
 
-  ctx.status({ sub_event: 'done', message: `Consegnato: ${delivered.join(', ')}` });
+  ctx.status({ sub_event: 'done', message: `Delivered: ${delivered.join(', ')}` });
 }

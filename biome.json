@@ -6,7 +6,18 @@
     "useIgnoreFile": true
   },
   "files": {
-    "includes": ["client/**", "server/**", "!**/node_modules", "!**/.venv", "!**/*.gguf"]
+    "includes": [
+      "client/**",
+      "server/**",
+      "scripts/**",
+      "tests/**",
+      "protocol/**",
+      "evaluation/**",
+      "*.json",
+      "!**/node_modules",
+      "!**/.venv",
+      "!**/*.gguf"
+    ]
   },
   "formatter": {
     "enabled": true,
@@ -25,10 +36,7 @@
     "enabled": true,
     "rules": {
       "preset": "recommended",
-      "suspicious": {
-        "noExplicitAny": "off",
-        "noAssignInExpressions": "off"
-      },
+      "suspicious": { "noExplicitAny": "off", "noAssignInExpressions": "off" },
       "style": {
         "noNonNullAssertion": "off"
       }

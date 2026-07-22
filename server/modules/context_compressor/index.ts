@@ -1,15 +1,10 @@
+import { PROFILE } from '@/config';
 import { chatCompletion, countTokens, ensureLlmReady } from '@/modules/llm';
 
 /**
- * Compressione semantica dell'input in HEAD — RFC-0015. Un input grande e grezzo (es. 50k token di
- * codice/documenti) è condensato in ~5-8k token di **informazione utile** (architettura, API, data
- * model, dipendenze, vincoli, TODO + eventuali istruzioni esplicite) PRIMA che raggiunga un modulo.
- * Indipendente da qualunque modulo: `prompt_enhancer` (e futuri) restano invariati e ricevono il
- * condensato al posto del grezzo. Usa il modello condiviso (`@/modules/llm`) via API OpenAI.
- *
- * Perché serve (misurato, RFC-0014 amendment 2): il prefill di un input enorme è model-bound lento e
- * un input > finestra-slot non entrerebbe affatto; condensarlo lo rende processabile, veloce a valle
- * e riusabile. È lossy per costruzione: tiene l'essenziale, scarta il ridondante.
+ * Cross-cutting semantic-compression head (RFC-0015). Oversized code or documents are condensed into
+ * durable architecture, API, model, dependency, constraint and task facts before reaching a tool.
+ * Compression is intentionally lossy and uses the shared provider abstraction.
  */
 
 const THRESHOLD = Number(process.env.COWORK_COMPRESS_THRESHOLD_TOKENS ?? 8192);
@@ -32,7 +27,7 @@ const SYNTH_SYSTEM =
   'Issues/TODOs. Preserve concrete names/signatures; drop redundancy; keep it information-dense. Do ' +
   'not invent facts not present in the extracts. Output only the briefing.';
 
-/** Divide il testo in chunk di ~chunkTokens (approssimati a 4 char/token), tagliando su a-capo. */
+/** Split text into approximate token-sized chunks, preferring a nearby newline boundary. */
 function chunkText(text: string, chunkTokens: number): string[] {
   const budget = Math.max(2000, chunkTokens * 4);
   if (text.length <= budget) return [text];
@@ -42,7 +37,7 @@ function chunkText(text: string, chunkTokens: number): string[] {
     let end = Math.min(i + budget, text.length);
     if (end < text.length) {
       const nl = text.lastIndexOf('\n', end);
-      if (nl > i + budget * 0.6) end = nl + 1; // taglia su a-capo se ragionevolmente vicino
+      if (nl > i + budget * 0.6) end = nl + 1;
     }
     chunks.push(text.slice(i, end));
     i = end;
@@ -71,21 +66,22 @@ export interface CompressResult {
   chunks: number;
 }
 
-/**
- * Condensa `text` se supera la soglia; altrimenti lo ritorna intatto. `onLog` riceve messaggi di
- * avanzamento (adatti a `status:log` verso il client).
- */
-export async function compressContext(text: string, onLog?: (line: string) => void): Promise<CompressResult> {
+/** Condense text above the threshold; otherwise return it unchanged. */
+export async function compressContext(
+  text: string,
+  onLog?: (line: string) => void,
+  signal?: AbortSignal
+): Promise<CompressResult> {
   const log = (m: string) => onLog?.(m);
-  await ensureLlmReady();
+  if (PROFILE === 'local') await ensureLlmReady(signal);
 
-  const inputTokens = await countTokens(text);
+  const inputTokens = await countTokens(text, signal);
   if (inputTokens <= THRESHOLD) {
     return { text, compressed: false, inputTokens, outputTokens: inputTokens, chunks: 0 };
   }
 
   const chunks = chunkText(text, CHUNK_TOKENS);
-  log(`Input grande (~${inputTokens} token): compressione in ${chunks.length} segmenti...`);
+  log(`Large input (~${inputTokens} tokens): compressing ${chunks.length} segments...`);
 
   const extracts = await mapPool(chunks, CONCURRENCY, async (chunk, idx) => {
     const res = await chatCompletion({
@@ -96,8 +92,9 @@ export async function compressContext(text: string, onLog?: (line: string) => vo
       maxTokens: 1024,
       temperature: 0.3,
       think: false,
+      signal,
     });
-    log(`Segmento ${idx + 1}/${chunks.length} estratto.`);
+    log(`Extracted segment ${idx + 1}/${chunks.length}.`);
     return res.content.trim();
   });
 
@@ -105,7 +102,7 @@ export async function compressContext(text: string, onLog?: (line: string) => vo
     .filter(Boolean)
     .map((e, i) => `## Extract ${i + 1}\n${e}`)
     .join('\n\n');
-  log('Sintesi del contesto condensato...');
+  log('Synthesizing condensed context...');
   const synth = await chatCompletion({
     messages: [
       { role: 'system', content: SYNTH_SYSTEM },
@@ -114,10 +111,11 @@ export async function compressContext(text: string, onLog?: (line: string) => vo
     maxTokens: TARGET_TOKENS,
     temperature: 0.3,
     think: false,
+    signal,
   });
 
   const condensed = `# Condensed context (compressed from ~${inputTokens} tokens of raw input)\n\n${synth.content.trim()}`;
-  const outputTokens = await countTokens(condensed);
-  log(`Compressione completata: ~${inputTokens} → ~${outputTokens} token.`);
+  const outputTokens = await countTokens(condensed, signal);
+  log(`Compression complete: ~${inputTokens} to ~${outputTokens} tokens.`);
   return { text: condensed, compressed: true, inputTokens, outputTokens, chunks: chunks.length };
 }
