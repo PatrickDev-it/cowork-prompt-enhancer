@@ -1,0 +1,43 @@
+{
+  "benchmark_commit": "1cbbf26b63ea81fedc5a6922453ea00ea75090c8",
+  "benchmark_version": "1.0.0",
+  "case_count": 64,
+  "categories": [
+    "architecture",
+    "data_ml",
+    "debugging",
+    "implementation",
+    "operations",
+    "professional_writing",
+    "refactoring",
+    "research"
+  ],
+  "completed_at": "2026-07-22T01:25:11Z",
+  "gpu": [
+    {
+      "driver": "610.62",
+      "name": "NVIDIA GeForce RTX 3070 Ti"
+    }
+  ],
+  "judge": "deterministic_only",
+  "live_retrieval": false,
+  "os": {
+    "machine": "AMD64",
+    "release": "10",
+    "system": "Windows"
+  },
+  "provider": {
+    "artifact_sha256": "b615883a9120431c7d979ca472ef586390652b45ebfe6da5faa1ce777b40b550",
+    "model": "cowork-deterministic-v1",
+    "profile": "mock"
+  },
+  "record_count": 264,
+  "run_id": "mock-full-v1",
+  "runtime": {
+    "python": "3.12.4"
+  },
+  "schema_version": "cowork-eval/v1",
+  "started_at": "2026-07-22T01:25:09Z",
+  "strategies": ["raw", "thin", "compiler", "field_loop", "compiler_grounded"],
+  "tier": "full"
+}

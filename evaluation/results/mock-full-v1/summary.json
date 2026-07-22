@@ -1,0 +1,168 @@
+{
+  "benchmark_commit": "1cbbf26b63ea81fedc5a6922453ea00ea75090c8",
+  "benchmark_version": "1.0.0",
+  "case_count": 64,
+  "categories": [
+    "architecture",
+    "data_ml",
+    "debugging",
+    "implementation",
+    "operations",
+    "professional_writing",
+    "refactoring",
+    "research"
+  ],
+  "completed_at": "2026-07-22T01:25:11Z",
+  "provider": {
+    "artifact_sha256": "b615883a9120431c7d979ca472ef586390652b45ebfe6da5faa1ce777b40b550",
+    "model": "cowork-deterministic-v1",
+    "profile": "mock"
+  },
+  "record_count": 264,
+  "run_id": "mock-full-v1",
+  "schema_version": "cowork-eval/v1",
+  "started_at": "2026-07-22T01:25:09Z",
+  "strategies": {
+    "compiler": {
+      "cases": 64,
+      "compiler_success_rate": 1.0,
+      "contradiction_rate": 0.010417,
+      "executability": 0.9125,
+      "explicit_requirement_precision": 0.992188,
+      "explicit_requirement_recall": 0.981771,
+      "fallback_delivered_success_rate": 0.0,
+      "fallback_rate": 0.0,
+      "invented_specificity_rate": 0.0,
+      "latency_ms": {
+        "p50": 1.83,
+        "p95": 3.028
+      },
+      "parse_recovery_rate": 0.0,
+      "provider_calls": 64,
+      "search_activation_rate": 0.0,
+      "structural_validity": 0.604167,
+      "timing_ms": {
+        "generation": 3.815,
+        "queue": 0.0
+      },
+      "tokens": {
+        "completion": 20186,
+        "prompt": 108460
+      },
+      "unresolved_ambiguity_rate": 0.59375
+    },
+    "compiler_grounded": {
+      "cases": 8,
+      "compiler_success_rate": 1.0,
+      "contradiction_rate": 0.041667,
+      "executability": 0.85,
+      "explicit_requirement_precision": 0.96875,
+      "explicit_requirement_recall": 1.0,
+      "fallback_delivered_success_rate": 0.0,
+      "fallback_rate": 0.0,
+      "invented_specificity_rate": 0.0,
+      "latency_ms": {
+        "p50": 2.051,
+        "p95": 3.088
+      },
+      "parse_recovery_rate": 0.0,
+      "provider_calls": 8,
+      "search_activation_rate": 1.0,
+      "structural_validity": 0.416667,
+      "timing_ms": {
+        "generation": 0.731,
+        "queue": 0.0
+      },
+      "tokens": {
+        "completion": 2840,
+        "prompt": 14666
+      },
+      "unresolved_ambiguity_rate": 0.25
+    },
+    "field_loop": {
+      "cases": 64,
+      "compiler_success_rate": 0.0,
+      "contradiction_rate": 0.010417,
+      "executability": 0.909375,
+      "explicit_requirement_precision": 0.988281,
+      "explicit_requirement_recall": 0.981771,
+      "fallback_delivered_success_rate": 0.0,
+      "fallback_rate": 0.0,
+      "invented_specificity_rate": 0.005208,
+      "latency_ms": {
+        "p50": 21.749,
+        "p95": 29.778
+      },
+      "parse_recovery_rate": 0.0,
+      "provider_calls": 896,
+      "search_activation_rate": 0.0,
+      "structural_validity": 0.604167,
+      "timing_ms": {
+        "generation": 139.633,
+        "queue": 0.0
+      },
+      "tokens": {
+        "completion": 320301,
+        "prompt": 1116261
+      },
+      "unresolved_ambiguity_rate": 0.59375
+    },
+    "raw": {
+      "cases": 64,
+      "compiler_success_rate": 0.0,
+      "contradiction_rate": 0.010417,
+      "executability": 0.63125,
+      "explicit_requirement_precision": 0.992188,
+      "explicit_requirement_recall": 0.981771,
+      "fallback_delivered_success_rate": 0.0,
+      "fallback_rate": 0.0,
+      "invented_specificity_rate": 0.0,
+      "latency_ms": {
+        "p50": 0.003,
+        "p95": 0.004
+      },
+      "parse_recovery_rate": 0.0,
+      "provider_calls": 0,
+      "search_activation_rate": 0.0,
+      "structural_validity": 0.296875,
+      "timing_ms": {
+        "generation": 0,
+        "queue": 0
+      },
+      "tokens": {
+        "completion": 0,
+        "prompt": 0
+      },
+      "unresolved_ambiguity_rate": 0.65625
+    },
+    "thin": {
+      "cases": 64,
+      "compiler_success_rate": 0.0,
+      "contradiction_rate": 0.010417,
+      "executability": 0.9125,
+      "explicit_requirement_precision": 0.992188,
+      "explicit_requirement_recall": 0.981771,
+      "fallback_delivered_success_rate": 0.0,
+      "fallback_rate": 0.0,
+      "invented_specificity_rate": 0.0,
+      "latency_ms": {
+        "p50": 0.365,
+        "p95": 0.646
+      },
+      "parse_recovery_rate": 0.0,
+      "provider_calls": 64,
+      "search_activation_rate": 0.0,
+      "structural_validity": 0.604167,
+      "timing_ms": {
+        "generation": 3.38,
+        "queue": 0.0
+      },
+      "tokens": {
+        "completion": 19607,
+        "prompt": 5919
+      },
+      "unresolved_ambiguity_rate": 0.59375
+    }
+  },
+  "tier": "full"
+}
