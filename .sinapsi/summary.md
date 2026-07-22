@@ -55,6 +55,7 @@ patch: the project's shape (above), the last sessions at a glance, and a short r
 agent at the end of every patch, at the same time it appends session.md. Drop the
 11th; the full history is in session.md and, once archived, in archive/. -->
 
+- 2026-07-22T02:15:00+02:00 — Accepted RFC-0027 for authenticated protocol v1, bounded resources and canonical confinement.
 - 2026-07-22T02:05:52+02:00 — Completed Phase 1 portable providers, setup/preflight, offline demo and real local smoke.
 - 2026-07-22T04:48:00+02:00 — Accepted RFC-0026 for provider profiles, typed errors, validated configuration and preflight.
 - 2026-07-22T04:39:00+02:00 — Removed pytest security finding PYSEC-2026-1845 by upgrading to 9.0.3 and regenerating the hashed lock.
@@ -72,7 +73,7 @@ at the end of every patch. If it grows past 10 lines it has stopped being a summ
 - One pinned Bun workspace now owns frozen install, format, lint, typecheck, tests, audits, demo and benchmark commands.
 - Phase 1 gate is green: 20 Bun unit, 59 pytest and 3 integration tests; formatter, lint, typecheck and audits pass.
 - Owner links target `PatrickDev-it`; security, support, release, environment and artifact provenance policies exist; dependency trees are ignored.
-- Private remote and metadata exist; hosted CI run 29877887313 is green.
+- Private remote and metadata exist; Phase 1 hosted CI run 29879307065 is green.
 - Mock/local/openai-compatible profiles, conformance, setup/preflight, offline demo and real local smoke are implemented.
-- Protocol hardening is next; evaluation corpus/report and final recruiter release remain open.
+- RFC-0027 is accepted; authenticated protocol/resource/confinement hardening is next.
 - Preserve the historical field-loop fallback and never commit local runtime artifacts or credentials.

@@ -16,6 +16,10 @@ RFC-0026 governs three explicit profiles: deterministic offline `mock` (default)
 and credentialed vendor-neutral `openai-compatible`. Provider failures are typed, secrets are redacted,
 configuration fails before workers start, and legacy profile aliases have one-release compatibility.
 
+RFC-0027 now governs Phase 2: loopback-default binding, HMAC challenge authentication for remote use,
+protocol-v1 envelopes, stable error codes, bounded scheduling/cancellation/reconnect, canonical path
+confinement and an injectable llama supervisor. Legacy unversioned frames are intentionally rejected.
+
 ## Verified Phase 1 gate
 
 - Formatter, Biome/Ruff lint and client/server typecheck pass.
@@ -45,5 +49,5 @@ configuration fails before workers start, and legacy profile aliases have one-re
 
 ## Next action
 
-Commit/push Phase 1 and require hosted CI green. Then accept a concise Phase 2 protocol/security RFC
-before changing authentication, public envelopes, scheduling, cancellation or filesystem invariants.
+Phase 1 commit `6ef7604` is pushed and hosted CI run 29879307065 is green. Implement RFC-0027 with
+contract/security/failure-injection/full mock E2E coverage, then push and require hosted CI green.

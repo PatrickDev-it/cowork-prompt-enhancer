@@ -187,3 +187,18 @@ Bun audit and pip-audit report zero known vulnerabilities; `git diff --check` pa
 
 **Final status:** Phase 1 is complete locally. Push the feature commit and require hosted CI green before
 beginning the Phase 2 protocol/security implementation governed by a new boundary RFC.
+
+## 2026-07-22T02:15:00+02:00 — RFC-0027 protocol and resource-hardening boundary
+
+**Goal:** decide Phase 2 public protocol, authentication, scheduling, cancellation, confinement and
+supervisor invariants before changing accepted runtime boundaries.
+
+**Change:** accepted RFC-0027. It defines loopback-by-default binding; explicit authenticated remote
+operation using single-use HMAC challenges; protocol-v1 discriminated envelopes and stable errors;
+frame/payload, queue and concurrency bounds; cancellation and reconnect deduplication; canonical
+filesystem confinement; and an injectable supervisor state machine.
+
+**Breaking changes:** legacy unversioned WebSocket frames will be rejected because client and server are
+released together. Tool wrapper APIs and the Python field-loop workflow remain stable. **Validation:**
+cross-checked against root P-04–P-07, P-11–P-13/P-15 and accepted RFC-0002/0008/0014. **Status:** boundary
+accepted; implementation is next.
