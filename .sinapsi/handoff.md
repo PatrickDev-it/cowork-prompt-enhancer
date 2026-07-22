@@ -6,8 +6,8 @@ Living project context during root RFC launch on 2026-07-22.
 
 Root `RFC.md` is accepted. Phases 0–4 implementation, delivery automation and recruiter documentation are
 committed on `feat/rfc-completion`. The private repository is `PatrickDev-it/cowork-prompt-enhancer` and
-must remain private through every launch gate. PR #1 is open. A visibility-aware CodeQL SARIF retention
-repair is the only uncommitted source change.
+must remain private through every launch gate. PR #1 is open. A workspace-relative CodeQL artifact-path
+correction is the only uncommitted source change.
 
 RFC-0026 owns provider profiles, RFC-0027 protocol/security/resource hardening and RFC-0028 evaluation.
 The launch patch adds no provider, protocol, authentication or artifact-format decision.
@@ -48,4 +48,4 @@ The launch patch adds no provider, protocol, authentication or artifact-format d
 
 ## Next action
 
-Commit/push the CodeQL visibility repair, then require refreshed hosted CI and CodeQL green on PR #1.
+Commit/push the CodeQL artifact-path correction, then require refreshed hosted CI and CodeQL green on PR #1.

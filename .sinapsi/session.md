@@ -468,3 +468,20 @@ repository scan is green and `git diff --check` passes.
 
 **Final status:** commit/push the visibility-aware evidence path and require refreshed CI plus both CodeQL
 matrices green before merging PR #1.
+
+## 2026-07-22T04:30:58+02:00 — Workspace-relative CodeQL evidence retention
+
+**Goal:** repair the remaining hosted failure after confirming private CodeQL analysis itself succeeds.
+
+**Defect and evidence:** both matrices generated post-processed SARIF successfully, including 28/28 Python
+files and 63/63 TypeScript files plus all three workflows. The artifact action then rejected the parent
+path `../codeql-results`; current upload-artifact security rules prohibit `..` path traversal.
+
+**Fix:** generate and retain `codeql-results` inside the checked-out workspace. The output is ephemeral to
+the hosted runner, language-isolated by the artifact name and never committed. Query execution, failure
+handling and the public native-upload branch are unchanged.
+
+**Validation:** workflow YAML parses, documentation links and repository scanning pass, and
+`git diff --check` is clean.
+
+**Final status:** push the two-line hosted path correction and require CI plus both CodeQL matrices green.
