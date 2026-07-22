@@ -55,6 +55,7 @@ patch: the project's shape (above), the last sessions at a glance, and a short r
 agent at the end of every patch, at the same time it appends session.md. Drop the
 11th; the full history is in session.md and, once archived, in archive/. -->
 
+- 2026-07-22T04:59:53+02:00 — Completed final verification, v1.0.0, public security controls and CodeQL activation.
 - 2026-07-22T04:40:02+02:00 — Removed temporary pip resolution from the complete hash-locked dependency audit.
 - 2026-07-22T04:30:58+02:00 — Corrected private CodeQL retention to a safe workspace-relative artifact path.
 - 2026-07-22T04:26:10+02:00 — Made CodeQL evidence portable across private and public repository visibility.
@@ -64,7 +65,6 @@ agent at the end of every patch, at the same time it appends session.md. Drop th
 - 2026-07-22T04:08:46+02:00 — Added expanded CI, CodeQL, Dependabot and tag-based release validation.
 - 2026-07-22T04:04:50+02:00 — Made credential-scan regression fixtures inert without weakening detection.
 - 2026-07-22T04:01:42+02:00 — Added the reproducible demo, scans, SBOM and checksummed release bundle gate.
-- 2026-07-22T03:50:09+02:00 — Added bounded end-to-end request traces and completed runtime English output cleanup.
 
 ## Where things stand
 
@@ -72,13 +72,13 @@ agent at the end of every patch, at the same time it appends session.md. Drop th
 fragile, what the next action is. Rewritten (not appended) from session.md + handoff.md
 at the end of every patch. If it grows past 10 lines it has stopped being a summary. -->
 
-- Root `RFC.md` is accepted; Phases 0–4 implementation and recruiter delivery merged through PR #1 as `74e511e`.
+- Root `RFC.md` is accepted; P-01–P-20 implementation is complete and merged through PRs #1 and #11.
 - The pinned Bun workspace owns frozen install, format, lint, typecheck, test, audit, demo, benchmark and release commands.
-- A fresh Windows clone completed quickstart in 8.092 seconds and the full release gate in 93.428 seconds.
-- Current gate: 53 Bun unit, 79 pytest and 8 integration tests; format/lint/typecheck/docs/scans/audits pass.
+- Final fresh clone installed in 6.207 seconds and passed the full release gate in 30.024 seconds.
+- Final gate: 53 Bun unit, 79 pytest and 9 integration; named suites, scans and zero-finding audits pass.
 - Mock/local/openai-compatible providers, protocol v1, remote HMAC auth, bounded resources and tracing are implemented.
 - `cowork-eval/v1` has 64 balanced cases and 296/296 successful sanitized mock/local reference records.
 - The 133-line README leads with measured evidence; demo, 11-asset SBOM/checksum release and provenance align.
-- Follow-up branch `fix/reproducible-python-audit` removes host-dependent pip resolution with a regression.
-- Remaining work is follow-up PR/merge, repeated verification, v1.0.0, security settings and final public launch.
+- Public v1.0.0 has 11 verified assets; required CI/CodeQL and repository security controls are enabled.
+- Final workflow-only branch adds manual CodeQL dispatch; no product or Definition-of-Done item remains open.
 - Preserve the field-loop fallback; never commit local artifacts/credentials or touch unrelated repositories.

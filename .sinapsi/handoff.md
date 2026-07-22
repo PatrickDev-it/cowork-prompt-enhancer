@@ -1,50 +1,53 @@
 # Handoff
 
-Living project context during root RFC launch on 2026-07-22.
+Living project context at stable public launch on 2026-07-22.
 
 ## Current state
 
-Root `RFC.md` is accepted. Phases 0–4 implementation, automation and recruiter delivery merged through
-PR #1 as `74e511e`. The private repository is `PatrickDev-it/cowork-prompt-enhancer` and must stay private
-through the remaining launch gates. Branch `fix/reproducible-python-audit` contains one uncommitted
-deterministic-audit patch discovered by mandatory merged-main verification.
+Root `RFC.md` is accepted and P-01–P-20 implementation is complete. Product work merged through PR #1;
+the deterministic-audit correction merged through PR #11 as `8377db3`. Stable release `v1.0.0` is
+published at `PatrickDev-it/cowork-prompt-enhancer`, and the repository is public with launch security
+controls enabled. Branch `chore/public-codeql-dispatch` contains the final uncommitted workflow-only patch.
 
 RFC-0026 owns provider profiles, RFC-0027 protocol/security/resource hardening and RFC-0028 evaluation.
-The audit patch changes no provider, protocol, authentication, storage or release format.
+The final patch adds manual CodeQL dispatch and changes no runtime contract or release artifact.
 
-## Verified gate
+## Final verification
 
-- PR #1 merged after two CI and four CodeQL checks passed; private SARIF artifacts are retained.
-- A merged-main fresh clone installed frozen/hash-locked dependencies in 6.643 seconds.
-- Formatter, Biome/Ruff, both typechecks, 53 Bun unit, 79 pytest and 8 integration tests passed there.
-- Deterministic Bun/Python audits now pass with zero findings and have a workspace regression.
-- A prior clean Windows clone completed quickstart in 8.092 seconds and the release gate in 93.428 seconds.
-- Docs cover 39 files; repository scanning, demo, 264-record benchmark and release validation are green.
-- Release output is 11 assets, 108 dependencies, CycloneDX 1.6 and complete SHA-256 coverage.
+- Fresh clone frozen setup: 6.207 seconds; full release gate: 30.024 seconds.
+- 53 Bun unit, 79 pytest and 9 integration tests passed.
+- Provider 25/25, protocol/security 26/26, supervisor 5/5 and mock E2E 4/4 passed.
+- Formatter, Biome/Ruff, client/server typecheck, 39-file docs and repository scan passed.
+- Bun and Python audits report zero findings; mock benchmark produced 264 records.
+- Supported local-provider smoke passed in 19.289 seconds.
+- Clean clone `git diff --check` and status passed.
+- Public CodeQL completed for Python and TypeScript.
 
 ## Evaluation evidence
 
 - `cowork-eval/v1` contains 64 balanced, public, non-sensitive cases.
-- Curated mock/local references contain 296/296 successful sanitized records tied to commit `1cbbf26`.
+- Curated mock/local references contain 296/296 successful sanitized records.
 - Local compiler recall/precision/structure/executability: 0.917/1.000/0.792/0.975.
 - Local raw reference: 1.000/1.000/0.333/0.725; evidence is an eight-case lexical subset, not human proof.
 
-## Remaining launch work
+## Release and repository
 
-- Commit/push the deterministic pip-audit patch, open a follow-up PR and require CI/CodeQL green.
-- Merge without rewriting history and repeat the complete mandatory verification from fresh `main`.
-- Run the supported local-provider smoke on the workstation artifacts.
-- Tag v1.0.0, require tag validation green and publish the checksummed release assets.
-- Make the repository public last, then enable native code scanning, secret scanning and required checks.
+- `v1.0.0` targets `8377db3`; tag CI and release validation passed.
+- Release has 11 assets; ten manifest hashes revalidated after download.
+- Assets include source, changelog, benchmark evidence, 108-item inventory, CycloneDX 1.6 and provenance.
+- Secret scanning/push protection, alerts, automated fixes and private reporting are enabled.
+- `main` requires strict CI plus both CodeQL contexts; force pushes and deletion are blocked.
+- Description, README homepage and nine focused topics target `PatrickDev-it`.
 
 ## Invariants
 
-- Do not alter `run_enhancement_field_loop` without an explicit equivalence-tested migration.
-- Never commit models, binaries, CUDA libraries, virtual environments, `.env`, credentials or user I/O.
+- Preserve `run_enhancement_field_loop` unless an equivalence-tested RFC migration supersedes it.
+- Never commit models, runtime binaries, CUDA libraries, environments, credentials or user I/O.
 - Keep public output in professional English and reconstructed RFC metadata truthful.
 - Do not touch Ignoryx, Privacy, organizations or unrelated repositories.
-- Finish each patch with session, handoff, then summary updates.
+- Finish each future patch with session, handoff, then summary updates.
 
 ## Next action
 
-Commit/push `fix/reproducible-python-audit`, open the follow-up PR and require all hosted checks green.
+Commit/push the workflow-only dispatch patch, merge after public CI/CodeQL, then manually dispatch and
+verify the authoritative `main` CodeQL workflow. No product requirement remains open.
