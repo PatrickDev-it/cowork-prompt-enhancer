@@ -1,7 +1,7 @@
 # Test-only dependencies for the Python modules under server/modules/. Kept separate from
 # requirements.txt on purpose: that file is intentionally minimal (stdlib-first, RFC-0014/0020) and
 # a test dependency does not belong in the production requirement set.
-pytest==9.0.3
+pytest==9.1.1
 ruff==0.12.10
 pip-audit==2.9.0
 hypothesis==6.156.6
