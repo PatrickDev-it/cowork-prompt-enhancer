@@ -230,3 +230,17 @@ zero llama-server/Python orphans remain. Bun/pip audits are zero, secret-pattern
 
 **Final status:** Phase 2 is complete locally. Commit/push, require hosted CI green, then implement the
 versioned evaluation system before changing compiler prompts.
+
+## 2026-07-22T02:55:00+02:00 — RFC-0028 evaluation evidence boundary
+
+**Goal:** define dataset, result storage, metrics and evidence governance before implementing Phase 3 or
+changing compiler prompts.
+
+**Change:** accepted RFC-0028. It specifies `cowork-eval/v1`, a balanced 64-case public dataset, complete
+deterministic mock comparisons, a declared stratified local tier, auditable requirement/hallucination/
+structure/executability/fallback/timing metrics, fixture-only grounding provenance, immutable raw/result/
+environment/report artifacts and a blinded human-review exchange without fabricated results.
+
+**Breaking changes:** none; evaluation is additive and the historical field-loop remains unchanged.
+**Validation:** cross-checked against root P-08–P-10, P-14/P-15 and the Phase 3 acceptance gate.
+**Status:** evidence contract accepted; corpus and runner implementation are next.

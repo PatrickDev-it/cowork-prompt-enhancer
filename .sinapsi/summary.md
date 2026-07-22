@@ -55,6 +55,7 @@ patch: the project's shape (above), the last sessions at a glance, and a short r
 agent at the end of every patch, at the same time it appends session.md. Drop the
 11th; the full history is in session.md and, once archived, in archive/. -->
 
+- 2026-07-22T02:55:00+02:00 — Accepted RFC-0028 for versioned deterministic evaluation and evidence governance.
 - 2026-07-22T02:45:57+02:00 — Completed Phase 2 authenticated protocol, bounded resources, cancellation, confinement and E2E hardening.
 - 2026-07-22T02:15:00+02:00 — Accepted RFC-0027 for authenticated protocol v1, bounded resources and canonical confinement.
 - 2026-07-22T02:05:52+02:00 — Completed Phase 1 portable providers, setup/preflight, offline demo and real local smoke.
@@ -74,8 +75,8 @@ at the end of every patch. If it grows past 10 lines it has stopped being a summ
 - One pinned Bun workspace now owns frozen install, format, lint, typecheck, tests, audits, demo and benchmark commands.
 - Phase 2 gate is green: 46 Bun unit, 62 pytest and 7 integration tests; formatter, lint, typecheck and audits pass.
 - Owner links target `PatrickDev-it`; security, support, release, environment and artifact provenance policies exist; dependency trees are ignored.
-- Private remote and metadata exist; Phase 1 hosted CI run 29879307065 is green.
+- Private remote and metadata exist; Phase 2 hosted CI run 29881246507 is green.
 - Mock/local/openai-compatible profiles, conformance, setup/preflight, offline demo and real local smoke are implemented.
 - Protocol v1, remote HMAC auth, bounded cancellation/reconnect, canonical paths and supervisor injection are implemented.
-- Phase 3 evaluation corpus/measurement is next; final recruiter release remains open.
+- RFC-0028 is accepted; Phase 3 corpus/runner/reference results are next; final recruiter release remains open.
 - Preserve the historical field-loop fallback and never commit local runtime artifacts or credentials.

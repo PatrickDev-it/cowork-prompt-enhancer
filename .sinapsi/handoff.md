@@ -13,6 +13,10 @@ RFC-0026 owns deterministic `mock` (default), supervised `local`, and credential
 protocol-v1 envelopes, stable errors, bounded scheduling/cancellation/reconnect, canonical filesystem
 confinement and the injectable llama supervisor.
 
+RFC-0028 now owns Phase 3 evidence: `cowork-eval/v1`, 64 balanced cases, deterministic primary metrics,
+complete mock comparison, declared stratified local comparison, provenance, immutable raw/report formats
+and blinded human-review exchange without invented ratings.
+
 ## Verified Phase 2 gate
 
 - Formatter, Biome/Ruff lint and client/server typecheck pass.
@@ -50,5 +54,5 @@ confinement and the injectable llama supervisor.
 
 ## Next action
 
-Commit/push Phase 2 and require hosted CI green. Then create the evaluation corpus/schema/runner and run
-at least the deterministic mock plus available local-provider baseline comparison before making claims.
+Phase 2 commit `e9f9062` is pushed and hosted CI run 29881246507 is green. Implement RFC-0028 corpus,
+schema, runner, tests, mock reference and real local stratified comparison before making claims.
