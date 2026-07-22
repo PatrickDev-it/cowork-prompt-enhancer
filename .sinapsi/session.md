@@ -387,3 +387,26 @@ required post-push evidence.
 
 **Final status:** automation is ready to commit and push; repair any hosted CI or CodeQL failure before
 continuing to recruiter documentation.
+
+## 2026-07-22T04:12:41+02:00 — Recruiter-first public narrative and provenance alignment
+
+**Goal:** close P-17/P-18 documentation signal and synchronize README, architecture, threat, support and
+artifact provenance with measured implementation behavior.
+
+**Changes made:** replaced the long decision-centric README with a 133-line recruiter path covering the
+problem, exact local result, three-minute mock quickstart, three provider profiles, compact architecture,
+security model, benchmark evidence and material limitations. Claims link raw results and state the local
+eight-case lexical scope, latency hardware and recall trade-off. Only four boundary-defining RFCs remain
+in the public narrative; reconstructed labels are explicit.
+
+Architecture now documents the model-free CI/release boundary, CycloneDX and complete asset checksums.
+Third-party guidance distinguishes workstation validation hashes from separately pinned setup downloads;
+support now reflects the stable semantic-versioning policy. The stale llama.cpp build reference in a
+runtime comment now points to the authoritative manifest.
+
+**Validation:** full formatter/lint/typecheck passes; 53 Bun unit, 79 pytest and 7 integration tests pass.
+All 39 Markdown files and the repository security scan pass; no Italian public-doc copy or placeholder
+owner reference remains; `git diff --check` passes.
+
+**Final status:** recruiter documentation is ready to commit/push. Require refreshed CI and CodeQL green,
+then execute the clean-clone and GitHub PR/release/publication sequence.

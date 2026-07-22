@@ -18,7 +18,8 @@ Setup pins:
 | `llama-b9893-bin-ubuntu-x64.tar.gz` | `4eed74472fc50b6406e67b04c815f3ea78849831424f72452db1c3245a7da8fb` |
 | `Qwen3-8B-Q4_K_M.gguf` at model revision `7c41481f57cb95916b40956ab2f0b139b296d974` | `d98cdcbd03e17ce47681435b5150e34c1417f50b5c0019dd560e4882c5745785` |
 
-The checksums document the local artifacts used for the release validation; they are not permission to
-redistribute those artifacts. Setup scripts validate checksums and direct the operator to each upstream
-license. A different model or llama.cpp build is an explicit configuration change and must be recorded in
-benchmark environment metadata.
+The first table records the workstation artifacts used for local validation; the setup table records the
+separately pinned upstream downloads. Identical model labels can refer to revised bitstreams, so the
+checksums are authoritative. They are not permission to redistribute any artifact. Setup scripts validate
+downloads and direct the operator to each upstream license. A different model or llama.cpp build is an
+explicit configuration change that must appear in benchmark environment metadata.

@@ -55,6 +55,7 @@ patch: the project's shape (above), the last sessions at a glance, and a short r
 agent at the end of every patch, at the same time it appends session.md. Drop the
 11th; the full history is in session.md and, once archived, in archive/. -->
 
+- 2026-07-22T04:12:41+02:00 — Replaced the public narrative with measured recruiter-first documentation.
 - 2026-07-22T04:08:46+02:00 — Added expanded CI, CodeQL, Dependabot and tag-based release validation.
 - 2026-07-22T04:04:50+02:00 — Made credential-scan regression fixtures inert without weakening detection.
 - 2026-07-22T04:01:42+02:00 — Added the reproducible demo, scans, SBOM and checksummed release bundle gate.
@@ -64,7 +65,6 @@ agent at the end of every patch, at the same time it appends session.md. Drop th
 - 2026-07-22T03:15:15+02:00 — Implemented the 64-case deterministic evaluation, evidence pipeline and real local comparison.
 - 2026-07-22T02:55:00+02:00 — Accepted RFC-0028 for versioned deterministic evaluation and evidence governance.
 - 2026-07-22T02:45:57+02:00 — Completed Phase 2 authenticated protocol, bounded resources, cancellation, confinement and E2E hardening.
-- 2026-07-22T02:15:00+02:00 — Accepted RFC-0027 for authenticated protocol v1, bounded resources and canonical confinement.
 
 ## Where things stand
 
@@ -76,12 +76,13 @@ at the end of every patch. If it grows past 10 lines it has stopped being a summ
 - One pinned Bun workspace now owns frozen install, format, lint, typecheck, tests, audits, demo and benchmark commands.
 - Current gate is green: 53 Bun unit, 79 pytest and 7 integration tests; formatter, lint and typecheck pass.
 - Owner links target `PatrickDev-it`; security, support, release, environment and artifact provenance policies exist; dependency trees are ignored.
-- Private remote and metadata exist; Phase 3 hosted CI run 29883201459 is green.
+- Private remote and metadata exist; expanded hosted CI run 29885066470 is green and CodeQL is running.
 - Mock/local/openai-compatible profiles, conformance, setup/preflight, offline demo and real local smoke are implemented.
 - Protocol v1, remote HMAC auth, bounded cancellation/reconnect, canonical paths and supervisor injection are implemented.
 - `cowork-eval/v1` has 64 balanced cases and 296/296 successful sanitized mock/local reference records.
 - Bounded end-to-end request tracing is opt-in, sanitized and loopback-only; public runtime output is English.
 - The offline demo proves fallback/artifact/benchmark paths; repository scans and the 11-file release bundle validate.
 - Hosted CI now covers the full delivery gate; CodeQL, dependency updates and tag validation are configured.
-- Recruiter documentation, hosted execution/PR, v1.0.0 and final public launch remain.
+- The 133-line README now leads with measured evidence, quickstart, security, architecture and limitations.
+- Clean-clone validation, hosted PR, v1.0.0 and final public launch remain.
 - Preserve the historical field-loop fallback and never commit local runtime artifacts or credentials.
