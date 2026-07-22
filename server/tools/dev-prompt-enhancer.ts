@@ -1,25 +1,16 @@
 import { runEnhancement } from './enhance-run';
 import type { Tool } from './types';
 
-/**
- * Prompt-enhancer verticale per sviluppatori — RFC-0021. Riusa il modulo `prompt_enhancer` (non lo
- * forka) passandogli il CONTESTO DEL PROGETTO locale del client, così il prompt prodotto è ancorato
- * al codice reale invece di indovinare stack e struttura.
- *
- * Wizard (prompt bridge, RFC-0002 § 6 + estensione array RFC-0021 § 2): una `checkbox` con tutti i
- * toggle OFF di default; se `read project` è selezionato, `sub_prompts` innesca la primitiva client
- * `project-select` (scan locale → multi-select file → contenuto impacchettato). Poi la richiesta vera.
- * La scansione e i filtri di sicurezza (mai .env/segreti) vivono nel client (`lib/project-select.ts`).
- */
+/** Developer compiler grounded in project files explicitly selected by the local client (RFC-0021). */
 export const devPromptEnhancer: Tool = {
   name: 'dev-prompt-enhancer',
-  description: 'Prompt-enhancer per sviluppatori: ancora il prompt ai file reali del progetto locale.',
+  description: 'Compile a developer request against explicitly selected local project files.',
   prompts: [
     {
       key: 'checkbox',
       name: 'options',
       props: {
-        message: 'Opzioni (spazio per selezionare, invio per continuare):',
+        message: 'Options (space to select, enter to continue):',
         choices: [
           { name: 'thinking', value: 'think' },
           { name: 'read project', value: 'read-project' },
@@ -27,15 +18,14 @@ export const devPromptEnhancer: Tool = {
         ],
         loop: false,
       },
-      // Estensione array del bridge (RFC-0021 § 2): se 'read-project' è selezionato, si risolve la
-      // primitiva client `project-select`. Il suo valore (bundle dei file) è compresso in HEAD se enorme.
+      // Resolve project selection only when requested; oversized bundles pass through compression.
       sub_prompts: {
         'read-project': [
           {
             key: 'project-select',
             name: 'project',
             compress: true,
-            props: { message: 'Directory del progetto da scansionare:' },
+            props: { message: 'Project directory to scan:' },
           },
         ],
       },
@@ -44,7 +34,10 @@ export const devPromptEnhancer: Tool = {
       key: 'file-select',
       name: 'request',
       compress: true,
-      props: { message: 'Cosa vuoi che il prompt chieda di fare?', extensions: ['.txt', '.md', '.json'] },
+      props: {
+        message: 'What should the compiled prompt ask the executor to do?',
+        extensions: ['.txt', '.md', '.json'],
+      },
     },
   ],
   run: async (_WS, ctx) => {
@@ -54,9 +47,9 @@ export const devPromptEnhancer: Tool = {
       request: String(payload.request ?? ''),
       think: options.includes('think'),
       options: {
-        // Toggle esplicito: selezionato ⇒ forza ON, non selezionato ⇒ forza OFF (RFC-0021 / should_search).
+        // The explicit UI choice overrides the automatic freshness gate.
         search: options.includes('web-search'),
-        // Vuoto se 'read project' non era selezionato (project-select non è stato eseguito).
+        // Empty when project selection was not requested.
         projectContext: String(payload.project ?? ''),
       },
     });

@@ -1,7 +1,9 @@
 import { join, resolve } from 'node:path';
 
-export const IP = process.env.COWORK_SERVER_IP ?? 'localhost';
+export const IP = process.env.COWORK_SERVER_IP ?? '127.0.0.1';
 export const PORT = Number(process.env.COWORK_SERVER_PORT ?? 8080);
+export const AUTH_SECRET = process.env.COWORK_AUTH_SECRET ?? '';
+export const CLIENT_ID = process.env.COWORK_CLIENT_ID;
 
 /**
  * `input/` e `output/` vivono entrambe sotto un'unica cartella `(io)/` (Input/Output) dentro il

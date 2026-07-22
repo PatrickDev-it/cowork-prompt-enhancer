@@ -5,7 +5,7 @@ const EXCLUDED = new Set(['index.ts', 'types.ts', 'runtime.ts', 'fs.ts', 'enhanc
 
 /** Pure filter over a directory listing — split out of `discoverTools` so it's testable without disk I/O. */
 export function filterToolFiles(files: string[]): string[] {
-  return files.filter((f) => f.endsWith('.ts') && !EXCLUDED.has(f));
+  return files.filter((f) => f.endsWith('.ts') && !f.endsWith('.test.ts') && !EXCLUDED.has(f));
 }
 
 /** Pure aggregation of every `Tool`-shaped export across a set of module namespaces. */

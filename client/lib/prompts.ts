@@ -15,7 +15,7 @@ const promptsByKey: Record<string, (props: any) => Promise<unknown>> = {
 
 let lock: Promise<unknown> = Promise.resolve();
 
-/** Serializza prompt concorrenti: due eventi WS ravvicinati non devono sovrapporre prompt sullo stesso TTY. */
+/** Serialize concurrent prompt events so they cannot overlap on one TTY. */
 async function withPromptLock<T>(fn: () => Promise<T>): Promise<T> {
   const run = lock.then(fn, fn);
   lock = run.catch(() => undefined);
@@ -30,12 +30,12 @@ async function resetTTY() {
   process.stdin.setRawMode(true);
 }
 
-/** Esegue un prompt `@inquirer/prompts` descritto come dati — RFC-0002 § 6. */
+/** Execute a data-described `@inquirer/prompts` prompt (RFC-0002 § 6). */
 export async function prompt(key: string, props: Record<string, unknown>): Promise<unknown> {
   return withPromptLock(async () => {
     await resetTTY();
     const fn = promptsByKey[key];
-    if (!fn) throw new Error(`Prompt sconosciuto: ${key}`);
+    if (!fn) throw new Error(`Unknown prompt type: ${key}`);
     const result = await fn(props);
     await resetTTY();
     return result;

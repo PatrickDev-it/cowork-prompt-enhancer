@@ -4,14 +4,13 @@ import { checkbox, input } from '@inquirer/prompts';
 import { PROJECT_SCAN } from '@/config';
 
 /**
- * Primitiva `project-select` — RFC-0021 § 1, gemella di `file-select` (RFC-0009). Scansiona un
- * albero di progetto LOCALE al client, fa scegliere all'utente i file, e ritorna il loro contenuto
- * impacchettato in un'unica stringa (non i path). Come `file-select`, la parte pura (`listProjectTree`)
- * è separata dall'interattiva (`projectSelect`) per essere verificabile senza TTY.
+ * `project-select` primitive — RFC-0021 § 1, paired with `file-select` (RFC-0009). It scans a project
+ * tree locally on the client, lets the operator choose files, and returns their content in one string.
+ * The pure `listProjectTree` path remains separate from the interactive `projectSelect` path for
+ * deterministic testing without a TTY.
  *
- * I filtri di `PROJECT_SCAN` (config) sono il CONTRATTO, non opzioni cosmetiche: mai segreti, mai
- * cartelle di build/dipendenze, mai file oltre soglia — è la mitigazione della nuova superficie di
- * egress client→server (RFC-0021 § Sicurezza).
+ * `PROJECT_SCAN` filters are a security contract: secrets, build/dependency directories and oversized
+ * files never cross the client-to-server egress boundary (RFC-0021 security section).
  */
 
 interface ProjectSelectProps {
@@ -19,7 +18,7 @@ interface ProjectSelectProps {
   defaultDir?: string;
 }
 
-/** Converte un pattern con `*` (glob-lite sul basename) in RegExp case-insensitive ancorata. */
+/** Convert a basename glob-lite pattern containing `*` into an anchored, case-insensitive RegExp. */
 function globToRegExp(pattern: string): RegExp {
   const escaped = pattern.replace(/[.+^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*');
   return new RegExp(`^${escaped}$`, 'i');
@@ -27,7 +26,7 @@ function globToRegExp(pattern: string): RegExp {
 
 const SECRET_MATCHERS = PROJECT_SCAN.denySecrets.map(globToRegExp);
 
-/** Un basename è un segreto se combacia con un pattern della denylist di sicurezza. */
+/** Return whether a basename matches the security denylist. */
 export function isSecretFile(name: string): boolean {
   return SECRET_MATCHERS.some((re) => re.test(name));
 }
@@ -38,9 +37,9 @@ function isAllowedFile(name: string): boolean {
 }
 
 /**
- * Elenca i path relativi dei file candidati sotto `root` — puro, nessun TTY. Salta le cartelle in
- * denylist, i file di segreti, le estensioni non in allowlist e i file oltre `maxFileBytes`; limita
- * la profondità. Cartella assente/illeggibile = nessun candidato (confine di sistema, non un errore).
+ * List candidate paths beneath `root` without a TTY. Denied directories, secret files, extensions
+ * outside the allowlist, oversized files and entries beyond the depth limit are excluded. A missing or
+ * unreadable directory returns no candidates because it is a normal system-boundary condition.
  */
 export function listProjectTree(root: string, maxResults = 5000): string[] {
   const out: string[] = [];
@@ -76,11 +75,9 @@ export function listProjectTree(root: string, maxResults = 5000): string[] {
 }
 
 /**
- * Disegna un albero ASCII della struttura del progetto dai path relativi dei file candidati (già
- * filtrati da `listProjectTree`: mai segreti, mai cartelle in denylist — RFC-0021, così l'albero non
- * può mai far trapelare un file proibito). Puro, nessun TTY. Dà al modello una MAPPA VISIVA del
- * progetto, sempre presente nel contesto a prescindere da quali file l'utente include per intero.
- * Limitato a `maxBytes` (sottratto dal budget totale, non aggiunto) per non erodere il prefill (RFC-0024).
+ * Render an ASCII project tree from paths already filtered by `listProjectTree`. The tree cannot reveal
+ * denied files or directories and remains available even when no complete file is selected. `maxBytes`
+ * is deducted from the total context budget to preserve the provider prefill bound (RFC-0024).
  */
 export function renderProjectTree(relPaths: string[], maxBytes = PROJECT_SCAN.maxTreeBytes): string {
   interface TreeNode {
@@ -102,7 +99,7 @@ export function renderProjectTree(relPaths: string[], maxBytes = PROJECT_SCAN.ma
 
   const lines: string[] = [];
   const render = (node: TreeNode, prefix: string): void => {
-    // Cartelle prima dei file, poi alfabetico: mappa leggibile e ordine stabile tra richieste.
+    // Directories precede files; alphabetical order keeps the map readable and deterministic.
     const entries = [...node.children.entries()].sort((a, b) => {
       const aDir = a[1].children.size > 0;
       const bDir = b[1].children.size > 0;
@@ -123,15 +120,14 @@ export function renderProjectTree(relPaths: string[], maxBytes = PROJECT_SCAN.ma
     let slice = tree.slice(0, maxBytes);
     const nl = slice.lastIndexOf('\n');
     if (nl > 0) slice = slice.slice(0, nl);
-    tree = `${slice}\n… [albero troncato al budget di contesto]`;
+    tree = `${slice}\n... [directory tree truncated to the context budget]`;
   }
   return tree;
 }
 
 /**
- * Assembla il contenuto dei file scelti in un unico blocco, rispettando `budget` byte (oltre il
- * tetto, tronca con avviso). Ritorna solo i dati (path + contenuto): l'inquadramento "questo è
- * contesto autorevole del progetto" lo aggiunge il modulo lato server (RFC-0021 § 4), non il client.
+ * Pack selected file contents into one block bounded by `budget` bytes, with explicit truncation.
+ * Only path and content data are returned; the server adds the authoritative-context framing.
  */
 export function packFiles(root: string, relPaths: string[], budget = PROJECT_SCAN.maxTotalBytes): string {
   const blocks: string[] = [];
@@ -150,13 +146,13 @@ export function packFiles(root: string, relPaths: string[], budget = PROJECT_SCA
       continue;
     }
     const remaining = budget - total;
-    // Se il file non entra tutto, si include la parte che sta nel budget (tagliata su confine di riga)
-    // invece di scartarlo del tutto: con un cap basso, un solo file grande deve comunque dare contesto.
+    // Preserve the portion that fits, preferably ending on a line boundary, instead of discarding an
+    // oversized file entirely.
     if (Buffer.byteLength(content, 'utf8') > remaining) {
       let slice = content.slice(0, remaining);
       const nl = slice.lastIndexOf('\n');
       if (nl > remaining * 0.5) slice = slice.slice(0, nl);
-      blocks.push(`### ${rel}\n${slice}\n… [file troncato al budget di contesto]`);
+      blocks.push(`### ${rel}\n${slice}\n... [file truncated to the context budget]`);
       truncated = true;
       break;
     }
@@ -165,32 +161,31 @@ export function packFiles(root: string, relPaths: string[], budget = PROJECT_SCA
   }
 
   if (truncated) {
-    blocks.push(`### (nota) contesto troncato a ${budget} byte per stare nei limiti di prefill/decode della GPU.`);
+    blocks.push(`### Note\nContext truncated to ${budget} bytes to remain within provider limits.`);
   }
   return blocks.join('\n\n');
 }
 
 export async function projectSelect(props: ProjectSelectProps): Promise<string> {
   const dir = await input({
-    message: props.message ?? 'Directory del progetto da scansionare:',
+    message: props.message ?? 'Project directory to scan:',
     default: props.defaultDir ?? process.cwd(),
   });
   const root = resolve(dir);
 
   const files = listProjectTree(root);
   if (files.length === 0) {
-    throw new Error(`Nessun file candidato trovato in ${root} (controlla percorso, estensioni e filtri di scansione).`);
+    throw new Error(`No candidate files found in ${root}; check the path, extensions, and scan filters.`);
   }
 
   const chosen = await checkbox({
-    message: 'Quali file includere nel contesto? (spazio per selezionare, invio per confermare)',
+    message: 'Which files should be included in context? (space to select, enter to confirm)',
     choices: files.map((rel) => ({ name: rel, value: rel })),
     loop: false,
   });
 
-  // La mappa ad albero è SEMPRE inclusa: dà al modello la struttura dell'intero progetto anche quando
-  // l'utente sceglie pochi (o zero) file da includere per intero. È sottratta dal budget totale, non
-  // aggiunta, così `albero + file` resta ≤ `maxTotalBytes` (project-context bounded — RFC-0024).
+  // Always include the tree and deduct it from the total budget so tree plus files remains bounded by
+  // `maxTotalBytes` (RFC-0024).
   const treeBlock = `## Directory tree\n${renderProjectTree(files)}`;
   if (chosen.length === 0) return treeBlock;
 
