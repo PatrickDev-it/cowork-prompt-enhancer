@@ -428,3 +428,22 @@ server source through Git's own attribute resolver.
 `git diff --check` passes. The fix must be committed/pushed before repeating a new clean clone.
 
 **Final status:** clean-clone portability defect fixed locally without altering source semantics.
+
+## 2026-07-22T04:20:04+02:00 — Clean-clone launch gate and CodeQL permission repair
+
+**Goal:** prove the external Windows reviewer path and repair the only remaining hosted security-analysis
+failure without broadening repository access.
+
+**Evidence:** a fresh clone of commit `dd838fa` preserved LF attributes, completed the documented mock
+quickstart in 8.092 seconds and passed `bun run gate:release` in 93.428 seconds. The clean gate included
+format/lint/typecheck, 53 Bun unit tests, 79 pytest tests, 8 integration tests, zero Bun/pip audit findings,
+39-file documentation validation, the tracked secret/heavyweight scan, demo recording, 264 benchmark
+records, an 11-asset release bundle and clean diff/status checks.
+
+**Hosted defect and fix:** CodeQL analyzed both language matrices but could not read its workflow-run
+metadata (`Resource not accessible by integration`). The workflow now grants only `actions: read` in
+addition to existing read-only contents and security-event upload permissions. YAML parsing,
+documentation links, repository scanning and `git diff --check` pass.
+
+**Final status:** all local implementation and clean-clone gates are complete. Commit/push the permission
+repair, require CI and both CodeQL matrices green, then open/merge the mapped PR and publish v1.0.0.

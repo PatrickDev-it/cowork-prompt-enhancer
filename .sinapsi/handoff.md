@@ -1,22 +1,25 @@
 # Handoff
 
-Living project context during root RFC Phase 4 on 2026-07-22.
+Living project context during root RFC launch on 2026-07-22.
 
 ## Current state
 
-Root `RFC.md` is accepted. Phases 0–3, observability, delivery, automation and recruiter docs are committed.
-A clean-clone LF portability fix is awaiting commit. The private repository is `PatrickDev-it/cowork-prompt-enhancer`;
-hosted CI run 29884245471 for `d13fcf5` is green. Keep it private through all launch gates.
+Root `RFC.md` is accepted. Phases 0–4 implementation, delivery automation and recruiter documentation are
+committed on `feat/rfc-completion`. The private repository is `PatrickDev-it/cowork-prompt-enhancer` and
+must remain private through every launch gate. A least-privilege CodeQL permission repair is the only
+uncommitted source change.
 
 RFC-0026 owns provider profiles, RFC-0027 protocol/security/resource hardening and RFC-0028 evaluation.
-The delivery tooling adds no public provider, protocol, authentication or artifact-format decision.
+The launch patch adds no provider, protocol, authentication or artifact-format decision.
 
 ## Verified gate
 
-- Formatter, Biome/Ruff and client/server typecheck pass.
-- 53 Bun unit, 79 pytest and 7 integration tests pass.
-- Documentation validation covers 39 tracked Markdown files; secret/heavyweight scan is green.
-- The sanitized demo proves compiler success, malformed-output field-loop fallback, artifact and 264 records.
+- A fresh Windows clone completed the exact mock quickstart in 8.092 seconds.
+- Its full release gate passed in 93.428 seconds with clean diff/status.
+- 53 Bun unit, 79 pytest and 8 integration tests pass.
+- Formatter, Biome/Ruff, client/server typecheck, 39-file docs and repository scan pass.
+- Bun and Python audits report zero findings.
+- The demo proves compiler success, malformed-output field-loop fallback, artifact and 264 records.
 - The release builder emits 11 assets with 108 dependencies, CycloneDX 1.6 and full SHA-256 coverage.
 - Provider, protocol/security/path, supervisor failure and E2E suites remain green.
 
@@ -27,14 +30,13 @@ The delivery tooling adds no public provider, protocol, authentication or artifa
 - Local compiler recall/precision/structure/executability: 0.917/1.000/0.792/0.975.
 - Local raw reference: 1.000/1.000/0.333/0.725; evidence is an eight-case lexical subset, not human proof.
 
-## Remaining root RFC work
+## Remaining launch work
 
-- Commit/push the delivery tooling and require hosted CI green.
-- Push the expanded CI, CodeQL, Dependabot and tag-release automation; repair every hosted failure.
-- Push recruiter documentation and require refreshed CI plus both CodeQL languages green.
-- Push the LF fix, create a new external clone, repeat the quickstart and complete release gate.
-- Validate a clean clone, open the mapped PR, repair CI, merge without history rewriting, tag/release
-  v1.0.0, then make the personal repository public as the final launch action.
+- Commit/push the CodeQL `actions: read` repair and require CI plus both language matrices green.
+- Open the P-01–P-20 mapped PR, repair any failure and merge without rewriting history.
+- Repeat mandatory final verification on merged `main`, including supported local inference smoke.
+- Tag v1.0.0, require tag validation green and publish the checksummed release assets.
+- Apply final personal-repository security/branch settings and make the repository public only last.
 
 ## Invariants
 
@@ -46,4 +48,4 @@ The delivery tooling adds no public provider, protocol, authentication or artifa
 
 ## Next action
 
-Commit/push LF normalization, repeat a new clean clone, then execute the PR/release/publication sequence.
+Commit/push the CodeQL permission repair, then require refreshed hosted CI and CodeQL green.

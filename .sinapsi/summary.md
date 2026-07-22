@@ -55,6 +55,7 @@ patch: the project's shape (above), the last sessions at a glance, and a short r
 agent at the end of every patch, at the same time it appends session.md. Drop the
 11th; the full history is in session.md and, once archived, in archive/. -->
 
+- 2026-07-22T04:20:04+02:00 — Passed the clean-clone launch gate and repaired least-privilege CodeQL access.
 - 2026-07-22T04:15:01+02:00 — Fixed CRLF formatter drift exposed by the first clean Windows clone.
 - 2026-07-22T04:12:41+02:00 — Replaced the public narrative with measured recruiter-first documentation.
 - 2026-07-22T04:08:46+02:00 — Added expanded CI, CodeQL, Dependabot and tag-based release validation.
@@ -64,7 +65,6 @@ agent at the end of every patch, at the same time it appends session.md. Drop th
 - 2026-07-22T03:27:34+02:00 — Published 296 sanitized mock/local reference records with measured results and provenance.
 - 2026-07-22T03:17:25+02:00 — Excluded generated Python bytecode from evaluation and release commits.
 - 2026-07-22T03:15:15+02:00 — Implemented the 64-case deterministic evaluation, evidence pipeline and real local comparison.
-- 2026-07-22T02:55:00+02:00 — Accepted RFC-0028 for versioned deterministic evaluation and evidence governance.
 
 ## Where things stand
 
@@ -72,18 +72,13 @@ agent at the end of every patch, at the same time it appends session.md. Drop th
 fragile, what the next action is. Rewritten (not appended) from session.md + handoff.md
 at the end of every patch. If it grows past 10 lines it has stopped being a summary. -->
 
-- Root `RFC.md` is accepted; Phases 0–3 are complete and Phase 4 is in progress.
-- One pinned Bun workspace now owns frozen install, format, lint, typecheck, tests, audits, demo and benchmark commands.
-- Current gate is green: 53 Bun unit, 79 pytest and 7 integration tests; formatter, lint and typecheck pass.
-- Owner links target `PatrickDev-it`; security, support, release, environment and artifact provenance policies exist; dependency trees are ignored.
-- Private remote and metadata exist; expanded hosted CI run 29885066470 is green and CodeQL is running.
-- Mock/local/openai-compatible profiles, conformance, setup/preflight, offline demo and real local smoke are implemented.
-- Protocol v1, remote HMAC auth, bounded cancellation/reconnect, canonical paths and supervisor injection are implemented.
+- Root `RFC.md` is accepted; Phases 0–4 implementation and recruiter delivery are complete on `feat/rfc-completion`.
+- The pinned Bun workspace owns frozen install, format, lint, typecheck, test, audit, demo, benchmark and release commands.
+- A fresh Windows clone completed quickstart in 8.092 seconds and the full release gate in 93.428 seconds.
+- Current gate: 53 Bun unit, 79 pytest and 8 integration tests; format/lint/typecheck/docs/scans/audits pass.
+- Mock/local/openai-compatible providers, protocol v1, remote HMAC auth, bounded resources and tracing are implemented.
 - `cowork-eval/v1` has 64 balanced cases and 296/296 successful sanitized mock/local reference records.
-- Bounded end-to-end request tracing is opt-in, sanitized and loopback-only; public runtime output is English.
-- The offline demo proves fallback/artifact/benchmark paths; repository scans and the 11-file release bundle validate.
-- Hosted CI now covers the full delivery gate; CodeQL, dependency updates and tag validation are configured.
-- The 133-line README now leads with measured evidence, quickstart, security, architecture and limitations.
-- First clean clone completed mock setup in 8.339 seconds; its CRLF gate failure is fixed with enforced LF.
-- Repeated clean-clone validation, hosted PR, v1.0.0 and final public launch remain.
-- Preserve the historical field-loop fallback and never commit local runtime artifacts or credentials.
+- The 133-line README leads with measured evidence; demo, 11-asset SBOM/checksum release and provenance align.
+- Private GitHub CI is green; CodeQL needs the pending least-privilege `actions: read` repair pushed and verified.
+- Remaining work is hosted PR/merge, merged-main verification, v1.0.0 release, security settings and final public launch.
+- Preserve the field-loop fallback; never commit local artifacts/credentials or touch unrelated repositories.
