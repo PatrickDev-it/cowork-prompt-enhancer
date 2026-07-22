@@ -120,6 +120,13 @@ restart cap and shutdown. Production uses the same state machine tested with det
 clock and signal doubles. `exit`, `SIGINT` and `SIGTERM` stop the owned child before process exit. The
 model and CUDA artifacts remain outside Git.
 
+## Supply-chain and release boundary
+
+CI uses the mock profile and provider doubles; it never downloads or packages a model, llama-server or
+CUDA runtime. Frozen Bun and hash-locked Python dependencies are audited before the release builder scans
+tracked content, creates source/evidence archives, inventories dependencies, emits a CycloneDX 1.6 SBOM
+and checksums every asset. Tag validation rebuilds that bundle from the tagged commit.
+
 ## Module ownership
 
 | Module | Responsibility |
@@ -149,5 +156,7 @@ model and CUDA artifacts remain outside Git.
   a strictly offline run.
 - The optional metrics endpoint is a local diagnostic interface, not an authenticated remote telemetry
   service; non-loopback metrics are rejected.
+- Release checksums establish integrity of produced assets, not trust in upstream model behavior or a
+  right to redistribute external runtime artifacts.
 - Cancellation terminates the shared Python worker. Concurrent requests in that worker fail safely and
   may be retried explicitly; they are never replayed automatically.

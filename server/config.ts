@@ -161,7 +161,7 @@ export function llamaServerArgs(): string[] {
   // much larger context at the same VRAM, with no measurable quality regression on our task.
   const kv = e.LLAMA_KV_TYPE ?? 'q4_0';
   // Defaults for **Qwen3-8B dense** (RFC-0023) — **production config for 3-4 concurrent users**
-  // (RFC-0024, benchmarked 2026-07-08 on an RTX 3070 Ti 8GB, llama.cpp build b9917):
+  // (RFC-0024, benchmarked 2026-07-08 on an RTX 3070 Ti 8GB; the release runtime is pinned in THIRD_PARTY.md):
   // - `--parallel 4`: continuous batching across 4 slots. **The key choice**: a single user still gets
   //   ~84 tok/s (idle slots don't slow down a lone request), 4 concurrent users get ~47 tok/s each, FAIR
   //   (0.96-1.00), TTFT ~0.5s, no queueing up to 4. Dominates `--parallel 3` (same speed at ≤3 active, but

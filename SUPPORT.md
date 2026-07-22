@@ -6,4 +6,4 @@ best-effort on the artifact versions listed in [`THIRD_PARTY.md`](THIRD_PARTY.md
 
 Use GitHub issues for reproducible defects and documentation gaps. Use GitHub Discussions for design or
 usage questions when enabled. Security reports must follow [`SECURITY.md`](SECURITY.md). No response-time
-or backward-compatibility SLA is offered before a public 1.x release.
+SLA is offered. Compatibility follows semantic versioning and the migration policy of the latest release.
