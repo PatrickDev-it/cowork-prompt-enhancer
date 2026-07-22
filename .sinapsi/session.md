@@ -327,3 +327,28 @@ vulnerabilities and `git diff --check` passes.
 
 **Final status:** P-15 observability and applicable P-18 English output are complete; Phase 4 packaging,
 demo, recruiter documentation and GitHub release work remain.
+
+## 2026-07-22T04:01:42+02:00 — Reproducible demo and release evidence gate
+
+**Goal:** implement the Phase 4 delivery mechanism for a recruiter-verifiable demo and license-safe,
+auditable release assets.
+
+**Changes made:** added tracked Markdown link/heading validation, high-confidence credential scanning,
+forbidden environment/model/binary/key/oversize artifact checks, and unit regressions. Added a
+cross-platform sanitized terminal recording that executes mock preflight, compiler success, deterministic
+malformed-output fallback, artifact delivery and the full 64-case benchmark. The single-shot Python CLI
+now exposes its non-sensitive generation mode so the demo proves the actual fallback path.
+
+Added a deterministic v1.0.0 release builder and validator. It produces committed-source and benchmark-
+evidence archives, changelog, license, third-party provenance, mock/local reports, a 108-component
+dependency inventory, CycloneDX 1.6 SBOM, release manifest and complete SHA-256 coverage. It rejects dirty
+official builds and any tracked forbidden artifact. Root command and developer documentation expose the
+complete gate.
+
+**Validation:** 53 Bun unit, 79 pytest and 7 integration tests pass; Biome/Ruff, typecheck, documentation
+links and repository scan are green. The demo records 264 mock benchmark results and proves
+`single_generic_prompt_template` with `Fallback used: true`. A pre-commit bundle contains 11 validated
+files and all checksum entries recompute successfully; `git diff --check` passes.
+
+**Final status:** Phase 4 delivery tooling is ready for an atomic commit. Hosted automation, recruiter
+README/docs synchronization and the final GitHub launch remain.

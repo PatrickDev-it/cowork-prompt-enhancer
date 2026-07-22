@@ -37,10 +37,16 @@ python -m piptools compile --generate-hashes -o requirements-dev.lock requiremen
 | `bun run audit` | Audit Bun and Python dependency locks. |
 | `bun run preflight` | Validate the selected runtime profile. |
 | `bun run demo:mock` | Run the offline deterministic demonstration. |
+| `bun run demo:record` | Record the sanitized success, fallback, artifact and benchmark demonstration. |
 | `bun run smoke:local` | Start/verify local inference and shut down owned processes. |
 | `bun run benchmark` | Execute the versioned evaluation harness. |
 | `bun run benchmark:local` | Run the supervised eight-case local-provider reference tier. |
+| `bun run docs:check` | Validate tracked Markdown links and local headings. |
+| `bun run security:scan` | Reject high-confidence secrets and forbidden heavyweight tracked artifacts. |
+| `bun run release:build` | Build the source, evidence, SBOM, inventory and checksum release bundle. |
+| `bun run release:validate` | Recompute and validate the generated release bundle. |
 | `bun run check` | Run the complete local format/lint/type/test gate. |
+| `bun run gate:release` | Run the complete application, audit, documentation, demo and release gate. |
 
 ## Development processes
 

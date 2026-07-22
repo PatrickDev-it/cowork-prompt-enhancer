@@ -29,7 +29,16 @@ def run_once(
         print(json.dumps({"prompt_spec": result["prompt_spec"]}, ensure_ascii=True))
         return
 
-    print(json.dumps({"prompt": result["compiled_prompt"], "research": result.get("research", "")}, ensure_ascii=True))
+    print(
+        json.dumps(
+            {
+                "prompt": result["compiled_prompt"],
+                "research": result.get("research", ""),
+                "debug": result.get("debug", {}),
+            },
+            ensure_ascii=True,
+        )
+    )
 
 
 def run_serve(engine: LLMEngine) -> None:

@@ -4,22 +4,21 @@ Living project context during root RFC Phase 4 on 2026-07-22.
 
 ## Current state
 
-Root `RFC.md` is accepted. Phases 0–3 are complete; the P-15 production observability/P-18 runtime
-English patch is complete and awaiting commit. The private repository is
-`PatrickDev-it/cowork-prompt-enhancer`; hosted Phase 3 CI run 29883201459 is green. Keep the repository
-private until every Phase 4 launch gate passes.
+Root `RFC.md` is accepted. Phases 0–3 and P-15/P-18 observability are committed. Phase 4 demo/release
+tooling is complete and awaiting commit. The private repository is `PatrickDev-it/cowork-prompt-enhancer`;
+hosted CI run 29884245471 for `d13fcf5` is green. Keep it private through all launch gates.
 
-RFC-0026 owns provider profiles, RFC-0027 owns protocol/security/resource hardening and RFC-0028 owns
-versioned evaluation evidence. No new protocol or configuration decision was introduced by observability.
+RFC-0026 owns provider profiles, RFC-0027 protocol/security/resource hardening and RFC-0028 evaluation.
+The delivery tooling adds no public provider, protocol, authentication or artifact-format decision.
 
 ## Verified gate
 
 - Formatter, Biome/Ruff and client/server typecheck pass.
-- 47 Bun unit, 79 pytest and 7 integration tests pass.
-- Provider conformance, protocol/security/path, supervisor failure and full E2E suites remain green.
-- Bun and pip audits report zero known vulnerabilities; `git diff --check` passes.
-- The mock E2E verifies one trace across queue, compression, generation, fallback state and artifact.
-- Request metrics are disabled by default, bounded to 100 entries and rejected off loopback.
+- 53 Bun unit, 79 pytest and 7 integration tests pass.
+- Documentation validation covers 37 tracked Markdown files; secret/heavyweight scan is green.
+- The sanitized demo proves compiler success, malformed-output field-loop fallback, artifact and 264 records.
+- The release builder emits 11 assets with 108 dependencies, CycloneDX 1.6 and full SHA-256 coverage.
+- Provider, protocol/security/path, supervisor failure and E2E suites remain green.
 
 ## Evaluation evidence
 
@@ -30,9 +29,10 @@ versioned evaluation evidence. No new protocol or configuration decision was int
 
 ## Remaining root RFC work
 
-- Commit/push the P-15/P-18 observability patch and require hosted CI green.
-- Build recruiter-first README, demo transcript, docs/link validation, secret scan and release builder.
-- Add current CodeQL, dependency updates and release workflows; synchronize changelog/support/provenance.
+- Commit/push the delivery tooling and require hosted CI green.
+- Add current CodeQL, Dependabot, release workflow and expanded CI launch gates.
+- Replace the long README with recruiter-first measured evidence; synchronize support, architecture,
+  threat, release and provenance documentation.
 - Validate a clean clone, open the mapped PR, repair CI, merge without history rewriting, tag/release
   v1.0.0, then make the personal repository public as the final launch action.
 
@@ -46,4 +46,4 @@ versioned evaluation evidence. No new protocol or configuration decision was int
 
 ## Next action
 
-Commit and push the observability patch, confirm hosted CI, then implement Phase 4 delivery automation.
+Commit/push the delivery tooling, then implement hosted security and release automation.
