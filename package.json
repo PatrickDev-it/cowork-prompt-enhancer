@@ -14,12 +14,12 @@
   },
   "scripts": {
     "install:frozen": "bun install --frozen-lockfile && python -m pip install --require-hashes -r server/modules/requirements-dev.lock",
-    "format": "biome format --write . && ruff format server/modules/prompt_enhancer",
-    "format:check": "biome format . && ruff format --check server/modules/prompt_enhancer",
-    "lint": "biome lint . && ruff check server/modules/prompt_enhancer",
+    "format": "biome format --write . && ruff format server/modules/prompt_enhancer evaluation",
+    "format:check": "biome format . && ruff format --check server/modules/prompt_enhancer evaluation",
+    "lint": "biome lint . && ruff check server/modules/prompt_enhancer evaluation",
     "typecheck": "bun run --workspaces --sequential typecheck",
     "test": "bun run test:unit && bun run test:integration",
-    "test:unit": "bun test protocol server client && python -m pytest server/modules/prompt_enhancer",
+    "test:unit": "bun test protocol server client && python -m pytest server/modules/prompt_enhancer evaluation/tests",
     "test:integration": "bun test tests/integration",
     "test:providers": "python -m pytest server/modules/prompt_enhancer/tests/test_providers.py",
     "test:protocol": "bun test protocol server/config.test.ts server/lib/auth.test.ts server/lib/ws.test.ts server/lib/scheduler.test.ts client/lib/ws.test.ts client/events/fileop.test.ts",
@@ -29,7 +29,8 @@
     "preflight": "bun run scripts/preflight.ts",
     "demo:mock": "bun run scripts/mock-demo.ts",
     "smoke:local": "COWORK_PROFILE=local bun run scripts/local-smoke.ts",
-    "benchmark": "python evaluation/benchmark.py",
+    "benchmark": "python evaluation/benchmark.py --profile mock --tier full --output .artifacts/benchmark/mock --overwrite",
+    "benchmark:local": "COWORK_PROFILE=local bun run scripts/local-benchmark.ts",
     "check": "bun run format:check && bun run lint && bun run typecheck && bun run test"
   },
   "devDependencies": {

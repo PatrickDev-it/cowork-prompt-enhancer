@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/PatrickDev-it/cowork-prompt-enhancer/evaluation/datasets/v1/schema.json",
+  "title": "Cowork evaluation case v1",
+  "type": "object",
+  "required": [
+    "id",
+    "category",
+    "original_request",
+    "explicit_requirements",
+    "forbidden_specificity",
+    "acceptable_inferences",
+    "contradiction_markers",
+    "expected_sections",
+    "ambiguity",
+    "freshness",
+    "ambiguity_resolution_markers",
+    "project_context_fixture",
+    "grounding"
+  ],
+  "properties": {
+    "id": { "type": "string", "pattern": "^[a-z_]+-[0-9]{2}$" },
+    "category": {
+      "enum": [
+        "implementation",
+        "debugging",
+        "refactoring",
+        "architecture",
+        "operations",
+        "data_ml",
+        "research",
+        "professional_writing"
+      ]
+    },
+    "original_request": { "type": "string", "minLength": 20 },
+    "explicit_requirements": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "required": ["text", "anchors"],
+        "properties": {
+          "text": { "type": "string" },
+          "anchors": { "type": "array", "minItems": 1, "items": { "type": "string" } }
+        }
+      }
+    },
+    "forbidden_specificity": { "type": "array", "minItems": 2, "items": { "type": "string" } },
+    "acceptable_inferences": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+    "contradiction_markers": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+    "expected_sections": { "type": "array", "minItems": 2, "items": { "type": "string" } },
+    "ambiguity": { "type": "boolean" },
+    "freshness": { "type": "boolean" },
+    "ambiguity_resolution_markers": { "type": "array", "items": { "type": "string" } },
+    "project_context_fixture": { "type": ["string", "null"] },
+    "grounding": {
+      "type": ["object", "null"],
+      "properties": {
+        "query": { "type": "string" },
+        "sources": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["url", "retrieved_at", "fact", "anchors"],
+            "properties": {
+              "url": { "type": "string", "format": "uri" },
+              "retrieved_at": { "type": "string", "format": "date-time" },
+              "fact": { "type": "string", "maxLength": 400 },
+              "anchors": { "type": "array", "items": { "type": "string" } }
+            }
+          }
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}

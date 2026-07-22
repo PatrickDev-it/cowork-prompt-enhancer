@@ -39,6 +39,7 @@ python -m piptools compile --generate-hashes -o requirements-dev.lock requiremen
 | `bun run demo:mock` | Run the offline deterministic demonstration. |
 | `bun run smoke:local` | Start/verify local inference and shut down owned processes. |
 | `bun run benchmark` | Execute the versioned evaluation harness. |
+| `bun run benchmark:local` | Run the supervised eight-case local-provider reference tier. |
 | `bun run check` | Run the complete local format/lint/type/test gate. |
 
 ## Development processes
@@ -63,3 +64,11 @@ checksums, source links, and license boundaries are recorded in [`../THIRD_PARTY
 CI validates the offline mock and test doubles on Ubuntu. A local-provider smoke test runs only when
 compatible artifacts are present; absence is reported as unsupported, not presented as a passing local
 inference result.
+
+## Evaluation evidence
+
+The [`../evaluation/README.md`](../evaluation/README.md) documents the 64-case `cowork-eval/v1`
+contract, deterministic rubric, local stratified tier and blinded human-review exchange. The default
+benchmark is offline and writes ignored working evidence to `.artifacts/benchmark/mock`. Curated
+reference runs under `evaluation/results/` are sanitized release evidence; compiler and fallback
+success remain separate in every raw record and aggregate.
