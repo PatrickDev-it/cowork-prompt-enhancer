@@ -506,3 +506,34 @@ Ruff, both typechecks and `git diff --check` pass.
 
 **Final status:** push this atomic follow-up branch, merge only after CI/CodeQL, then restart merged-main
 clean-clone verification from the corrected commit.
+
+## 2026-07-22T04:59:53+02:00 — Stable public launch and authoritative CodeQL control
+
+**Goal:** complete final verification, release/publication and the public security-control transition, then
+leave one manually executable CodeQL source of truth.
+
+**Delivery:** deterministic audit fix PR #11 merged as `8377db3` after both CI runs and both CodeQL
+languages passed. A fresh clone of that commit installed in 6.207 seconds and passed the complete release
+gate in 30.024 seconds: 53 Bun unit, 79 pytest and 9 integration tests; format/lint/typechecks; zero Bun
+and Python audit findings; 39-file docs; repository scan; demo; and 11-asset release validation. Named
+suites passed: providers 25/25, protocol/security 26/26, supervisor 5/5 and WebSocket mock E2E 4/4.
+The deterministic benchmark produced 264 records, and supported local inference passed in 19.289 seconds.
+The final clean clone had no tracked diff or status.
+
+**Release:** annotated tag `v1.0.0` targets `8377db3` (no signing key was configured). Tag CI and release
+validation passed. The published stable release contains 11 assets; all ten manifest-covered asset hashes
+were independently verified after download. It includes source, changelog, benchmark evidence, 108-item
+dependency inventory, CycloneDX 1.6 SBOM, provenance and complete checksums, with no model/runtime binary.
+
+**Public controls:** after release integrity passed, repository visibility changed to public. Secret
+scanning, push protection, vulnerability alerts, automated security fixes and private vulnerability
+reporting are enabled. `main` enforces strict up-to-date `verify`, TypeScript CodeQL and Python CodeQL
+contexts for administrators, blocks force pushes/deletion and requires conversation resolution. Public
+native CodeQL completed successfully for both languages.
+
+**Final patch:** the committed advanced CodeQL workflow remains the required source of truth; default
+setup was disabled after its public activation proof to avoid duplicate/conflicting analysis. A manual
+dispatch trigger now supports explicit reruns. YAML parsing, docs, repository scanning and diff checks pass.
+
+**Final status:** commit/push this workflow-only patch, merge after public CI/CodeQL, dispatch CodeQL once
+from `main`, and confirm repository metadata/security/release status. No product code remains open.
