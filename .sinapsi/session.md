@@ -162,3 +162,28 @@ accepted RFC-0026 defining mock/local/openai-compatible profiles, typed failures
 preflight and conformance requirements. **Breaking changes:** mock becomes the reviewer default; explicit
 local deployments select `local`. **Validation:** RFC cross-checked against root P-02/P-03/P-16/P-19 and
 RFC-0014. **Status:** boundary accepted; implementation next.
+
+## 2026-07-22T02:05:52+02:00 — Root RFC Phase 1: portable providers and reviewer path
+
+**Goal:** close P-02, P-03 and the Phase 1 portions of P-16/P-19 with a GPU-free reviewer path while
+preserving the accepted local supervisor contract.
+
+**Changes made:** implemented validated `mock`, `local` and `openai-compatible` profiles behind the
+Python provider contract; added stable typed provider failures and credential redaction; added
+deterministic failure injection, remote/local HTTP adapters and shared conformance tests; made mock the
+default; added fail-fast TypeScript configuration validation, profile-aware worker/supervisor startup,
+cross-platform setup scripts, checksum-pinned artifact provenance, capability/health preflight, offline
+demo and local smoke commands. Public documentation and CI now expose the same paths.
+
+**Breaking changes:** default provider changes from implicit local inference to explicit deterministic
+mock. Legacy provider names remain supported for one release. No workflow strategy or field-loop code
+changed. **Regressions:** none observed.
+
+**Validation:** root formatter/lint/typecheck pass; 20 Bun unit, 59 pytest provider/workflow, and 3
+integration tests pass; mock preflight/demo pass; real RTX 3070 Ti local preflight validates executable
+and model SHA-256 values and the real local smoke generates an artifact; zero orphan llama-server
+processes remain. Setup PowerShell/Bash syntax and upstream archive layout/checksums were validated.
+Bun audit and pip-audit report zero known vulnerabilities; `git diff --check` passes.
+
+**Final status:** Phase 1 is complete locally. Push the feature commit and require hosted CI green before
+beginning the Phase 2 protocol/security implementation governed by a new boundary RFC.

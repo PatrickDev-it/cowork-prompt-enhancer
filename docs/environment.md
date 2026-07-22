@@ -1,8 +1,19 @@
 # Environment-variable reference
 
-Configuration is selected through a named profile. Values below describe the current local profile;
-provider and protocol variables are expanded in their implementation phases. Secret values must never be
-placed in committed files.
+Configuration is selected through `COWORK_PROFILE`: `mock` (default), `local`, or `openai-compatible`.
+Invalid combinations fail before workers start. Secret values must never be placed in committed files.
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `COWORK_PROFILE` | `mock` | Validated provider profile. |
+| `COWORK_MOCK_SCENARIO` | `success` | Deterministic success or failure-injection scenario. |
+| `COWORK_PROVIDER_TIMEOUT_S` | `600` | Provider request deadline. |
+| `COWORK_OPENAI_BASE_URL` | none | Vendor-neutral compatible endpoint. |
+| `COWORK_OPENAI_MODEL` | none | Remote model identity. |
+| `COWORK_OPENAI_API_KEY` | none | Required remote credential; always redacted. |
+
+`COWORK_PROMPT_ENHANCER_PROVIDER` is a one-release compatibility alias. `llama_server` maps to `local`
+and `openai_compatible` maps to `openai-compatible`; conflicts are rejected.
 
 ## Client and server
 

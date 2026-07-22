@@ -24,5 +24,11 @@ jobs:
         run: bun run install:frozen
       - name: Format, lint, typecheck, and test
         run: bun run check
+      - name: Offline reviewer path
+        env:
+          COWORK_PROFILE: mock
+        run: |
+          bun run preflight
+          bun run demo:mock
       - name: Dependency audit
         run: bun run audit

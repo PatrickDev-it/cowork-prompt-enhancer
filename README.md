@@ -74,31 +74,42 @@ A deeper component/module-boundary diagram and an explicit threat model live in
   `client/` and `server/` — not the minimal config, the one that actually prevents unchecked-access
   bugs.
 
-## Quickstart
+## Three-minute quickstart
 
-The full local path currently requires an NVIDIA GPU (~8 GB VRAM) and a ~5 GB quantized model —
-see [Running the full local stack](#running-the-full-local-stack) below. A lighter,
-cloud-provider quickstart that removes that requirement is on the roadmap (RFC-0025, Phase 3 —
-not yet implemented).
+The default profile is deterministic, offline, and requires no GPU, model, credential, or network after
+the frozen installation:
+
+```bash
+./setup.sh                 # Windows: ./setup.ps1
+bun run preflight
+bun run demo:mock
+```
+
+The compiled specification is printed and written to `demo-output/prompt.md`. Failure paths are
+deterministically selectable with `COWORK_MOCK_SCENARIO=malformed|context_overflow|timeout|provider_failure`.
+
+Named profiles are `mock`, `local`, and `openai-compatible`; see
+[`docs/environment.md`](docs/environment.md) for validated configuration.
 
 ### Running the full local stack
 
-Requires [Bun](https://bun.sh) ≥ 1.3, Python 3.12, an NVIDIA GPU, and the vendored `llama-server`
-binary + `.gguf` model (not committed — see [`docs/DEV.md`](docs/DEV.md) for how those are
-provisioned today; an automated `setup.ps1`/`setup.sh` is tracked as RFC-0025 Phase 3).
+Requires the pinned toolchain and compatible local inference hardware. Binaries and models are downloaded
+from the checksummed upstream artifacts; they are ignored and never redistributed.
 
 ```bash
-# Terminal 1 — server (also supervises the llama-server child process)
-cd server
-bun install
-bun run dev
+# Provision and validate artifacts
+./setup.sh --local         # Windows: ./setup.ps1 -Local
+
+# Terminal 1 — server (supervises llama-server only in the local profile)
+COWORK_PROFILE=local bun --cwd server run dev
 
 # Terminal 2 — client CLI
-cd client
-bun install
-cp .env.example .env   # point COWORK_SERVER_IP/PORT at the server above
-bun run dev
+cp client/.env.example client/.env
+bun --cwd client run dev
 ```
+
+For a configured remote endpoint, set `COWORK_PROFILE=openai-compatible`, base URL, model and credential
+from the process environment. The adapter is vendor-neutral and sends only the OpenAI-compatible contract.
 
 See [`docs/DEV.md`](docs/DEV.md) for the reproducible root command surface and development workflow.
 

@@ -1,4 +1,29 @@
+import { existsSync } from 'node:fs';
 import { join } from 'node:path';
+
+export type ProviderProfile = 'mock' | 'local' | 'openai-compatible';
+
+const PROFILE_ALIASES: Record<string, ProviderProfile> = {
+  mock: 'mock',
+  llama_server: 'local',
+  openai_compatible: 'openai-compatible',
+};
+
+export function resolveProviderProfile(env: NodeJS.ProcessEnv = process.env): ProviderProfile {
+  const explicit = (env.COWORK_PROFILE ?? '').trim().toLowerCase();
+  const legacyRaw = (env.COWORK_PROMPT_ENHANCER_PROVIDER ?? '').trim().toLowerCase();
+  const legacy = legacyRaw ? (PROFILE_ALIASES[legacyRaw] ?? legacyRaw) : '';
+  if (explicit && legacy && explicit !== legacy) {
+    throw new Error('COWORK_PROFILE conflicts with COWORK_PROMPT_ENHANCER_PROVIDER');
+  }
+  const profile = explicit || legacy || 'mock';
+  if (!['mock', 'local', 'openai-compatible'].includes(profile)) {
+    throw new Error(`Unsupported provider profile '${profile}'`);
+  }
+  return profile as ProviderProfile;
+}
+
+export const PROFILE = resolveProviderProfile();
 
 export const PORT = Number(process.env.COWORK_PORT ?? 8080);
 
@@ -11,7 +36,9 @@ const VENV_PYTHON =
   process.platform === 'win32'
     ? join(import.meta.dir, 'modules', '.venv', 'Scripts', 'python.exe')
     : join(import.meta.dir, 'modules', '.venv', 'bin', 'python');
-export const PYTHON_BIN = process.env.COWORK_PYTHON ?? VENV_PYTHON;
+export const PYTHON_BIN =
+  process.env.COWORK_PYTHON ??
+  (existsSync(VENV_PYTHON) ? VENV_PYTHON : process.platform === 'win32' ? 'python' : 'python3');
 
 /** Folder of the vendored prompt-enhancer engine (self-contained inside the workspace). */
 export const PROMPT_ENHANCER_DIR =
@@ -34,10 +61,39 @@ export const PROMPT_MODEL_PATH =
  * Python process (no more llama-cpp-python): it lives in a supervised `llama-server`, spoken to via
  * an OpenAI-compatible API. Binary + DLLs vendored in `server/bin/` (git-ignored, like the .gguf).
  */
-export const LLAMA_SERVER_BIN = process.env.COWORK_LLAMA_SERVER_BIN ?? join(import.meta.dir, 'bin', 'llama-server.exe');
+export const LLAMA_SERVER_BIN =
+  process.env.COWORK_LLAMA_SERVER_BIN ??
+  join(import.meta.dir, 'bin', process.platform === 'win32' ? 'llama-server.exe' : 'llama-server');
 export const LLAMA_SERVER_HOST = process.env.COWORK_LLAMA_SERVER_HOST ?? '127.0.0.1';
 export const LLAMA_SERVER_PORT = Number(process.env.COWORK_LLAMA_SERVER_PORT ?? 8081);
 export const LLAMA_SERVER_URL = `http://${LLAMA_SERVER_HOST}:${LLAMA_SERVER_PORT}`;
+
+export function assertValidConfig(env: NodeJS.ProcessEnv = process.env): void {
+  const profile = resolveProviderProfile(env);
+  const port = Number(env.COWORK_PORT ?? 8080);
+  if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error('COWORK_PORT must be a valid port');
+  if (profile === 'mock') {
+    const scenario = env.COWORK_MOCK_SCENARIO ?? 'success';
+    if (!['success', 'malformed', 'context_overflow', 'timeout', 'provider_failure'].includes(scenario)) {
+      throw new Error(`Unsupported COWORK_MOCK_SCENARIO '${scenario}'`);
+    }
+    return;
+  }
+  if (profile === 'local') {
+    if (!existsSync(LLAMA_SERVER_BIN)) throw new Error(`Local provider executable not found: ${LLAMA_SERVER_BIN}`);
+    if (!existsSync(PROMPT_MODEL_PATH)) throw new Error(`Local provider model not found: ${PROMPT_MODEL_PATH}`);
+    return;
+  }
+  const required = ['COWORK_OPENAI_BASE_URL', 'COWORK_OPENAI_MODEL', 'COWORK_OPENAI_API_KEY'] as const;
+  const missing = required.filter((name) => !(env[name] ?? '').trim());
+  if (missing.length) throw new Error(`openai-compatible profile requires ${missing.join(', ')}`);
+  try {
+    const url = new URL(env.COWORK_OPENAI_BASE_URL!);
+    if (!['http:', 'https:'].includes(url.protocol)) throw new Error('invalid protocol');
+  } catch {
+    throw new Error('COWORK_OPENAI_BASE_URL must be an absolute HTTP(S) URL');
+  }
+}
 
 /**
  * Every model flag passes through llama-server's official flags (RFC-0014, requirements 5+8):

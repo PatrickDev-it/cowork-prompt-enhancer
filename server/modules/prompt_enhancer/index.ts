@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { LLAMA_SERVER_URL, PROMPT_ENHANCER_DIR, PYTHON_BIN } from '@/config';
+import { LLAMA_SERVER_URL, PROFILE, PROMPT_ENHANCER_DIR, PYTHON_BIN } from '@/config';
 import { ensureLlmReady } from '@/modules/llm';
 
 /**
@@ -176,7 +176,7 @@ export async function enhancePrompt(
   _onLog: (line: string) => void,
   options: EnhanceOptions = {}
 ): Promise<EnhanceResult> {
-  await ensureLlmReady();
+  if (PROFILE === 'local') await ensureLlmReady();
   await acquire();
   try {
     const worker = ensureWorker();

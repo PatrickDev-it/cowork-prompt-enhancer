@@ -1,8 +1,4 @@
-"""Engine di inferenza — RFC-0014. NON crea più un oggetto Llama(): il modello vive in un processo
-`llama-server` esterno, parlato esclusivamente via API OpenAI-compatible (LlamaServerProvider).
-`LLMEngine` conserva la STESSA API pubblica usata da workflow.py (`generate`, `extract_json`,
-`gpu_info`), così i chiamanti non cambiano — supera il backend in-process di RFC-0005/0010.
-Solo stdlib; nessun import di llama_cpp, nessuna gestione CUDA/PATH (è responsabilità di llama-server)."""
+"""Provider-neutral inference engine preserving the historical workflow API (RFC-0014, RFC-0026)."""
 
 import json
 import os
@@ -10,18 +6,18 @@ import re
 from dataclasses import dataclass
 from pathlib import Path
 
-from providers import LlamaServerProvider, ProviderContextError
+from config import ProviderConfig, load_provider_config
+from providers import LlamaServerProvider, MockProvider, OpenAICompatibleProvider, ProviderContextError
 
 
 def sanitize_text_for_model(text: str) -> str:
     raw = str(text or "")
-    # Rimuove i surrogati non validi che rompono l'encoding utf-8.
     return "".join(ch for ch in raw if not 0xD800 <= ord(ch) <= 0xDFFF)
 
 
 def strip_think_sections(text: str) -> str:
-    """Difesa: llama-server con reasoning separa il pensiero in `reasoning_content`, quindi `content`
-    è già pulito. Questo resta come rete di sicurezza se un template emettesse tag inline."""
+    """Remove inline reasoning tags if a compatible endpoint fails to separate them."""
+
     cleaned = sanitize_text_for_model(text).strip()
     if not cleaned:
         return cleaned
@@ -34,20 +30,25 @@ def strip_think_sections(text: str) -> str:
 
 @dataclass
 class LLMEngine:
-    # model_id resta solo come informazione/diagnostica: il caricamento del modello è fatto da
-    # llama-server (flag --model, lato TS). Qui non si carica nulla.
     model_id: str = ""
     max_new_tokens: int = 16384
-    temperature: float = 0.6  # preset "Coding" Qwen3.5 (RFC-0013)
+    temperature: float = 0.6
+    config: ProviderConfig | None = None
 
     def __post_init__(self) -> None:
-        base_url = os.getenv("COWORK_LLAMA_SERVER_URL", "http://127.0.0.1:8081")
-        self.provider = LlamaServerProvider(base_url)
-        self.backend = "llama_server"
-        self.model_source = self.model_id or "(configurato lato llama-server)"
+        config = self.config or load_provider_config()
+        self.config = config
+        if config.profile == "mock":
+            self.provider = MockProvider(config.mock_scenario)
+        elif config.profile == "local":
+            self.provider = LlamaServerProvider(config.base_url, config.timeout_seconds)
+        else:
+            self.provider = OpenAICompatibleProvider(
+                config.base_url, config.model, config.credential, config.timeout_seconds
+            )
+        self.backend = config.profile
+        self.model_source = (self.model_id or config.model) if config.profile == "local" else config.model
 
-        # Sampler in modalità instruct/coding (RFC-0013), inviati per-richiesta nel body OpenAI.
-        # Preset "Coding" Qwen misurato migliore sul nostro output JSON. Overridabile via env.
         self.top_p = float(os.getenv("COWORK_PROMPT_ENHANCER_TOP_P", "0.95"))
         self.top_k = int(os.getenv("COWORK_PROMPT_ENHANCER_TOP_K", "20"))
         self.min_p = float(os.getenv("COWORK_PROMPT_ENHANCER_MIN_P", "0.0"))
@@ -81,8 +82,6 @@ class LLMEngine:
                     response_format=response_format,
                 )
             except ProviderContextError:
-                # Stesso intento del retry storico: se prompt+output eccedono il contesto, riduci
-                # prima i token di output, poi accorcia il prompt tenendo la coda (contesto recente).
                 if effective_tokens > 256:
                     effective_tokens = max(256, effective_tokens // 2)
                     continue
@@ -97,7 +96,7 @@ class LLMEngine:
                 return result.text
             return strip_think_sections(result.text)
 
-        raise RuntimeError("Impossibile generare entro i limiti di contesto di llama-server")
+        raise ProviderContextError("generation could not fit within the provider context window")
 
     @staticmethod
     def extract_json(text: str) -> dict:
@@ -124,7 +123,5 @@ class LLMEngine:
 
 
 def resolve_model_id() -> str:
-    # Solo informativo (il modello lo carica llama-server). Default: il .gguf vendored nel workspace.
-    # Qwen3-8B dense, conforme a RFC-0023 (attention standard, no ibridi SSM).
     default_local = Path(__file__).resolve().parents[2] / "models" / "Qwen3-8B-Q4_K_M.gguf"
-    return os.getenv("QWEN_MODEL_ID", str(default_local))
+    return os.getenv("QWEN_MODEL_ID", os.getenv("COWORK_PROMPT_MODEL", str(default_local)))

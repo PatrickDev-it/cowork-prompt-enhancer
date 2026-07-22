@@ -2,11 +2,9 @@
 
 ## System overview
 
-Three processes, one operator. A Bun/TypeScript **server** owns a WebSocket event bridge, an
-auto-discovered tool registry, and the lifecycle of a supervised **`llama-server`** child process
-that serves a quantized Qwen3-8B model. A Bun/TypeScript **client** is the interactive CLI a human
-drives. A Python module (**`prompt_enhancer`**) does the actual intent-to-specification compilation,
-talking to `llama-server` over HTTP and never touching the model directly.
+One operator drives a Bun client and server. The Python **`prompt_enhancer`** compiles intent behind a
+validated provider contract: deterministic offline `mock`, supervised `local` llama-server, or a configured
+vendor-neutral `openai-compatible` endpoint. Only the local profile starts the model child process.
 
 ```mermaid
 flowchart LR
@@ -34,6 +32,7 @@ flowchart LR
         Strategies["strategies.py\ncompiler / single_pass / field_loop"]
         Coercion["coercion.py\nparsing, coercion, rendering"]
         Search["search.py\nDuckDuckGo grounding (opt-in, RFC-0020)"]
+        Providers["providers/\nmock / local / openai-compatible\n(RFC-0026)"]
     end
 
     LlamaServer[["llama-server\n(external process, OpenAI-compatible API)"]]
@@ -48,9 +47,11 @@ flowchart LR
     FsCap -- "fileop event" --> CLI
     Runtime -- "spawn / stdin-stdout" --> Workflow
     Workflow --> Strategies --> Coercion
+    Strategies --> Providers
     Workflow -- "opt-in web lookup" --> Search
     Search -. "HTTPS, only when gated on" .-> Internet[("DuckDuckGo")]
-    Workflow -- "HTTP, OpenAI-compatible" --> LlamaServer
+    Providers -- "local HTTP" --> LlamaServer
+    Providers -. "explicit remote profile" .-> RemoteEndpoint[("Compatible endpoint")]
     Compressor -- "HTTP, OpenAI-compatible" --> LlamaServer
     Supervisor -. "spawns + health-checks" .-> LlamaServer
 ```
@@ -92,6 +93,8 @@ sequenceDiagram
 | `server/modules/llm/supervisor.ts` | `llama-server` process lifecycle: spawn, health, restart, shutdown (RFC-0014) | Prompt content, sampling parameters |
 | `server/modules/context_compressor` | Condensing oversized input via the shared model (RFC-0015) | Deciding *which* fields need compression (that's `PromptDescriptor.compress`) |
 | `server/modules/prompt_enhancer/workflow.py` | `run_enhancement` orchestration: strategy selection, the shared fallback boundary, grounding/deep-research gathering | Individual strategy implementations, parsing |
+| `server/modules/prompt_enhancer/config.py` | Named provider profile validation and redacted public metadata (RFC-0026) | Process supervision |
+| `server/modules/prompt_enhancer/providers/` | Shared provider contract, typed failures and three adapters | Compiler strategy or artifact delivery |
 | `server/modules/prompt_enhancer/strategies.py` | The three generation strategies — compiler, single_pass, field_loop (RFC-0018) | Rendering, parsing raw model output |
 | `server/modules/prompt_enhancer/coercion.py` | Pure parsing/coercion/rendering of model output — zero model calls, zero I/O | Strategy selection, prompt templates |
 | `client/lib/ws.ts` | The client half of the wire protocol, symmetric to the server's | — |
@@ -125,11 +128,12 @@ as "wasn't considered" rather than "was decided":
   touching disk (RFC-0008 § 6). A malicious actor who can pose as the *server* to a real client
   is bounded by that confinement — they cannot direct writes outside the session folder — but they
   could still ask the client to write attacker-chosen content inside it.
-- **The only outbound network call beyond the operator's own client/server pair is opt-in.**
+- **Outbound network is profile- and request-gated.**
   `server/modules/prompt_enhancer/search.py`'s DuckDuckGo lookup (RFC-0020) is gated by
   `COWORK_PROMPT_ENHANCER_SEARCH` (default `auto`, heuristic-triggered) and a per-request flag; with
-  the mode set to `off` it never runs. No other module makes an external network call — inference
-  is local (or, once RFC-0025 Phase 3 lands, to a provider the operator explicitly configures).
+  the mode set to `off` it never runs. `mock` is offline, `local` uses loopback, and
+  `openai-compatible` sends prompt content only to the base URL and model explicitly configured by the
+  operator. Remote credentials are redacted from diagnostics and never enter artifacts.
 - **Secrets:** the codebase has none committed (verified during RFC-0025's Phase 0 secret sweep).
   `client/.env` carries only the server's host/port, not a credential — see `.env.example`.
 

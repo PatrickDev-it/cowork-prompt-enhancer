@@ -4,3 +4,5 @@
 .sinapsi/journal
 .tools/
 node_modules/
+demo-output/
+server/.setup/

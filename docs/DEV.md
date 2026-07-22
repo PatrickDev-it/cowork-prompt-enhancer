@@ -33,6 +33,7 @@ python -m piptools compile --generate-hashes -o requirements-dev.lock requiremen
 | `bun run audit` | Audit Bun and Python dependency locks. |
 | `bun run preflight` | Validate the selected runtime profile. |
 | `bun run demo:mock` | Run the offline deterministic demonstration. |
+| `COWORK_PROFILE=local bun run smoke:local` | Start/verify local inference and shut down owned processes. |
 | `bun run benchmark` | Execute the versioned evaluation harness. |
 | `bun run check` | Run the complete local format/lint/type/test gate. |
 

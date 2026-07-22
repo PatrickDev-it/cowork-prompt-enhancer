@@ -1,5 +1,4 @@
-"""LLM provider interface — RFC-0014. The minimal "Chat Completions" contract the engine talks to,
-independent of the backend. Stdlib only."""
+"""Backend-independent provider contract and stable public error categories (RFC-0026)."""
 
 from collections.abc import Sequence
 from dataclasses import dataclass
@@ -7,18 +6,32 @@ from typing import Protocol
 
 
 class ProviderError(RuntimeError):
-    """Generic provider error (network, backend not ready, malformed response)."""
+    """A provider rejected or failed a request."""
+
+    code = "provider_error"
+
+
+class ProviderConfigurationError(ProviderError):
+    """Provider configuration is invalid and no worker should start."""
+
+    code = "provider_configuration"
 
 
 class ProviderContextError(ProviderError):
-    """The prompt (+ requested output) exceeds the backend's context window. The engine reacts by
-    reducing the token budget / shortening the prompt and retrying — same intent as the historical
-    retry."""
+    """The prompt and requested output exceed the provider context window."""
+
+    code = "provider_context_overflow"
 
 
-@dataclass
+class ProviderTimeoutError(ProviderError):
+    """The provider did not complete within the configured deadline."""
+
+    code = "provider_timeout"
+
+
+@dataclass(frozen=True)
 class ChatResult:
-    """Backend-independent, normalized result of a chat completion."""
+    """Normalized provider response."""
 
     text: str
     finish_reason: str
@@ -32,8 +45,7 @@ class ChatResult:
 
 
 class LLMProvider(Protocol):
-    """An LLM backend spoken through a single abstraction. Any implementation (llama-server,
-    OpenAI, vLLM, SGLang) exposes these three methods."""
+    """Minimal provider seam shared by local, mock, and OpenAI-compatible adapters."""
 
     def chat(
         self,
@@ -53,3 +65,10 @@ class LLMProvider(Protocol):
     def health(self) -> bool: ...
 
     def info(self) -> dict: ...
+
+
+def redact_secret(value: object, secret: str | None) -> str:
+    """Return diagnostic text with an in-memory credential removed."""
+
+    text = str(value)
+    return text.replace(secret, "[REDACTED]") if secret else text
