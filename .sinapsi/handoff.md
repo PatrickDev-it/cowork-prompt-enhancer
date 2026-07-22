@@ -1,6 +1,6 @@
 # Handoff
 
-Living project context after root RFC Phase 3 implementation on 2026-07-22.
+Living project context after root RFC Phase 3 completion on 2026-07-22.
 
 ## Current state
 
@@ -15,13 +15,12 @@ bounded scheduling/cancellation/reconnect, canonical paths and supervisor state.
 ## Verified Phase 3 implementation gate
 
 - Formatter, Biome/Ruff, client/server typecheck, 46 Bun unit and 7 integration tests pass.
-- Pytest rises from 62 to 77 full-suite tests; 80 targeted checks passed after the final observability
-  regression addition. Provider conformance remains 25/25.
+- Pytest rises from 62 to 78 full-suite tests. Provider conformance remains 25/25.
 - Full mock evaluation produces 264 records across all 64 balanced cases and five applicable strategies.
 - Real local evaluation produces 32 records across eight categories and four core strategies on an RTX
   3070 Ti; no owned llama-server process remains.
-- Local compiler: recall 1.000, precision 1.000, structure 0.833, executability 0.975, p50 8979 ms.
-- Local raw: recall 1.000, precision 1.000, structure 0.333, executability 0.725. This is an eight-case
+- Final local compiler: recall 0.917, precision 1.000, structure 0.792, executability 0.975, p50 8674 ms.
+- Final local raw: recall 1.000, precision 1.000, structure 0.333, executability 0.725. This is an eight-case
   lexical-metric reference, not a full-corpus or human result.
 
 ## Important implementation facts
@@ -33,13 +32,12 @@ bounded scheduling/cancellation/reconnect, canonical paths and supervisor state.
 - Compiler success, fallback-delivered success and parse recovery are never conflated.
 - `evaluation/human_review.py` randomizes opaque IDs and rejects invalid/incomplete imports; no human
   results exist or are claimed.
-- Curated reference results are pending until the implementation commit exists, so their recorded commit
-  can identify the exact runner.
+- Curated mock/local references contain 296/296 successful sanitized records and identify implementation
+  commit `1cbbf26b63ea81fedc5a6922453ea00ea75090c8`.
 
 ## Remaining root RFC work
 
-- Commit Phase 3 source, rerun sanitized mock/local references with the implementation commit and push;
-  require hosted CI green.
+- Commit/push Phase 3 reference evidence and require hosted CI green.
 - Phase 4 / P-17–P-20: recruiter README, public English cleanup, demo recording, threat/docs sync,
   changelog/SBOM/checksums, CodeQL/secret/dependency automation, release validation and clean-clone gate.
 - Open the mapped feature PR, repair CI, merge without rewriting history, tag/release v1.0.0, then make
@@ -55,5 +53,4 @@ bounded scheduling/cancellation/reconnect, canonical paths and supervisor state.
 
 ## Next action
 
-Commit the Phase 3 implementation, rerun both references with that commit identifier and add the curated
-evidence as a second atomic commit before beginning Phase 4.
+Commit and push the Phase 3 reference evidence, confirm hosted CI, then begin Phase 4.

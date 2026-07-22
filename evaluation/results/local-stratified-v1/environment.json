@@ -1,0 +1,43 @@
+{
+  "benchmark_commit": "1cbbf26b63ea81fedc5a6922453ea00ea75090c8",
+  "benchmark_version": "1.0.0",
+  "case_count": 8,
+  "categories": [
+    "architecture",
+    "data_ml",
+    "debugging",
+    "implementation",
+    "operations",
+    "professional_writing",
+    "refactoring",
+    "research"
+  ],
+  "completed_at": "2026-07-22T01:24:27Z",
+  "gpu": [
+    {
+      "driver": "610.62",
+      "name": "NVIDIA GeForce RTX 3070 Ti"
+    }
+  ],
+  "judge": "deterministic_only",
+  "live_retrieval": false,
+  "os": {
+    "machine": "AMD64",
+    "release": "10",
+    "system": "Windows"
+  },
+  "provider": {
+    "artifact_sha256": "120307ba529eb2439d6c430d94104dabd578497bc7bfe7e322b5d9933b449bd4",
+    "model": "Qwen3-8B-Q4_K_M.gguf",
+    "profile": "local"
+  },
+  "record_count": 32,
+  "run_id": "local-stratified-v1",
+  "runtime": {
+    "python": "3.12.4"
+  },
+  "schema_version": "cowork-eval/v1",
+  "started_at": "2026-07-22T01:18:55Z",
+  "strategies": ["raw", "thin", "compiler", "field_loop"],
+  "tier": "stratified"
+}

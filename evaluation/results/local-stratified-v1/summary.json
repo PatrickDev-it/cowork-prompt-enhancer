@@ -1,0 +1,140 @@
+{
+  "benchmark_commit": "1cbbf26b63ea81fedc5a6922453ea00ea75090c8",
+  "benchmark_version": "1.0.0",
+  "case_count": 8,
+  "categories": [
+    "architecture",
+    "data_ml",
+    "debugging",
+    "implementation",
+    "operations",
+    "professional_writing",
+    "refactoring",
+    "research"
+  ],
+  "completed_at": "2026-07-22T01:24:27Z",
+  "provider": {
+    "artifact_sha256": "120307ba529eb2439d6c430d94104dabd578497bc7bfe7e322b5d9933b449bd4",
+    "model": "Qwen3-8B-Q4_K_M.gguf",
+    "profile": "local"
+  },
+  "record_count": 32,
+  "run_id": "local-stratified-v1",
+  "schema_version": "cowork-eval/v1",
+  "started_at": "2026-07-22T01:18:55Z",
+  "strategies": {
+    "compiler": {
+      "cases": 8,
+      "compiler_success_rate": 1.0,
+      "contradiction_rate": 0.0,
+      "executability": 0.975,
+      "explicit_requirement_precision": 1.0,
+      "explicit_requirement_recall": 0.916667,
+      "fallback_delivered_success_rate": 0.0,
+      "fallback_rate": 0.0,
+      "invented_specificity_rate": 0.0,
+      "latency_ms": {
+        "p50": 8673.558,
+        "p95": 11968.105
+      },
+      "parse_recovery_rate": 0.0,
+      "provider_calls": 8,
+      "search_activation_rate": 0.0,
+      "structural_validity": 0.791667,
+      "timing_ms": {
+        "generation": 69318.612,
+        "queue": 0.0
+      },
+      "tokens": {
+        "completion": 5433,
+        "prompt": 11226
+      },
+      "unresolved_ambiguity_rate": 0.375
+    },
+    "field_loop": {
+      "cases": 8,
+      "compiler_success_rate": 0.0,
+      "contradiction_rate": 0.0,
+      "executability": 1.0,
+      "explicit_requirement_precision": 1.0,
+      "explicit_requirement_recall": 0.875,
+      "fallback_delivered_success_rate": 0.0,
+      "fallback_rate": 0.0,
+      "invented_specificity_rate": 0.0,
+      "latency_ms": {
+        "p50": 27472.423,
+        "p95": 42109.663
+      },
+      "parse_recovery_rate": 0.0,
+      "provider_calls": 112,
+      "search_activation_rate": 0.0,
+      "structural_validity": 0.75,
+      "timing_ms": {
+        "generation": 247591.451,
+        "queue": 0.0
+      },
+      "tokens": {
+        "completion": 17983,
+        "prompt": 109407
+      },
+      "unresolved_ambiguity_rate": 0.25
+    },
+    "raw": {
+      "cases": 8,
+      "compiler_success_rate": 0.0,
+      "contradiction_rate": 0.0,
+      "executability": 0.725,
+      "explicit_requirement_precision": 1.0,
+      "explicit_requirement_recall": 1.0,
+      "fallback_delivered_success_rate": 0.0,
+      "fallback_rate": 0.0,
+      "invented_specificity_rate": 0.0,
+      "latency_ms": {
+        "p50": 0.003,
+        "p95": 0.004
+      },
+      "parse_recovery_rate": 0.0,
+      "provider_calls": 0,
+      "search_activation_rate": 0.0,
+      "structural_validity": 0.333333,
+      "timing_ms": {
+        "generation": 0,
+        "queue": 0
+      },
+      "tokens": {
+        "completion": 0,
+        "prompt": 0
+      },
+      "unresolved_ambiguity_rate": 0.625
+    },
+    "thin": {
+      "cases": 8,
+      "compiler_success_rate": 0.0,
+      "contradiction_rate": 0.0,
+      "executability": 0.775,
+      "explicit_requirement_precision": 1.0,
+      "explicit_requirement_recall": 0.875,
+      "fallback_delivered_success_rate": 0.0,
+      "fallback_rate": 0.0,
+      "invented_specificity_rate": 0.0,
+      "latency_ms": {
+        "p50": 540.451,
+        "p95": 646.843
+      },
+      "parse_recovery_rate": 0.0,
+      "provider_calls": 8,
+      "search_activation_rate": 0.0,
+      "structural_validity": 0.416667,
+      "timing_ms": {
+        "generation": 4440.664,
+        "queue": 0.0
+      },
+      "tokens": {
+        "completion": 284,
+        "prompt": 636
+      },
+      "unresolved_ambiguity_rate": 0.625
+    }
+  },
+  "tier": "stratified"
+}

@@ -281,3 +281,24 @@ remain ignored workstation state and are not staged. **Breaking changes:** none.
 untracked inventory now exposes only evaluation source/data/tests and the local benchmark script.
 
 **Final status:** Phase 3 source is ready to commit without generated Python artifacts.
+
+## 2026-07-22T03:27:34+02:00 — Phase 3 reference evidence publication
+
+**Goal:** publish traceable mock and real-local evidence against the committed Phase 3 implementation.
+
+**Changes made:** generated `mock-full-v1` with 264/264 successful records across 64 cases and all five
+applicable strategies; generated `local-stratified-v1` with 32/32 successful records across eight
+categories and four core strategies; recorded commit `1cbbf26b63ea81fedc5a6922453ea00ea75090c8`, Python/OS/GPU
+metadata, provider/model identity and the validated model SHA-256; added an evidence index and enforced
+LF for curated results. Raw JSONL contains no workstation absolute path or credential.
+
+**Result:** on the local subset, compiler recall/precision/structure/executability are
+0.917/1.000/0.792/0.975 versus raw 1.000/1.000/0.333/0.725. Compiler p50/p95 are 8.674/11.968 s,
+with zero tracked contradiction, invented-specificity or fallback rate. This supports a measured
+structure/executability improvement with an explicit lexical-recall trade-off, not overall superiority.
+
+**Validation:** root format/lint/typecheck pass; 46 Bun unit, 78 pytest and 7 integration tests pass;
+Bun/pip audits report zero vulnerabilities; 296/296 reference records are successful and sanitized;
+`git diff --check` passes. No human or model-assisted rating is claimed and no local process remains.
+
+**Final status:** Phase 3 is complete. Commit/push evidence, require hosted CI green, then execute Phase 4.
