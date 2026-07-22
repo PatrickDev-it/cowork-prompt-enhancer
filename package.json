@@ -19,7 +19,7 @@
     "lint": "biome lint . && ruff check server/modules/prompt_enhancer evaluation",
     "typecheck": "bun run --workspaces --sequential typecheck",
     "test": "bun run test:unit && bun run test:integration",
-    "test:unit": "bun test protocol server client && python -m pytest server/modules/prompt_enhancer evaluation/tests",
+    "test:unit": "bun test protocol server client scripts && python -m pytest server/modules/prompt_enhancer evaluation/tests",
     "test:integration": "bun test tests/integration",
     "test:providers": "python -m pytest server/modules/prompt_enhancer/tests/test_providers.py",
     "test:protocol": "bun test protocol server/config.test.ts server/lib/auth.test.ts server/lib/ws.test.ts server/lib/scheduler.test.ts client/lib/ws.test.ts client/events/fileop.test.ts",
@@ -28,10 +28,16 @@
     "audit": "bun audit && python -m pip_audit -r server/modules/requirements-dev.lock",
     "preflight": "bun run scripts/preflight.ts",
     "demo:mock": "bun run scripts/mock-demo.ts",
+    "demo:record": "bun run scripts/demo-recording.ts",
     "smoke:local": "COWORK_PROFILE=local bun run scripts/local-smoke.ts",
     "benchmark": "python evaluation/benchmark.py --profile mock --tier full --output .artifacts/benchmark/mock --overwrite",
     "benchmark:local": "COWORK_PROFILE=local bun run scripts/local-benchmark.ts",
-    "check": "bun run format:check && bun run lint && bun run typecheck && bun run test"
+    "docs:check": "bun run scripts/docs-check.ts",
+    "security:scan": "bun run scripts/secret-scan.ts",
+    "release:build": "bun run scripts/release.ts --version 1.0.0",
+    "release:validate": "bun run scripts/release.ts --version 1.0.0 --validate-only",
+    "check": "bun run format:check && bun run lint && bun run typecheck && bun run test",
+    "gate:release": "bun run check && bun run audit && bun run docs:check && bun run security:scan && bun run demo:record && bun run release:build && bun run release:validate"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.4"

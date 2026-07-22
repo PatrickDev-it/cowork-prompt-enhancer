@@ -22,8 +22,15 @@ if (processResult.exitCode !== 0) {
 }
 
 const raw = new TextDecoder().decode(processResult.stdout).trim();
-const result = JSON.parse(raw) as { prompt?: unknown; research?: unknown };
+const result = JSON.parse(raw) as {
+  prompt?: unknown;
+  research?: unknown;
+  debug?: { generation_mode?: unknown };
+};
 if (typeof result.prompt !== 'string' || !result.prompt.trim()) throw new Error('Mock demo returned no prompt');
+const scenario = process.env.COWORK_MOCK_SCENARIO ?? 'success';
+const generationMode = typeof result.debug?.generation_mode === 'string' ? result.debug.generation_mode : 'unknown';
+const fallbackUsed = generationMode === 'single_generic_prompt_template';
 
 const outputDir = join(import.meta.dir, '..', 'demo-output');
 await mkdir(outputDir, { recursive: true });
@@ -32,6 +39,9 @@ await Bun.write(artifact, `${result.prompt.trim()}\n`);
 
 console.log('Cowork Prompt Enhancer — deterministic offline demo');
 console.log(`Request: ${request}`);
+console.log(`Scenario: ${scenario}`);
+console.log(`Generation mode: ${generationMode}`);
+console.log(`Fallback used: ${fallbackUsed}`);
 console.log(`Artifact: ${artifact}`);
 console.log('');
 console.log(result.prompt.trim());
