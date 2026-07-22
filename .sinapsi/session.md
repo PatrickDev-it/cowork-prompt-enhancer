@@ -352,3 +352,16 @@ files and all checksum entries recompute successfully; `git diff --check` passes
 
 **Final status:** Phase 4 delivery tooling is ready for an atomic commit. Hosted automation, recruiter
 README/docs synchronization and the final GitHub launch remain.
+
+## 2026-07-22T04:04:50+02:00 — Inert security-scan test fixtures
+
+**Goal:** repair the official post-commit release gate without weakening credential detection.
+
+**Change:** the committed credential and private-key regression literals correctly triggered the
+repository scanner. Tests now construct the same sensitive-shaped inputs from inert string fragments,
+so the scanner continues to prove detection while its own tracked source is safe to scan.
+
+**Validation:** both credential-scan regressions pass, the full tracked repository scan is green and
+`git diff --check` passes. Detection rules and release strictness are unchanged.
+
+**Final status:** commit this regression fix, then rerun the clean official release gate.
