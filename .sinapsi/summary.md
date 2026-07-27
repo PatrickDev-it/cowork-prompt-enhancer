@@ -55,6 +55,7 @@ patch: the project's shape (above), the last sessions at a glance, and a short r
 agent at the end of every patch, at the same time it appends session.md. Drop the
 11th; the full history is in session.md and, once archived, in archive/. -->
 
+- 2026-07-27T18:05:00+02:00 — Unified public naming as AI Prompt Optimizer while preserving stable tool contracts.
 - 2026-07-27T17:10:00+02:00 — Promoted explicit project context, search and research capabilities in the README.
 - 2026-07-27T16:35:00+02:00 — Renamed the product and repository around the remote-first home-workstation workflow.
 - 2026-07-27T15:20:00+02:00 — Repositioned Cowork for search-led prompt-optimizer discovery and developer adoption.
@@ -64,7 +65,6 @@ agent at the end of every patch, at the same time it appends session.md. Drop th
 - 2026-07-22T04:26:10+02:00 — Made CodeQL evidence portable across private and public repository visibility.
 - 2026-07-22T04:20:04+02:00 — Passed the clean-clone launch gate and repaired least-privilege CodeQL access.
 - 2026-07-22T04:15:01+02:00 — Fixed CRLF formatter drift exposed by the first clean Windows clone.
-- 2026-07-22T04:12:41+02:00 — Replaced the public narrative with measured recruiter-first documentation.
 
 ## Where things stand
 
@@ -72,13 +72,15 @@ agent at the end of every patch, at the same time it appends session.md. Drop th
 fragile, what the next action is. Rewritten (not appended) from session.md + handoff.md
 at the end of every patch. If it grows past 10 lines it has stopped being a summary. -->
 
-- Repository is `PatrickDev-it/ai-prompt-optimizer`; branch `codex/project-context-positioning` is active.
+- Repository is `PatrickDev-it/ai-prompt-optimizer`; branch `codex/global-ai-prompt-optimizer-brand` is active.
+- Public product name is AI Prompt Optimizer; README and product-guide links use the canonical site path.
+- Stable `dev-prompt-enhancer`, `prompt-enhancer`, `COWORK_*` and `cowork-eval/v1` identifiers are unchanged.
 - README now leads with explicit, operator-selected context from the real current project.
 - Local scan supplies a filtered tree and selected files; whole-repository upload is not claimed.
 - `dev-prompt-enhancer` owns project context, web search and optional reasoning.
 - Standalone `prompt-enhancer` owns optional reasoning and opt-in Deep Research report.
 - Capability matrix also surfaces semantic compression, deterministic fallback and timestamped artifacts.
-- GitHub description/topics now target project-aware, codebase-context and deep-research discovery.
+- GitHub description/topics target project-aware, codebase-context and deep-research discovery.
 - Remote home-workstation to portable IDE-terminal positioning remains unchanged.
 - Format/lint/typechecks, 53 Bun, 79 pytest, 9 integration, docs and security scans pass.
 - Preserve tool boundaries, evidence limits, remote security and field-loop fallback.

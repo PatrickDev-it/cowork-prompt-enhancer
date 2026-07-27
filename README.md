@@ -1,4 +1,4 @@
-# Prompt Enhancer — Remote AI Prompt Optimizer
+# AI Prompt Optimizer — Remote, Project-Aware
 
 [![CI](https://github.com/PatrickDev-it/ai-prompt-optimizer/actions/workflows/ci.yml/badge.svg)](https://github.com/PatrickDev-it/ai-prompt-optimizer/actions/workflows/ci.yml)
 [![CodeQL](https://github.com/PatrickDev-it/ai-prompt-optimizer/actions/workflows/codeql.yml/badge.svg)](https://github.com/PatrickDev-it/ai-prompt-optimizer/actions/workflows/codeql.yml)
@@ -7,7 +7,7 @@
 
 > **Write it rough. Let your strongest machine optimize it.**
 
-Prompt Enhancer is an open-source, remote-first AI prompt optimizer for developers. Keep the local model
+AI Prompt Optimizer is an open-source, remote-first AI prompt optimizer for developers. Keep the local model
 running on an always-on, GPU-equipped desktop at home, then submit rough requests from the integrated
 terminal of a MacBook or lighter laptop wherever you work. The compiler returns structured,
 implementation-ready prompts for ChatGPT, Gemini, Claude Code, Codex and other AI coding agents.
@@ -16,14 +16,14 @@ The powerful machine owns supervised local inference; the portable machine owns 
 and project workspace. They communicate through an authenticated WebSocket over a private network. The
 generated prompt remains readable plain text, with no downstream vendor lock-in or mandatory cloud account.
 
-[See the product page](https://patrickdev-it.github.io/projects/prompt-enhancer/) ·
+[See the product page](https://patrickdev-it.github.io/projects/ai-prompt-optimizer/) ·
 [Read the AI prompt optimizer guide](docs/ai-prompt-optimizer-guide.md) ·
 [Configure a remote workstation](docs/remote-ide-workstation.md) ·
 [Download v1.0.0](https://github.com/PatrickDev-it/ai-prompt-optimizer/releases/tag/v1.0.0)
 
 ## It does not optimize blind
 
-> **Point it at the current project. You choose the files. Prompt Enhancer uses the real codebase as
+> **Point it at the current project. You choose the files. AI Prompt Optimizer uses the real codebase as
 > ground truth.**
 
 The project-aware developer mode scans the directory on the client machine, shows a filtered file picker
@@ -35,7 +35,7 @@ and lets you decide exactly which files become context. The compiler receives:
 - optional live web grounding when the task needs current information.
 
 That changes the quality of the result. Instead of guessing the framework, architecture, naming
-conventions or existing interfaces, Prompt Enhancer can build a specification around the structure and
+conventions or existing interfaces, AI Prompt Optimizer can build a specification around the structure and
 code that already exist.
 
 ```mermaid
@@ -80,7 +80,7 @@ Input:
 add login and make it secure, use the db we already have
 ```
 
-Prompt Enhancer compiles the request into a structured specification with:
+AI Prompt Optimizer compiles the request into a structured specification with:
 
 - the intended outcome and explicit constraints;
 - bounded assumptions and questions instead of invented certainty;
@@ -95,14 +95,14 @@ runtime must fail safely.
 
 ```mermaid
 flowchart LR
-    IDE["MacBook or lightweight laptop\nIDE integrated terminal"] <== "Private network + authenticated WebSocket" ==> Home["Always-on home workstation\nPrompt Enhancer server"]
+    IDE["MacBook or lightweight laptop\nIDE integrated terminal"] <== "Private network + authenticated WebSocket" ==> Home["Always-on home workstation\nAI Prompt Optimizer server"]
     Home --> GPU["Supervised local model\nGPU inference"]
     IDE --> Agents["ChatGPT · Gemini · Claude Code · Codex"]
 ```
 
 | Machine | Responsibility |
 |---|---|
-| Home workstation | Runs the Prompt Enhancer server, supervised llama-server and local model |
+| Home workstation | Runs the AI Prompt Optimizer server, supervised llama-server and local model |
 | MacBook or lighter laptop | Runs the interactive client from the IDE terminal and keeps the project workspace |
 | Private network | Carries the authenticated WebSocket session; direct public port exposure is not recommended |
 | Selected coding agent | Receives the vendor-neutral optimized prompt |
@@ -110,11 +110,11 @@ flowchart LR
 This is a terminal workflow, not a native IDE extension. Start with the
 [remote IDE and workstation guide](docs/remote-ide-workstation.md).
 
-Prompt Enhancer was originally developed in **Cowork mode**: the stronger desktop stayed active as the
+AI Prompt Optimizer was originally developed in **Cowork mode**: the stronger desktop stayed active as the
 inference host while day-to-day work continued from a portable machine. “Cowork” describes that
 development mode, not the product name.
 
-Prompt Enhancer is independent and is not affiliated with, endorsed by or an official optimizer for
+AI Prompt Optimizer is independent and is not affiliated with, endorsed by or an official optimizer for
 OpenAI, Google, Anthropic or their products.
 
 ## Measured result
@@ -184,7 +184,7 @@ llama-server process with health polling, capped exponential restart and clean s
 
 ## Run the model where the compute is
 
-Prompt Enhancer separates the client from the inference server. Leave a powerful Windows or Ubuntu
+AI Prompt Optimizer separates the client from the inference server. Leave a powerful Windows or Ubuntu
 workstation active at home, run the client from your MacBook or laptop IDE terminal, and point it to the
 workstation's private address. Loopback is the safe default; non-loopback access requires explicit opt-in
 and short-lived HMAC authentication. The operator remains responsible for private networking and TLS.
@@ -242,15 +242,15 @@ It converts a rough request into a clearer, more testable prompt before another 
 Enhancer focuses on developer tasks and compiles intent into requirements, constraints, assumptions,
 steps and acceptance criteria.
 
-### Does Prompt Enhancer work with ChatGPT, Gemini, Claude Code and Codex?
+### Does AI Prompt Optimizer work with ChatGPT, Gemini, Claude Code and Codex?
 
-Yes as an output workflow: Prompt Enhancer produces portable text that can be pasted into those tools and
+Yes as an output workflow: AI Prompt Optimizer produces portable text that can be pasted into those tools and
 other AI coding agents. Its inference providers are mock, local and OpenAI-compatible; it does not claim
 native plugins or official vendor integrations.
 
-### Is Prompt Enhancer an OpenAI prompt optimizer?
+### Is AI Prompt Optimizer an OpenAI prompt optimizer?
 
-Prompt Enhancer can use an operator-configured OpenAI-compatible endpoint and optimize prompts intended
+AI Prompt Optimizer can use an operator-configured OpenAI-compatible endpoint and optimize prompts intended
 for OpenAI tools, but it is an independent project and not an official OpenAI product.
 
 ### Can prompt optimization run locally or on a remote GPU machine?
@@ -262,7 +262,7 @@ requires deliberate network and TLS configuration.
 ### Is there a native IDE extension?
 
 Not currently. The supported workflow runs the Bun client from an IDE's integrated terminal and connects
-it to the remote Prompt Enhancer server.
+it to the remote AI Prompt Optimizer server.
 
 ### Is it free?
 

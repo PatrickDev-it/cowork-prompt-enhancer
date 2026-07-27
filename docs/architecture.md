@@ -2,7 +2,7 @@
 
 ## System overview
 
-Prompt Enhancer compiles a user request through a Bun client/server bridge and a Python workflow. The provider
+AI Prompt Optimizer compiles a user request through a Bun client/server bridge and a Python workflow. The provider
 profile is explicit: deterministic offline `mock`, supervised `local` llama-server, or a configured
 vendor-neutral `openai-compatible` endpoint. Only `local` owns a model process.
 
