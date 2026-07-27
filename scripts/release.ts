@@ -108,7 +108,7 @@ export async function buildRelease(options: ReleaseOptions): Promise<string> {
 
   const commit = run(['git', 'rev-parse', `${ref}^{commit}`]);
   const commitTimestamp = run(['git', 'show', '-s', '--format=%cI', commit]);
-  const prefix = `cowork-prompt-enhancer-${options.version}`;
+  const prefix = `ai-prompt-optimizer-${options.version}`;
   run([
     'git',
     'archive',
@@ -141,7 +141,7 @@ export async function buildRelease(options: ReleaseOptions): Promise<string> {
   ];
   const inventory = {
     schemaVersion: 1,
-    project: 'PatrickDev-it/cowork-prompt-enhancer',
+    project: 'PatrickDev-it/ai-prompt-optimizer',
     version: options.version,
     commit,
     generatedFrom: ['bun.lock', 'server/modules/requirements-dev.lock'],
@@ -155,7 +155,7 @@ export async function buildRelease(options: ReleaseOptions): Promise<string> {
     version: 1,
     metadata: {
       timestamp: commitTimestamp,
-      component: { type: 'application', name: 'cowork-prompt-enhancer', version: options.version },
+      component: { type: 'application', name: 'ai-prompt-optimizer', version: options.version },
     },
     components: dependencies.map((dependency) => ({
       type: 'library',
@@ -169,7 +169,7 @@ export async function buildRelease(options: ReleaseOptions): Promise<string> {
 
   const manifest = {
     schemaVersion: 1,
-    project: 'PatrickDev-it/cowork-prompt-enhancer',
+    project: 'PatrickDev-it/ai-prompt-optimizer',
     version: options.version,
     commit,
     commitTimestamp,
@@ -189,7 +189,7 @@ export async function buildRelease(options: ReleaseOptions): Promise<string> {
 export async function validateRelease(outputOption: string, version: string): Promise<void> {
   assertVersion(version);
   const output = releaseRoot(outputOption);
-  const prefix = `cowork-prompt-enhancer-${version}`;
+  const prefix = `ai-prompt-optimizer-${version}`;
   const required = [
     'CHECKSUMS.sha256',
     `${prefix}-source.tar.gz`,

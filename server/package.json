@@ -1,5 +1,5 @@
 {
-  "name": "cowork-server",
+  "name": "prompt-enhancer-server",
   "private": true,
   "type": "module",
   "scripts": {

@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/PatrickDev-it/cowork-prompt-enhancer/evaluation/datasets/v1/schema.json",
-  "title": "Cowork evaluation case v1",
+  "$id": "https://github.com/PatrickDev-it/ai-prompt-optimizer/evaluation/datasets/v1/schema.json",
+  "title": "Prompt Enhancer evaluation case v1",
   "type": "object",
   "required": [
     "id",

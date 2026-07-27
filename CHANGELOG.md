@@ -21,5 +21,5 @@ versioning.
 - Loopback-only defaults, stable public errors, frame/payload bounds and no credential logging.
 - Secret and heavyweight runtime artifacts are excluded from source and validated before release.
 
-[Unreleased]: https://github.com/PatrickDev-it/cowork-prompt-enhancer/compare/v1.0.0...HEAD
-[1.0.0]: https://github.com/PatrickDev-it/cowork-prompt-enhancer/releases/tag/v1.0.0
+[Unreleased]: https://github.com/PatrickDev-it/ai-prompt-optimizer/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/PatrickDev-it/ai-prompt-optimizer/releases/tag/v1.0.0
