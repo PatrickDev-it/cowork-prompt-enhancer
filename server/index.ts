@@ -87,5 +87,5 @@ Bun.serve<SocketData>({
 });
 
 console.log(
-  `Prompt Enhancer server listening on ws://${HOST}:${PORT} (${PROFILE}, ${remoteBinding ? 'authenticated remote' : 'loopback'}) — ${Object.keys(tools).length} tools.`
+  `AI Prompt Optimizer server listening on ws://${HOST}:${PORT} (${PROFILE}, ${remoteBinding ? 'authenticated remote' : 'loopback'}) — ${Object.keys(tools).length} tools.`
 );
