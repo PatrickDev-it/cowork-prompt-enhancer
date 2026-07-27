@@ -1,47 +1,47 @@
 # Handoff
 
-Living project context during the search-led adoption patch on 2026-07-27.
+Living project context during the remote-first product rename on 2026-07-27.
 
 ## Current state
 
-Stable `v1.0.0` remains unchanged. Branch `codex/seo-geo-growth` contains documentation-only positioning
-work based on three supplied worldwide Google Trends exports. Relevant demand favors AI/OpenAI/GPT prompt
-optimizer queries, with strong growth around Gemini and Claude Code; unrelated image/photo traffic is
-deliberately excluded.
+GitHub repository is now `PatrickDev-it/ai-prompt-optimizer`; the former
+`PatrickDev-it/cowork-prompt-enhancer` URL permanently redirects. Branch `codex/remote-first-rename`
+contains the identity and remote-first workflow patch.
 
-The README now leads with the developer outcome, the motto “Write it rough. Cowork compiles the rest,” a
-rough-to-structured example, accurate target/provider distinctions, remote-workstation operation and FAQ.
-`docs/ai-prompt-optimizer-guide.md` provides an indexable evidence-linked explainer. No runtime, protocol,
-provider, evaluation or release contract changed.
+The public product name is Prompt Enhancer. Cowork appears in marketing only as the original development
+mode: an always-on home workstation runs GPU inference while a MacBook or lighter laptop uses the client
+from an IDE integrated terminal. There is no claimed native IDE extension.
 
-GitHub API metadata has an outcome-led description, 20 relevant topics and Discussions enabled. The
-canonical landing-page patch lives in the separate `PatrickDev-it.github.io` repository.
+Package, workflow, release artifact, schema, CLI, documentation and repository-link identities use
+`ai-prompt-optimizer` or Prompt Enhancer. `COWORK_*`, `cowork-eval/v1` and deterministic model IDs remain
+v1 compatibility contracts.
 
 ## Verification
 
-- Documentation links: 39 files valid.
-- Repository security/heavyweight-artifact scan: passed.
-- `git diff --check`: passed.
 - Format, lint and both workspace typechecks: passed.
 - 53 Bun unit, 79 pytest and 9 integration tests: passed.
-- Canonical static-site validator and IndexNow dry run pass in the site repository.
+- Bun and Python dependency audits: zero findings.
+- Documentation links: 40 files valid.
+- Repository security/heavyweight-artifact scan and deterministic demo: passed.
+- Canonical site validator and IndexNow dry run: passed.
+- Renamed release build/validation remains after the worktree is committed and clean.
 
 ## Evaluation boundary
 
 - Local compiler recall/precision/structure/executability remains 0.917/1.000/0.792/0.975.
-- Local raw reference remains 1.000/1.000/0.333/0.725.
-- Evidence is an eight-case lexical subset, not human proof or universal downstream superiority.
-- ChatGPT, Gemini, Claude Code and Codex are portable-text targets, not claimed native integrations.
+- Evidence remains an eight-case lexical subset, not human proof or universal downstream superiority.
+- ChatGPT, Gemini, Claude Code and Codex remain portable-text targets, not native integrations.
+- Remote access requires explicit opt-in, HMAC authentication, private networking and operator-managed TLS.
 
 ## Invariants
 
 - Preserve `run_enhancement_field_loop` unless an equivalence-tested RFC migration supersedes it.
-- Never commit models, runtime binaries, CUDA libraries, environments, credentials or user I/O.
-- Keep provider claims exact: mock, local and operator-selected OpenAI-compatible inference.
-- Keep public vendor-affiliation disclaimers and evidence limitations explicit.
+- Preserve v1 environment/evaluation identifiers unless a versioned migration replaces them.
+- Never commit models, runtime binaries, environments, credentials or user I/O.
+- Do not claim direct public port exposure or a native IDE extension.
 - Finish each future patch with session, handoff, then summary updates.
 
 ## Next action
 
-Commit and push `codex/seo-geo-growth`, open a PR and merge only after required CI/CodeQL. Then verify the
-separately published GitHub Pages landing and crawler metadata.
+Commit `codex/remote-first-rename`, build and validate the clean renamed release bundle, push and open a PR.
+Publish the portfolio branch separately, then verify hosted checks, redirect and production metadata.

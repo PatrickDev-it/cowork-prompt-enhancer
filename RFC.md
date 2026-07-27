@@ -1,7 +1,7 @@
 # RFC — Portfolio Flagship: Local Intent-to-Specification Compiler
 
 - **Status:** Accepted — implementation authorized 2026-07-22
-- **Scope:** portfolio projection, security hardening, evaluation and delivery of Cowork Prompt Enhancer
+- **Scope:** portfolio projection, security hardening, evaluation and delivery of Prompt Enhancer
 - **Audience:** implementation agents, systems/AI reviewers, security reviewers and recruiters
 - **Relationship to existing decisions:** umbrella plan; does not supersede accepted RFCs under `.sinapsi/rfc/`
 - **Decision horizon:** first public release under the owner’s GitHub profile

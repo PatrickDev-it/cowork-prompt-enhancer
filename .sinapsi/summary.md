@@ -55,6 +55,7 @@ patch: the project's shape (above), the last sessions at a glance, and a short r
 agent at the end of every patch, at the same time it appends session.md. Drop the
 11th; the full history is in session.md and, once archived, in archive/. -->
 
+- 2026-07-27T16:35:00+02:00 — Renamed the product and repository around the remote-first home-workstation workflow.
 - 2026-07-27T15:20:00+02:00 — Repositioned Cowork for search-led prompt-optimizer discovery and developer adoption.
 - 2026-07-22T04:59:53+02:00 — Completed final verification, v1.0.0, public security controls and CodeQL activation.
 - 2026-07-22T04:40:02+02:00 — Removed temporary pip resolution from the complete hash-locked dependency audit.
@@ -64,7 +65,6 @@ agent at the end of every patch, at the same time it appends session.md. Drop th
 - 2026-07-22T04:15:01+02:00 — Fixed CRLF formatter drift exposed by the first clean Windows clone.
 - 2026-07-22T04:12:41+02:00 — Replaced the public narrative with measured recruiter-first documentation.
 - 2026-07-22T04:08:46+02:00 — Added expanded CI, CodeQL, Dependabot and tag-based release validation.
-- 2026-07-22T04:04:50+02:00 — Made credential-scan regression fixtures inert without weakening detection.
 
 ## Where things stand
 
@@ -72,13 +72,13 @@ agent at the end of every patch, at the same time it appends session.md. Drop th
 fragile, what the next action is. Rewritten (not appended) from session.md + handoff.md
 at the end of every patch. If it grows past 10 lines it has stopped being a summary. -->
 
-- Stable `v1.0.0` and all runtime/provider/protocol contracts remain unchanged.
-- Branch `codex/seo-geo-growth` is a documentation-only search and adoption patch.
-- Google Trends prioritizes AI/OpenAI/GPT prompt optimizer demand; unrelated photo/image traffic is excluded.
-- README now leads with “Write it rough. Cowork compiles the rest,” target/provider distinctions and FAQ.
-- `docs/ai-prompt-optimizer-guide.md` adds an indexable, evidence-linked developer explainer.
-- GitHub metadata now uses an outcome-led description, 20 relevant topics and enabled Discussions.
-- Mock/local/openai-compatible providers and remote HMAC boundary remain the only supported provider claims.
-- Format/lint/typechecks, 53 Bun, 79 pytest, 9 integration and static security/docs checks pass.
-- The canonical site patch is maintained and validated in the separate GitHub Pages repository.
-- Preserve evidence limits, vendor disclaimers and field-loop fallback; never commit local artifacts or credentials.
+- Repository is `PatrickDev-it/ai-prompt-optimizer`; the former GitHub URL permanently redirects.
+- Public product name is Prompt Enhancer; Cowork describes only the original development mode.
+- Primary workflow: always-on home GPU workstation serving a MacBook/laptop IDE terminal client.
+- No native IDE extension or direct-public-port recommendation is claimed.
+- `docs/remote-ide-workstation.md` documents private networking, auth and two-machine operation.
+- Package, workflow, release, schema, CLI and site links use the new identity.
+- `COWORK_*` and `cowork-eval/v1` remain v1 compatibility/evidence identifiers.
+- Format/lint/typechecks, 53 Bun, 79 pytest, 9 integration, audits, docs and scans pass.
+- Site/JSON-LD/social/IndexNow validation passes; clean renamed release build remains before publication.
+- Preserve evidence limits, remote security boundary and field-loop fallback.

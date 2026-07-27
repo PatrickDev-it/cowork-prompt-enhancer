@@ -87,5 +87,5 @@ Bun.serve<SocketData>({
 });
 
 console.log(
-  `Cowork server listening on ws://${HOST}:${PORT} (${PROFILE}, ${remoteBinding ? 'authenticated remote' : 'loopback'}) — ${Object.keys(tools).length} tools.`
+  `Prompt Enhancer server listening on ws://${HOST}:${PORT} (${PROFILE}, ${remoteBinding ? 'authenticated remote' : 'loopback'}) — ${Object.keys(tools).length} tools.`
 );

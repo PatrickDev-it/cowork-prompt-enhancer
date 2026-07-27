@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "cowork-client",
+      "name": "prompt-enhancer-client",
       "dependencies": {
         "@inquirer/prompts": "^7",
         "chalk": "^5",

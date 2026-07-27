@@ -566,3 +566,32 @@ sitemap, 1200×630 social metadata and IndexNow payload independently.
 
 **Final status:** commit and publish both branches through reviewable PRs, then verify the GitHub Pages
 deployment and canonical production metadata.
+
+## 2026-07-27T16:35:00+02:00 — Remote-first product rename and repository migration
+
+**Goal:** remove Cowork from the product identity, move the repository to a search-aligned URL and make the
+original two-machine operating model the primary adoption narrative.
+
+**Repository migration:** GitHub API renamed `PatrickDev-it/cowork-prompt-enhancer` to
+`PatrickDev-it/ai-prompt-optimizer`. GitHub returns a permanent redirect from the old URL. The local
+`origin`, badges, changelog, dataset schema, workflows, release builder, package identities, CLI labels and
+canonical portfolio links now target the new identity. The `COWORK_*` configuration namespace and
+`cowork-eval/v1` evidence identifier remain compatibility contracts for v1.0.0, not product branding.
+
+**Product positioning:** the product name is Prompt Enhancer. The README states that it was originally
+developed in Cowork mode: an always-on, GPU-equipped home workstation runs supervised local inference,
+while a MacBook or lighter laptop runs the interactive client from an IDE terminal. The new
+`docs/remote-ide-workstation.md` documents private networking, authenticated WebSocket setup, workstation
+and portable-client commands, operational controls and the explicit absence of a native IDE extension.
+
+**Public site:** the canonical landing, home card, about card, structured data, FAQ and `llms.txt` now lead
+with the remote-first workstation-to-IDE workflow and reference the renamed repository. A new 1200×630
+social card visualizes the home-workstation-to-portable-IDE path without Cowork branding.
+
+**Validation:** format, lint, both workspace typechecks, 53 Bun tests, 79 pytest tests, 9 integration tests,
+dependency audits, 40-file documentation validation, security scan and deterministic demo pass. Static
+site, JSON-LD, social metadata and IndexNow dry-run validation pass. The renamed release bundle requires a
+clean worktree and will be built after this patch is committed.
+
+**Final status:** commit, build and validate the renamed release bundle from the clean branch, publish both
+PRs after hosted checks, then verify the new GitHub URL, old redirect and deployed landing.

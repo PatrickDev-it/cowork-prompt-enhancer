@@ -30,7 +30,7 @@ function step(command: string, args: string[], env: Record<string, string> = {})
 
 const request = 'Build a typed task API with validation, cancellation, and tests';
 const transcript = [
-  '# Cowork Prompt Enhancer - reproducible terminal demo',
+  '# Prompt Enhancer - reproducible terminal demo',
   '',
   step('bun run preflight', ['bun', 'run', 'preflight'], { COWORK_PROFILE: 'mock' }),
   '',
