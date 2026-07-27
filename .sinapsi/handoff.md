@@ -1,53 +1,47 @@
 # Handoff
 
-Living project context at stable public launch on 2026-07-22.
+Living project context during the search-led adoption patch on 2026-07-27.
 
 ## Current state
 
-Root `RFC.md` is accepted and P-01–P-20 implementation is complete. Product work merged through PR #1;
-the deterministic-audit correction merged through PR #11 as `8377db3`. Stable release `v1.0.0` is
-published at `PatrickDev-it/cowork-prompt-enhancer`, and the repository is public with launch security
-controls enabled. Branch `chore/public-codeql-dispatch` contains the final uncommitted workflow-only patch.
+Stable `v1.0.0` remains unchanged. Branch `codex/seo-geo-growth` contains documentation-only positioning
+work based on three supplied worldwide Google Trends exports. Relevant demand favors AI/OpenAI/GPT prompt
+optimizer queries, with strong growth around Gemini and Claude Code; unrelated image/photo traffic is
+deliberately excluded.
 
-RFC-0026 owns provider profiles, RFC-0027 protocol/security/resource hardening and RFC-0028 evaluation.
-The final patch adds manual CodeQL dispatch and changes no runtime contract or release artifact.
+The README now leads with the developer outcome, the motto “Write it rough. Cowork compiles the rest,” a
+rough-to-structured example, accurate target/provider distinctions, remote-workstation operation and FAQ.
+`docs/ai-prompt-optimizer-guide.md` provides an indexable evidence-linked explainer. No runtime, protocol,
+provider, evaluation or release contract changed.
 
-## Final verification
+GitHub API metadata has an outcome-led description, 20 relevant topics and Discussions enabled. The
+canonical landing-page patch lives in the separate `PatrickDev-it.github.io` repository.
 
-- Fresh clone frozen setup: 6.207 seconds; full release gate: 30.024 seconds.
-- 53 Bun unit, 79 pytest and 9 integration tests passed.
-- Provider 25/25, protocol/security 26/26, supervisor 5/5 and mock E2E 4/4 passed.
-- Formatter, Biome/Ruff, client/server typecheck, 39-file docs and repository scan passed.
-- Bun and Python audits report zero findings; mock benchmark produced 264 records.
-- Supported local-provider smoke passed in 19.289 seconds.
-- Clean clone `git diff --check` and status passed.
-- Public CodeQL completed for Python and TypeScript.
+## Verification
 
-## Evaluation evidence
+- Documentation links: 39 files valid.
+- Repository security/heavyweight-artifact scan: passed.
+- `git diff --check`: passed.
+- Format, lint and both workspace typechecks: passed.
+- 53 Bun unit, 79 pytest and 9 integration tests: passed.
+- Canonical static-site validator and IndexNow dry run pass in the site repository.
 
-- `cowork-eval/v1` contains 64 balanced, public, non-sensitive cases.
-- Curated mock/local references contain 296/296 successful sanitized records.
-- Local compiler recall/precision/structure/executability: 0.917/1.000/0.792/0.975.
-- Local raw reference: 1.000/1.000/0.333/0.725; evidence is an eight-case lexical subset, not human proof.
+## Evaluation boundary
 
-## Release and repository
-
-- `v1.0.0` targets `8377db3`; tag CI and release validation passed.
-- Release has 11 assets; ten manifest hashes revalidated after download.
-- Assets include source, changelog, benchmark evidence, 108-item inventory, CycloneDX 1.6 and provenance.
-- Secret scanning/push protection, alerts, automated fixes and private reporting are enabled.
-- `main` requires strict CI plus both CodeQL contexts; force pushes and deletion are blocked.
-- Description, README homepage and nine focused topics target `PatrickDev-it`.
+- Local compiler recall/precision/structure/executability remains 0.917/1.000/0.792/0.975.
+- Local raw reference remains 1.000/1.000/0.333/0.725.
+- Evidence is an eight-case lexical subset, not human proof or universal downstream superiority.
+- ChatGPT, Gemini, Claude Code and Codex are portable-text targets, not claimed native integrations.
 
 ## Invariants
 
 - Preserve `run_enhancement_field_loop` unless an equivalence-tested RFC migration supersedes it.
 - Never commit models, runtime binaries, CUDA libraries, environments, credentials or user I/O.
-- Keep public output in professional English and reconstructed RFC metadata truthful.
-- Do not touch Ignoryx, Privacy, organizations or unrelated repositories.
+- Keep provider claims exact: mock, local and operator-selected OpenAI-compatible inference.
+- Keep public vendor-affiliation disclaimers and evidence limitations explicit.
 - Finish each future patch with session, handoff, then summary updates.
 
 ## Next action
 
-Commit/push the workflow-only dispatch patch, merge after public CI/CodeQL, then manually dispatch and
-verify the authoritative `main` CodeQL workflow. No product requirement remains open.
+Commit and push `codex/seo-geo-growth`, open a PR and merge only after required CI/CodeQL. Then verify the
+separately published GitHub Pages landing and crawler metadata.

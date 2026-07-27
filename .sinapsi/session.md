@@ -537,3 +537,32 @@ dispatch trigger now supports explicit reruns. YAML parsing, docs, repository sc
 
 **Final status:** commit/push this workflow-only patch, merge after public CI/CodeQL, dispatch CodeQL once
 from `main`, and confirm repository metadata/security/release status. No product code remains open.
+
+## 2026-07-27T15:20:00+02:00 — Search-led product positioning and adoption surface
+
+**Goal:** correct weak search discovery and conversion using the supplied worldwide Google Trends exports,
+then align the repository and canonical product page without changing runtime behavior or evidence claims.
+
+**Evidence:** relevant demand clusters around `openai prompt optimizer`, `gpt prompt optimizer`, ChatGPT,
+Gemini prompts and Claude Code; the generic `prompt enhancer` query is materially weaker. Photo, image and
+video enhancer trends were excluded because they do not match the product. The previous README and landing
+led with engineering architecture, while the product outcome, downstream workflow and remote-compute use
+case were not stated in search language.
+
+**Delivery:** the README now positions Cowork as an independent open-source AI prompt optimizer for
+developers under the motto “Write it rough. Cowork compiles the rest.” It adds a rough-to-structured
+example, an accurate compatibility matrix, remote-workstation guidance, vendor-disclaimer language and
+search-intent FAQ. `docs/ai-prompt-optimizer-guide.md` adds an indexable, evidence-linked explanation of
+prompt optimization, downstream ChatGPT/Gemini/Claude Code/Codex use and local/remote execution.
+
+**Repository discovery:** GitHub API metadata now uses the outcome-led description, enables Discussions
+and applies 20 relevant topics spanning prompt optimization, coding agents, local AI and target workflows.
+Runtime contracts, provider support, benchmarks and release artifacts are unchanged.
+
+**Validation:** format, lint, both workspace typechecks, 53 Bun unit tests, 79 pytest tests and 9 integration
+tests pass. Documentation links, repository security scan and diff checks pass. The canonical site patch
+is maintained in the separate `PatrickDev-it.github.io` repository and validates its HTML, JSON-LD,
+sitemap, 1200×630 social metadata and IndexNow payload independently.
+
+**Final status:** commit and publish both branches through reviewable PRs, then verify the GitHub Pages
+deployment and canonical production metadata.
