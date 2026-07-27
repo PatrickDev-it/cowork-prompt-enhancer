@@ -1,47 +1,46 @@
 # Handoff
 
-Living project context during the remote-first product rename on 2026-07-27.
+Living project context during the project-context positioning patch on 2026-07-27.
 
 ## Current state
 
-GitHub repository is now `PatrickDev-it/ai-prompt-optimizer`; the former
-`PatrickDev-it/cowork-prompt-enhancer` URL permanently redirects. Branch `codex/remote-first-rename`
-contains the identity and remote-first workflow patch.
+Repository is `PatrickDev-it/ai-prompt-optimizer`; the former URL permanently redirects. Branch
+`codex/project-context-positioning` contains a README-only product-positioning patch plus Sinapsi records.
 
-The public product name is Prompt Enhancer. Cowork appears in marketing only as the original development
-mode: an always-on home workstation runs GPU inference while a MacBook or lighter laptop uses the client
-from an IDE integrated terminal. There is no claimed native IDE extension.
+The README now makes the codebase-context advantage visible before the first example: local project scan,
+explicit file selection, bounded directory tree, selected contents as authoritative context, optional web
+grounding and timestamped prompt delivery.
 
-Package, workflow, release artifact, schema, CLI, documentation and repository-link identities use
-`ai-prompt-optimizer` or Prompt Enhancer. `COWORK_*`, `cowork-eval/v1` and deterministic model IDs remain
-v1 compatibility contracts.
+It separates the user-facing tools accurately:
+
+- `dev-prompt-enhancer`: project context, optional web search and provider reasoning.
+- `prompt-enhancer`: standalone request, optional reasoning and opt-in Deep Research report.
+
+GitHub description and topics now include project-aware, codebase-context and deep-research positioning.
 
 ## Verification
 
 - Format, lint and both workspace typechecks: passed.
 - 53 Bun unit, 79 pytest and 9 integration tests: passed.
-- Bun and Python dependency audits: zero findings.
-- Documentation links: 40 files valid.
-- Repository security/heavyweight-artifact scan and deterministic demo: passed.
-- Canonical site validator and IndexNow dry run: passed.
-- Clean commit `39b7d94` builds and validates the renamed 11-asset release bundle.
+- Documentation links: 41 files valid.
+- Repository security/heavyweight-artifact scan and `git diff --check`: passed.
 
-## Evaluation boundary
+## Capability boundaries
 
-- Local compiler recall/precision/structure/executability remains 0.917/1.000/0.792/0.975.
-- Evidence remains an eight-case lexical subset, not human proof or universal downstream superiority.
-- ChatGPT, Gemini, Claude Code and Codex remain portable-text targets, not native integrations.
-- Remote access requires explicit opt-in, HMAC authentication, private networking and operator-managed TLS.
+- Project files are scanned locally and included only after explicit operator selection.
+- Filtered directory tree is always included; dependency/build/cache/VCS and secret paths are denied.
+- Context is bounded and may be truncated or semantically compressed.
+- Deep Research is opt-in, networked and belongs to the standalone tool.
+- No native IDE extension or silent whole-repository upload is claimed.
 
 ## Invariants
 
-- Preserve `run_enhancement_field_loop` unless an equivalence-tested RFC migration supersedes it.
-- Preserve v1 environment/evaluation identifiers unless a versioned migration replaces them.
+- Preserve `run_enhancement_field_loop` and v1 compatibility identifiers.
 - Never commit models, runtime binaries, environments, credentials or user I/O.
-- Do not claim direct public port exposure or a native IDE extension.
+- Keep project-context, search and Deep Research claims aligned with their actual tool boundaries.
 - Finish each future patch with session, handoff, then summary updates.
 
 ## Next action
 
-Push `codex/remote-first-rename` and open a PR. Publish the portfolio branch separately, then verify hosted
-checks, the former-repository redirect and production metadata.
+Commit and push `codex/project-context-positioning`, open a PR and merge only after CI and both CodeQL
+languages pass. Verify README placement and repository metadata on public `main`.

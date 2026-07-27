@@ -55,6 +55,7 @@ patch: the project's shape (above), the last sessions at a glance, and a short r
 agent at the end of every patch, at the same time it appends session.md. Drop the
 11th; the full history is in session.md and, once archived, in archive/. -->
 
+- 2026-07-27T17:10:00+02:00 — Promoted explicit project context, search and research capabilities in the README.
 - 2026-07-27T16:35:00+02:00 — Renamed the product and repository around the remote-first home-workstation workflow.
 - 2026-07-27T15:20:00+02:00 — Repositioned Cowork for search-led prompt-optimizer discovery and developer adoption.
 - 2026-07-22T04:59:53+02:00 — Completed final verification, v1.0.0, public security controls and CodeQL activation.
@@ -64,7 +65,6 @@ agent at the end of every patch, at the same time it appends session.md. Drop th
 - 2026-07-22T04:20:04+02:00 — Passed the clean-clone launch gate and repaired least-privilege CodeQL access.
 - 2026-07-22T04:15:01+02:00 — Fixed CRLF formatter drift exposed by the first clean Windows clone.
 - 2026-07-22T04:12:41+02:00 — Replaced the public narrative with measured recruiter-first documentation.
-- 2026-07-22T04:08:46+02:00 — Added expanded CI, CodeQL, Dependabot and tag-based release validation.
 
 ## Where things stand
 
@@ -72,13 +72,13 @@ agent at the end of every patch, at the same time it appends session.md. Drop th
 fragile, what the next action is. Rewritten (not appended) from session.md + handoff.md
 at the end of every patch. If it grows past 10 lines it has stopped being a summary. -->
 
-- Repository is `PatrickDev-it/ai-prompt-optimizer`; the former GitHub URL permanently redirects.
-- Public product name is Prompt Enhancer; Cowork describes only the original development mode.
-- Primary workflow: always-on home GPU workstation serving a MacBook/laptop IDE terminal client.
-- No native IDE extension or direct-public-port recommendation is claimed.
-- `docs/remote-ide-workstation.md` documents private networking, auth and two-machine operation.
-- Package, workflow, release, schema, CLI and site links use the new identity.
-- `COWORK_*` and `cowork-eval/v1` remain v1 compatibility/evidence identifiers.
-- Format/lint/typechecks, 53 Bun, 79 pytest, 9 integration, audits, docs and scans pass.
-- Site/JSON-LD/social/IndexNow and clean renamed 11-asset release validation pass.
-- Preserve evidence limits, remote security boundary and field-loop fallback.
+- Repository is `PatrickDev-it/ai-prompt-optimizer`; branch `codex/project-context-positioning` is active.
+- README now leads with explicit, operator-selected context from the real current project.
+- Local scan supplies a filtered tree and selected files; whole-repository upload is not claimed.
+- `dev-prompt-enhancer` owns project context, web search and optional reasoning.
+- Standalone `prompt-enhancer` owns optional reasoning and opt-in Deep Research report.
+- Capability matrix also surfaces semantic compression, deterministic fallback and timestamped artifacts.
+- GitHub description/topics now target project-aware, codebase-context and deep-research discovery.
+- Remote home-workstation to portable IDE-terminal positioning remains unchanged.
+- Format/lint/typechecks, 53 Bun, 79 pytest, 9 integration, docs and security scans pass.
+- Preserve tool boundaries, evidence limits, remote security and field-loop fallback.
