@@ -48,7 +48,7 @@ jobs:
       - name: Upload validated release bundle
         uses: actions/upload-artifact@v7
         with:
-          name: cowork-prompt-enhancer-v1.0.0-${{ github.sha }}
+          name: ai-prompt-optimizer-v1.0.0-${{ github.sha }}
           path: .artifacts/release/v1.0.0/
           if-no-files-found: error
           retention-days: 7

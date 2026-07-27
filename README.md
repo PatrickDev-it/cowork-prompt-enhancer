@@ -1,24 +1,25 @@
-# Cowork AI Prompt Optimizer for Developers
+# Prompt Enhancer — Remote AI Prompt Optimizer
 
-[![CI](https://github.com/PatrickDev-it/cowork-prompt-enhancer/actions/workflows/ci.yml/badge.svg)](https://github.com/PatrickDev-it/cowork-prompt-enhancer/actions/workflows/ci.yml)
-[![CodeQL](https://github.com/PatrickDev-it/cowork-prompt-enhancer/actions/workflows/codeql.yml/badge.svg)](https://github.com/PatrickDev-it/cowork-prompt-enhancer/actions/workflows/codeql.yml)
-[![Release](https://img.shields.io/github/v/release/PatrickDev-it/cowork-prompt-enhancer)](https://github.com/PatrickDev-it/cowork-prompt-enhancer/releases)
+[![CI](https://github.com/PatrickDev-it/ai-prompt-optimizer/actions/workflows/ci.yml/badge.svg)](https://github.com/PatrickDev-it/ai-prompt-optimizer/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/PatrickDev-it/ai-prompt-optimizer/actions/workflows/codeql.yml/badge.svg)](https://github.com/PatrickDev-it/ai-prompt-optimizer/actions/workflows/codeql.yml)
+[![Release](https://img.shields.io/github/v/release/PatrickDev-it/ai-prompt-optimizer)](https://github.com/PatrickDev-it/ai-prompt-optimizer/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-> **Write it rough. Cowork compiles the rest.**
+> **Write it rough. Let your strongest machine optimize it.**
 
-Cowork is an open-source AI prompt optimizer that turns incomplete developer requests into
-implementation-ready prompts for ChatGPT, Gemini, Claude Code, Codex and other AI coding agents. Write the
-task quickly—even badly—and the intent-to-specification compiler preserves requirements, exposes
-assumptions, adds acceptance criteria and produces a portable prompt you can inspect before execution.
+Prompt Enhancer is an open-source, remote-first AI prompt optimizer for developers. Keep the local model
+running on an always-on, GPU-equipped desktop at home, then submit rough requests from the integrated
+terminal of a MacBook or lighter laptop wherever you work. The compiler returns structured,
+implementation-ready prompts for ChatGPT, Gemini, Claude Code, Codex and other AI coding agents.
 
-The optimizer can run offline with a deterministic mock, on a private GPU workstation through supervised
-local inference, or against an operator-selected OpenAI-compatible endpoint. The generated prompt is plain
-text: no downstream vendor lock-in and no mandatory cloud account.
+The powerful machine owns supervised local inference; the portable machine owns the interactive client
+and project workspace. They communicate through an authenticated WebSocket over a private network. The
+generated prompt remains readable plain text, with no downstream vendor lock-in or mandatory cloud account.
 
 [See the product page](https://patrickdev-it.github.io/projects/prompt-enhancer/) ·
 [Read the AI prompt optimizer guide](docs/ai-prompt-optimizer-guide.md) ·
-[Download v1.0.0](https://github.com/PatrickDev-it/cowork-prompt-enhancer/releases/tag/v1.0.0)
+[Configure a remote workstation](docs/remote-ide-workstation.md) ·
+[Download v1.0.0](https://github.com/PatrickDev-it/ai-prompt-optimizer/releases/tag/v1.0.0)
 
 ## From rough request to executable specification
 
@@ -28,7 +29,7 @@ Input:
 add login and make it secure, use the db we already have
 ```
 
-Cowork compiles the request into a structured specification with:
+Prompt Enhancer compiles the request into a structured specification with:
 
 - the intended outcome and explicit constraints;
 - bounded assumptions and questions instead of invented certainty;
@@ -39,18 +40,31 @@ It treats prompt optimization as a reliability problem: explicit requirements mu
 specificity must remain bounded, malformed model output must have a deterministic delivery path, and the
 runtime must fail safely.
 
-## Where Cowork fits
+## The remote-first workflow
 
-| Need | Cowork path |
+```mermaid
+flowchart LR
+    IDE["MacBook or lightweight laptop\nIDE integrated terminal"] <== "Private network + authenticated WebSocket" ==> Home["Always-on home workstation\nPrompt Enhancer server"]
+    Home --> GPU["Supervised local model\nGPU inference"]
+    IDE --> Agents["ChatGPT · Gemini · Claude Code · Codex"]
+```
+
+| Machine | Responsibility |
 |---|---|
-| Optimize prompts without credentials or a model download | Deterministic `mock` profile |
-| Keep task content and inference on your own machine | Supervised `local` profile |
-| Use a powerful workstation from a lighter development machine | Authenticated remote exposure to the operator-managed Cowork server |
-| Use an existing gateway or hosted model | Explicit `openai-compatible` profile |
-| Send the result to ChatGPT, Gemini, Claude Code, Codex or another agent | Copy the vendor-neutral compiled prompt |
+| Home workstation | Runs the Prompt Enhancer server, supervised llama-server and local model |
+| MacBook or lighter laptop | Runs the interactive client from the IDE terminal and keeps the project workspace |
+| Private network | Carries the authenticated WebSocket session; direct public port exposure is not recommended |
+| Selected coding agent | Receives the vendor-neutral optimized prompt |
 
-Cowork is an independent open-source project. It is not affiliated with, endorsed by or an official
-optimizer for OpenAI, Google, Anthropic or their products.
+This is a terminal workflow, not a native IDE extension. Start with the
+[remote IDE and workstation guide](docs/remote-ide-workstation.md).
+
+Prompt Enhancer was originally developed in **Cowork mode**: the stronger desktop stayed active as the
+inference host while day-to-day work continued from a portable machine. “Cowork” describes that
+development mode, not the product name.
+
+Prompt Enhancer is independent and is not affiliated with, endorsed by or an official optimizer for
+OpenAI, Google, Anthropic or their products.
 
 ## Measured result
 
@@ -119,10 +133,10 @@ llama-server process with health polling, capped exponential restart and clean s
 
 ## Run the model where the compute is
 
-Cowork separates the client from the inference server. A developer can keep the client on a laptop while
-the local model runs on a more powerful Windows or Ubuntu workstation under their control. Loopback is the
-safe default; non-loopback access requires explicit opt-in and short-lived HMAC authentication. The
-operator remains responsible for private networking and TLS termination.
+Prompt Enhancer separates the client from the inference server. Leave a powerful Windows or Ubuntu
+workstation active at home, run the client from your MacBook or laptop IDE terminal, and point it to the
+workstation's private address. Loopback is the safe default; non-loopback access requires explicit opt-in
+and short-lived HMAC authentication. The operator remains responsible for private networking and TLS.
 
 ## Security model
 
@@ -173,26 +187,31 @@ documentation links, secret/heavyweight-artifact scanning, demo recording, SBOM 
 
 ### What is an AI prompt optimizer?
 
-It converts a rough request into a clearer, more testable prompt before another AI executes it. Cowork
-focuses on developer tasks and compiles intent into requirements, constraints, assumptions, steps and
-acceptance criteria.
+It converts a rough request into a clearer, more testable prompt before another AI executes it. Prompt
+Enhancer focuses on developer tasks and compiles intent into requirements, constraints, assumptions,
+steps and acceptance criteria.
 
-### Does Cowork work with ChatGPT, Gemini, Claude Code and Codex?
+### Does Prompt Enhancer work with ChatGPT, Gemini, Claude Code and Codex?
 
-Yes as an output workflow: Cowork produces portable text that can be pasted into those tools and other AI
-coding agents. Its inference providers are mock, local and OpenAI-compatible; it does not claim native
-plugins or official vendor integrations.
+Yes as an output workflow: Prompt Enhancer produces portable text that can be pasted into those tools and
+other AI coding agents. Its inference providers are mock, local and OpenAI-compatible; it does not claim
+native plugins or official vendor integrations.
 
-### Is Cowork an OpenAI prompt optimizer?
+### Is Prompt Enhancer an OpenAI prompt optimizer?
 
-Cowork can use an operator-configured OpenAI-compatible endpoint and can optimize prompts intended for
-OpenAI tools, but it is an independent project and not an official OpenAI product.
+Prompt Enhancer can use an operator-configured OpenAI-compatible endpoint and optimize prompts intended
+for OpenAI tools, but it is an independent project and not an official OpenAI product.
 
 ### Can prompt optimization run locally or on a remote GPU machine?
 
-Yes. The local profile supervises a private llama-server, while the authenticated protocol allows an
-operator to expose Cowork from a more powerful machine. Remote deployment requires deliberate network and
-TLS configuration.
+Yes. The local profile supervises a private llama-server on the powerful machine, while the authenticated
+client can run from a MacBook or lighter laptop IDE terminal. Use a private network; remote deployment
+requires deliberate network and TLS configuration.
+
+### Is there a native IDE extension?
+
+Not currently. The supported workflow runs the Bun client from an IDE's integrated terminal and connects
+it to the remote Prompt Enhancer server.
 
 ### Is it free?
 

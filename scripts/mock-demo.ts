@@ -37,7 +37,7 @@ await mkdir(outputDir, { recursive: true });
 const artifact = join(outputDir, 'prompt.md');
 await Bun.write(artifact, `${result.prompt.trim()}\n`);
 
-console.log('Cowork Prompt Enhancer — deterministic offline demo');
+console.log('Prompt Enhancer — deterministic offline demo');
 console.log(`Request: ${request}`);
 console.log(`Scenario: ${scenario}`);
 console.log(`Generation mode: ${generationMode}`);

@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "cowork-server",
+      "name": "prompt-enhancer-server",
       "devDependencies": {
         "@types/bun": "latest",
         "typescript": "^5",

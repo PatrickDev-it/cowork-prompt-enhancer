@@ -4,13 +4,13 @@ An AI prompt optimizer converts an incomplete request into a prompt that another
 less ambiguity. For software work, that means preserving the developer's intent while making
 requirements, constraints, assumptions, implementation steps and acceptance criteria explicit.
 
-Cowork is an open-source intent-to-specification compiler for this workflow. Its operating principle is
-simple: **write it rough; Cowork compiles the rest.**
+Prompt Enhancer is an open-source intent-to-specification compiler for this workflow. Its operating
+principle is simple: **write it rough; let your strongest machine optimize it.**
 
 ## Prompt enhancer versus prompt optimizer
 
 A prompt enhancer commonly rewrites text to sound richer. A prompt optimizer should improve execution
-conditions without inventing product decisions. Cowork therefore treats optimization as a bounded
+conditions without inventing product decisions. Prompt Enhancer therefore treats optimization as a bounded
 compilation problem:
 
 1. preserve explicit requirements;
@@ -24,11 +24,11 @@ where plausible but unsupported detail can be more harmful than a short prompt.
 
 ## Using optimized prompts with ChatGPT, Gemini and coding agents
 
-Cowork's output is vendor-neutral text. A compiled prompt can be reviewed and then pasted into ChatGPT,
+Prompt Enhancer output is vendor-neutral text. A compiled prompt can be reviewed and then pasted into ChatGPT,
 Gemini, Claude Code, Codex or another AI coding agent. These are downstream execution targets, not native
-Cowork provider integrations.
+Prompt Enhancer provider integrations.
 
-Cowork itself supports three inference profiles:
+Prompt Enhancer supports three inference profiles:
 
 - `mock` for deterministic, credential-free evaluation and demos;
 - `local` for private inference through a supervised llama-server;
@@ -37,17 +37,18 @@ Cowork itself supports three inference profiles:
 This separation avoids coupling prompt quality to a single model vendor. It also makes it possible to
 compare the same raw request and compiled specification across different executors.
 
-## Local and remote GPU execution
+## Always-on home workstation and remote IDE execution
 
-The client and inference server are separate. A developer can work from a lightweight machine while a
-larger local model runs on a more powerful Windows or Ubuntu workstation. Loopback remains the default
-network boundary. Non-loopback operation requires explicit activation and short-lived, single-use HMAC
-authentication; private networking and TLS termination remain operator responsibilities.
+The client and inference server are separate. A developer can leave a powerful Windows or Ubuntu
+workstation active at home while working from a MacBook or lighter laptop. The portable machine runs the
+client from the IDE integrated terminal; the workstation runs the model and supervised inference.
+Loopback remains the default network boundary. Non-loopback operation requires explicit activation and
+short-lived, single-use HMAC authentication; private networking and TLS remain operator responsibilities.
 
 This mode is useful when a team wants shared compute without automatically sending request content to a
 third-party service.
 
-## What Cowork measures
+## What Prompt Enhancer measures
 
 The published reference compares raw requests, a thin rewrite, the compiler and a deterministic fallback.
 On eight stratified local cases using Qwen3-8B Q4_K_M, structural validity increased from 0.333 to 0.792
@@ -61,7 +62,7 @@ downstream improvement. The
 
 ## When to use a prompt optimizer
 
-Cowork is most useful when the initial request is directionally correct but operationally incomplete:
+Prompt Enhancer is most useful when the initial request is directionally correct but operationally incomplete:
 
 - feature requests missing edge cases and acceptance criteria;
 - bug reports without an explicit reproduction and verification plan;
