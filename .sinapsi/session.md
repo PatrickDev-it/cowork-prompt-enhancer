@@ -595,3 +595,32 @@ renamed 11-asset `ai-prompt-optimizer-1.0.0-*` bundle builds and validates with 
 
 **Final status:** publish both PRs after hosted checks, then verify the new GitHub URL, old redirect and
 deployed landing.
+
+## 2026-07-27T17:10:00+02:00 — Project-context and research capability positioning
+
+**Goal:** make the strongest developer advantage immediately understandable in the README: Prompt Enhancer
+does not optimize against an imagined stack; it can compile against explicitly selected files from the
+real current project.
+
+**Verified capability boundary:** `dev-prompt-enhancer` scans the project directory locally on the client,
+filters candidates, always supplies a bounded directory tree and sends only file contents explicitly
+selected by the operator. Dependency/build/cache/VCS directories, common secret filenames, unsupported
+extensions, oversized files and excess context are excluded or bounded. The project block is treated as
+authoritative codebase truth. Optional web search and provider reasoning belong to this developer tool.
+
+**Research boundary:** the standalone `prompt-enhancer` tool supports request-file selection, optional
+reasoning and opt-in Deep Research. Deep Research plans three to five focused searches, gathers bounded web
+results, synthesizes an evidence-constrained report and writes it separately. The README deliberately
+shows the two tools separately rather than implying project context and Deep Research run together.
+
+**Delivery:** a high-visibility “It does not optimize blind” section now precedes the raw-request example.
+It includes the project-context promise, scan and file-picker controls, a short workflow diagram, explicit
+privacy boundary, two-tool comparison and capability matrix covering Project Context, Web Search, Deep
+Research, reasoning, semantic compression, deterministic fallback and timestamped artifacts. GitHub API
+description and topics now surface project-aware, codebase-context and deep-research discovery terms.
+
+**Validation:** format, lint, both workspace typechecks, 53 Bun tests, 79 pytest tests, 9 integration tests,
+41-file documentation validation, repository security scan and diff checks pass.
+
+**Final status:** commit and publish the README patch through required CI and CodeQL, then verify the
+rendered README and API metadata on `main`.
