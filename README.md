@@ -21,6 +21,57 @@ generated prompt remains readable plain text, with no downstream vendor lock-in 
 [Configure a remote workstation](docs/remote-ide-workstation.md) ·
 [Download v1.0.0](https://github.com/PatrickDev-it/ai-prompt-optimizer/releases/tag/v1.0.0)
 
+## It does not optimize blind
+
+> **Point it at the current project. You choose the files. Prompt Enhancer uses the real codebase as
+> ground truth.**
+
+The project-aware developer mode scans the directory on the client machine, shows a filtered file picker
+and lets you decide exactly which files become context. The compiler receives:
+
+- a bounded directory tree, even when no complete file is selected;
+- the contents of only the files you explicitly pick;
+- the rough request you want the executing AI to implement;
+- optional live web grounding when the task needs current information.
+
+That changes the quality of the result. Instead of guessing the framework, architecture, naming
+conventions or existing interfaces, Prompt Enhancer can build a specification around the structure and
+code that already exist.
+
+```mermaid
+flowchart LR
+    Project["Current project directory"] --> Scan["Local safe scan"]
+    Scan --> Pick["You pick the files"]
+    Pick --> Context["Directory tree + selected contents"]
+    Request["Rough request"] --> Compiler["Prompt compiler"]
+    Context --> Compiler
+    Web["Optional web grounding"] --> Compiler
+    Compiler --> Prompt["Timestamped prompt.md"]
+```
+
+The scan excludes dependency, build, cache and VCS directories; denies common credential and secret
+filenames; allowlists source/text extensions; and enforces per-file, tree and total-context budgets. The
+whole repository is not silently uploaded.
+
+## One product, two focused tools
+
+| Tool | Best use | Capabilities |
+|---|---|---|
+| `dev-prompt-enhancer` | Implement, debug, refactor or plan against an existing codebase | Project-directory scan, explicit file selection, authoritative project context, optional web search, optional provider reasoning |
+| `prompt-enhancer` | Turn a standalone request into a researched execution specification | Request-file selection, optional provider reasoning, opt-in Deep Research, separate research report |
+
+### Capability stack
+
+| Capability | What it adds |
+|---|---|
+| **Project Context** | Filtered directory map plus the exact source files selected from the current project |
+| **Web Search** | Optional current-information grounding for the developer workflow; automatic freshness gating remains available |
+| **Deep Research** | Plans 3–5 focused searches, collects bounded results and synthesizes a separate evidence-based Markdown report |
+| **Provider reasoning** | Opt-in slower reasoning path when additional model deliberation is worth the latency |
+| **Semantic compression** | Condenses oversized request/context fields while preserving architecture, API, dependency, constraint and task facts |
+| **Safe fallback** | Malformed output, context overflow, timeout and provider failure still have a deterministic delivery path |
+| **Artifact delivery** | Every successful run writes a timestamped optimized prompt; Deep Research also writes its own report |
+
 ## From rough request to executable specification
 
 Input:
