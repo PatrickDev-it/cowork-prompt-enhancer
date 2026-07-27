@@ -1,6 +1,6 @@
 # Remote IDE and Home Workstation
 
-Prompt Enhancer is designed for a two-machine workflow:
+AI Prompt Optimizer is designed for a two-machine workflow:
 
 - an always-on Windows or Ubuntu workstation at home runs the server, local model and GPU inference;
 - a MacBook or lighter laptop runs the interactive client from the integrated terminal of the IDE;
@@ -93,7 +93,7 @@ file operations remain confined to the client-side session root.
 ## 3. Operational checklist
 
 - Keep the workstation on AC power and configure deliberate sleep/wake behavior.
-- Keep the model and llama-server bound to workstation loopback; only the Prompt Enhancer server needs the
+- Keep the model and llama-server bound to workstation loopback; only the AI Prompt Optimizer server needs the
   private-network listener.
 - Store the authentication secret in the process environment or a local secret manager, never in Git.
 - Restrict port 8080 to the private-network interface and authorized devices.
