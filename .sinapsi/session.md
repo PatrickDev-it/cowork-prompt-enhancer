@@ -590,8 +590,8 @@ social card visualizes the home-workstation-to-portable-IDE path without Cowork 
 
 **Validation:** format, lint, both workspace typechecks, 53 Bun tests, 79 pytest tests, 9 integration tests,
 dependency audits, 40-file documentation validation, security scan and deterministic demo pass. Static
-site, JSON-LD, social metadata and IndexNow dry-run validation pass. The renamed release bundle requires a
-clean worktree and will be built after this patch is committed.
+site, JSON-LD, social metadata and IndexNow dry-run validation pass. From clean commit `39b7d94`, the
+renamed 11-asset `ai-prompt-optimizer-1.0.0-*` bundle builds and validates with complete checksums.
 
-**Final status:** commit, build and validate the renamed release bundle from the clean branch, publish both
-PRs after hosted checks, then verify the new GitHub URL, old redirect and deployed landing.
+**Final status:** publish both PRs after hosted checks, then verify the new GitHub URL, old redirect and
+deployed landing.

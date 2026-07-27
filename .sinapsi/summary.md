@@ -80,5 +80,5 @@ at the end of every patch. If it grows past 10 lines it has stopped being a summ
 - Package, workflow, release, schema, CLI and site links use the new identity.
 - `COWORK_*` and `cowork-eval/v1` remain v1 compatibility/evidence identifiers.
 - Format/lint/typechecks, 53 Bun, 79 pytest, 9 integration, audits, docs and scans pass.
-- Site/JSON-LD/social/IndexNow validation passes; clean renamed release build remains before publication.
+- Site/JSON-LD/social/IndexNow and clean renamed 11-asset release validation pass.
 - Preserve evidence limits, remote security boundary and field-loop fallback.

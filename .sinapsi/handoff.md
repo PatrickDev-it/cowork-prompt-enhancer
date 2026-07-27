@@ -24,7 +24,7 @@ v1 compatibility contracts.
 - Documentation links: 40 files valid.
 - Repository security/heavyweight-artifact scan and deterministic demo: passed.
 - Canonical site validator and IndexNow dry run: passed.
-- Renamed release build/validation remains after the worktree is committed and clean.
+- Clean commit `39b7d94` builds and validates the renamed 11-asset release bundle.
 
 ## Evaluation boundary
 
@@ -43,5 +43,5 @@ v1 compatibility contracts.
 
 ## Next action
 
-Commit `codex/remote-first-rename`, build and validate the clean renamed release bundle, push and open a PR.
-Publish the portfolio branch separately, then verify hosted checks, redirect and production metadata.
+Push `codex/remote-first-rename` and open a PR. Publish the portfolio branch separately, then verify hosted
+checks, the former-repository redirect and production metadata.
