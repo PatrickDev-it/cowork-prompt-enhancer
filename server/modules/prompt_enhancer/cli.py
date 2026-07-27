@@ -103,7 +103,7 @@ def run_serve(engine: LLMEngine) -> None:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Prompt Enhancer")
+    parser = argparse.ArgumentParser(description="AI Prompt Optimizer")
     parser.add_argument("--prompt", type=str, help="Request to compile in single-shot mode")
     parser.add_argument("--mode", type=str, default="production-grade", help="Enhancement mode")
     parser.add_argument("--spec-only", action="store_true", help="Print only the prompt specification JSON")

@@ -1,46 +1,29 @@
 # Handoff
 
-Living project context during the project-context positioning patch on 2026-07-27.
-
 ## Current state
 
-Repository is `PatrickDev-it/ai-prompt-optimizer`; the former URL permanently redirects. Branch
-`codex/project-context-positioning` contains a README-only product-positioning patch plus Sinapsi records.
+Repository identity is `PatrickDev-it/ai-prompt-optimizer`; product-facing copy now consistently uses
+**AI Prompt Optimizer**. The active branch is `codex/global-ai-prompt-optimizer-brand`.
 
-The README now makes the codebase-context advantage visible before the first example: local project scan,
-explicit file selection, bounded directory tree, selected contents as authoritative context, optional web
-grounding and timestamped prompt delivery.
+README, product guide, remote-workstation guide, architecture entry point, server startup message and
+CLI description use the new public name. The product page has moved in the companion portfolio repository
+to `/projects/ai-prompt-optimizer/`; README links use that canonical path.
 
-It separates the user-facing tools accurately:
+## Compatibility boundary
 
-- `dev-prompt-enhancer`: project context, optional web search and provider reasoning.
-- `prompt-enhancer`: standalone request, optional reasoning and opt-in Deep Research report.
+- `dev-prompt-enhancer` and `prompt-enhancer` remain stable tool names.
+- `COWORK_*` configuration and `cowork-eval/v1` remain v1 compatibility/evidence identifiers.
+- No runtime provider, protocol, filesystem or output contract changed.
 
-GitHub description and topics now include project-aware, codebase-context and deep-research positioning.
+## Verification required
 
-## Verification
-
-- Format, lint and both workspace typechecks: passed.
-- 53 Bun unit, 79 pytest and 9 integration tests: passed.
-- Documentation links: 41 files valid.
-- Repository security/heavyweight-artifact scan and `git diff --check`: passed.
-
-## Capability boundaries
-
-- Project files are scanned locally and included only after explicit operator selection.
-- Filtered directory tree is always included; dependency/build/cache/VCS and secret paths are denied.
-- Context is bounded and may be truncated or semantically compressed.
-- Deep Research is opt-in, networked and belongs to the standalone tool.
-- No native IDE extension or silent whole-repository upload is claimed.
+- Run `bun run check`, `bun run docs:check`, `bun run security:scan` and `git diff --check`.
+- Commit and publish the branch; require CI plus TypeScript and Python CodeQL before merge.
+- Verify rendered README title/link and GitHub repository description after merge.
 
 ## Invariants
 
-- Preserve `run_enhancement_field_loop` and v1 compatibility identifiers.
+- Keep claims aligned to the two-tool capability split and explicit file-selection boundary.
+- Preserve remote exposure safeguards, deterministic fallback and historical field-loop behavior.
 - Never commit models, runtime binaries, environments, credentials or user I/O.
-- Keep project-context, search and Deep Research claims aligned with their actual tool boundaries.
-- Finish each future patch with session, handoff, then summary updates.
-
-## Next action
-
-Commit and push `codex/project-context-positioning`, open a PR and merge only after CI and both CodeQL
-languages pass. Verify README placement and repository metadata on public `main`.
+- Finish future patches with session, handoff, then summary updates.

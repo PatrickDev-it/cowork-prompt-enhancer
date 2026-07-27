@@ -624,3 +624,21 @@ description and topics now surface project-aware, codebase-context and deep-rese
 
 **Final status:** commit and publish the README patch through required CI and CodeQL, then verify the
 rendered README and API metadata on `main`.
+
+## 2026-07-27T18:05:00+02:00 — Global AI Prompt Optimizer identity alignment
+
+**Goal:** remove the remaining public-facing product-name ambiguity while preserving the stable v1 tool
+identifiers and compatibility namespaces.
+
+**Changes made:** rebranded the README, product guides, architecture entry point, server startup message
+and Python CLI label to **AI Prompt Optimizer**. The README now points to the canonical product URL
+`/projects/ai-prompt-optimizer/`. Legacy `prompt-enhancer`, `dev-prompt-enhancer`, `COWORK_*` and
+`cowork-eval/v1` identifiers remain intact where they are protocol, configuration or evidence contracts.
+
+**Breaking changes:** none. **Regressions introduced/removed:** removed public naming divergence between
+repository URL, README and product presentation; no tool/API name changed.
+
+**Validation performed:** `git diff --check` passes; static site validation is run in the companion site
+repository. Runtime behavior is unchanged apart from human-readable startup and CLI labels.
+
+**Final status:** ready for the standard local quality gate, reviewable PR and hosted CI/CodeQL checks.
