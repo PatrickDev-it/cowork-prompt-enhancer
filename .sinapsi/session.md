@@ -642,3 +642,40 @@ repository URL, README and product presentation; no tool/API name changed.
 repository. Runtime behavior is unchanged apart from human-readable startup and CLI labels.
 
 **Final status:** ready for the standard local quality gate, reviewable PR and hosted CI/CodeQL checks.
+
+## 2026-07-30T01:20:00+02:00 — Dependabot sweep: three bumps merged, one inert pin uncovered
+
+**Goal:** clear the three open Dependabot pull requests without leaving a broken gate or a conflict,
+and record what the sweep revealed about this repository's dependency plumbing.
+
+**Changes made:** merged #19 (`hypothesis` 6.156.6 → 6.161.8), #18 (`ruff` 0.12.10 → 0.16.0) and #17
+(`chalk` 5.6.2 → 6.0.0). #17 arrived red: Dependabot had edited `client/package.json` without
+regenerating the root workspace `bun.lock`, so `bun install --frozen-lockfile` — the first step of
+`install:frozen` — failed. Regenerating the lockfile produced a minimal, correct resolution: `chalk`
+6.0.0 at the top level with `chalk` 5.6.2 kept nested for `ora` and `log-symbols`, which still declare
+`^5.3.0`. `chalk` 6 needed no code change: every call site uses `red`/`green`/`gray`/`cyan`/`dim`,
+all present in v6, and the workspace is already `"type": "module"`.
+
+**Finding — the `requirements-dev.txt` pins are inert.** `install:frozen` installs
+`server/modules/requirements-dev.lock` with `--require-hashes`; the `.txt` is only pip-compile input.
+Dependabot edits the `.txt` and cannot regenerate the hash-locked `.lock`, so after #18 and #19 the
+two files disagree: the `.txt` asks for `ruff==0.16.0` and `hypothesis==6.161.8`, the `.lock` still
+installs `ruff==0.12.10` and `hypothesis==6.156.6`. **CI was green because it ran the old ruff.** Both
+bumps are currently cosmetic. Running the pinned `ruff 0.16.0` by hand surfaces **12 findings** that
+the gate does not see: `I001` ×2, `RUF100` ×3, `ISC004` ×3, `FURB167` ×1, `BLE001` ×1 and — the one
+that is not stylistic — `B023` ×2 in `evaluation/metrics.py:142`, a closure that fails to bind the
+`metric_rows` loop variable.
+
+**Breaking changes:** none. **Regressions introduced/removed:** removed the frozen-install failure on
+the `chalk` branch; no runtime, protocol or output contract changed.
+
+**Validation performed:** `bun install --frozen-lockfile` clean; `biome format` 76 files and
+`ruff format --check` 32 files conforming; `biome lint` and client/server typechecks clean; **53 Bun
+unit tests**, **79 pytest**, **9 integration** passing; hosted `verify` ×2, `analyze-python`,
+`analyze-javascript-typescript` and CodeQL green on `main`. The `ruff 0.16.0` run above is a manual
+probe with `uvx`, deliberately outside the gate, since the lock still holds 0.12.10.
+
+**Final status:** three pull requests merged, none open. Open item, not addressed here because it is
+new work rather than part of the sweep: regenerate `requirements-dev.lock` from the updated `.txt`
+with `pip-compile --generate-hashes` and clear the 12 findings — the `B023` pair first, since it is a
+latent bug and not a style preference.

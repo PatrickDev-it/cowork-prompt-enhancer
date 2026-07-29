@@ -55,6 +55,7 @@ patch: the project's shape (above), the last sessions at a glance, and a short r
 agent at the end of every patch, at the same time it appends session.md. Drop the
 11th; the full history is in session.md and, once archived, in archive/. -->
 
+- 2026-07-30T01:20:00+02:00 — Merged three Dependabot bumps; found the `.txt` pins never reach CI, so ruff 0.16 is inert.
 - 2026-07-27T18:05:00+02:00 — Unified public naming as AI Prompt Optimizer while preserving stable tool contracts.
 - 2026-07-27T17:10:00+02:00 — Promoted explicit project context, search and research capabilities in the README.
 - 2026-07-27T16:35:00+02:00 — Renamed the product and repository around the remote-first home-workstation workflow.
@@ -72,15 +73,15 @@ agent at the end of every patch, at the same time it appends session.md. Drop th
 fragile, what the next action is. Rewritten (not appended) from session.md + handoff.md
 at the end of every patch. If it grows past 10 lines it has stopped being a summary. -->
 
-- Repository is `PatrickDev-it/ai-prompt-optimizer`; branch `codex/global-ai-prompt-optimizer-brand` is active.
-- Public product name is AI Prompt Optimizer; README and product-guide links use the canonical site path.
-- Stable `dev-prompt-enhancer`, `prompt-enhancer`, `COWORK_*` and `cowork-eval/v1` identifiers are unchanged.
-- README now leads with explicit, operator-selected context from the real current project.
-- Local scan supplies a filtered tree and selected files; whole-repository upload is not claimed.
-- `dev-prompt-enhancer` owns project context, web search and optional reasoning.
-- Standalone `prompt-enhancer` owns optional reasoning and opt-in Deep Research report.
-- Capability matrix also surfaces semantic compression, deterministic fallback and timestamped artifacts.
-- GitHub description/topics target project-aware, codebase-context and deep-research discovery.
-- Remote home-workstation to portable IDE-terminal positioning remains unchanged.
-- Format/lint/typechecks, 53 Bun, 79 pytest, 9 integration, docs and security scans pass.
-- Preserve tool boundaries, evidence limits, remote security and field-loop fallback.
+- Repository is `PatrickDev-it/ai-prompt-optimizer`; no pull request is open and `main` is green.
+- Public product name is AI Prompt Optimizer; stable `dev-prompt-enhancer`, `prompt-enhancer`,
+  `COWORK_*` and `cowork-eval/v1` identifiers are unchanged.
+- `chalk` 6.0.0 in `client`, with 5.6.2 nested for `ora`/`log-symbols`; no call site needed a change.
+- **Fragile:** `requirements-dev.lock` still installs `ruff 0.12.10`, so the `.txt` bump to 0.16.0 is
+  inert and the green gate proves nothing about it. See `handoff.md` §Trap.
+- Regenerating that lock will expose 12 ruff findings, incl. `B023` ×2 in `evaluation/metrics.py:142`
+  — a closure that does not bind its loop variable, the only non-stylistic one.
+- The `ruff` on `PATH` here is 0.12.10: probe with `uvx ruff@0.16.0`, never bare `ruff`.
+- `enforce_admins` is on for `main`: a missing required check cannot be bypassed, not even as admin.
+- Format/lint/typechecks, 53 Bun, 79 pytest, 9 integration and security scans pass.
+- Next: regenerate the hash-locked file and clear the 12 findings, `B023` first.
