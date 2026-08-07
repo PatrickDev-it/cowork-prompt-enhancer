@@ -110,7 +110,12 @@ export const COMPILE_PASSES: CompilePass[] = [
       'validation_checklist',
       'output_requirements',
     ],
-    maxTokens: 480,
+    // Six lists at 3-6 items each do not fit in 480 tokens. The previous value was carried over
+    // from when this pass owned two fields, and the generation hit the cap mid-object every time —
+    // which, before the salvage path existed, discarded the whole pass. ~150 tokens per field is
+    // still well under the 320-per-field ceiling the server measured as the point where a small
+    // model starts padding rather than stopping.
+    maxTokens: 900,
   },
 ];
 
@@ -274,9 +279,12 @@ function findKeyStart(raw: string, key: string, from = 0): number {
  * that has started but not yet closed is left unset rather than guessed at. This is what lets the
  * UI render completed sections as they arrive instead of the raw JSON buffer while generation is
  * still in progress. */
-export function parsePartialSpec(raw: string): Partial<CompiledSpec> {
+export function parsePartialSpec(
+  raw: string,
+  fields: ReadonlyArray<keyof CompiledSpec> = SPEC_KEYS
+): Partial<CompiledSpec> {
   const result: Partial<CompiledSpec> = {};
-  for (const [i, key] of SPEC_KEYS.entries()) {
+  for (const [i, key] of fields.entries()) {
     const keyStart = findKeyStart(raw, key);
     if (keyStart === -1) break;
 
@@ -284,7 +292,7 @@ export function parsePartialSpec(raw: string): Partial<CompiledSpec> {
     if (colonIndex === -1) break;
     const valueStart = colonIndex + 1;
 
-    const nextKey = SPEC_KEYS[i + 1];
+    const nextKey = fields[i + 1];
     let segment: string | null;
     if (nextKey) {
       const nextKeyStart = findKeyStart(raw, nextKey, valueStart);
@@ -352,10 +360,10 @@ function readOpenString(buffer: string, from: number): string | null {
  * cards at once. This additionally exposes the field currently being written — including a
  * half-finished sentence — so text appears character by character as the model produces it.
  */
-export function parseStreamingSpec(raw: string): StreamingSpec {
-  const complete = parsePartialSpec(raw);
+export function parseStreamingSpec(raw: string, fields: ReadonlyArray<keyof CompiledSpec> = SPEC_KEYS): StreamingSpec {
+  const complete = parsePartialSpec(raw, fields);
   const completedCount = Object.keys(complete).length;
-  const key = SPEC_KEYS[completedCount];
+  const key = fields[completedCount];
   if (!key) return { complete, active: null };
 
   const keyStart = findKeyStart(raw, key);
@@ -412,7 +420,11 @@ export function parseStreamingSpec(raw: string): StreamingSpec {
 /** Best-effort parse: a valid JSON object wins outright; anything else still renders instead of
  * failing the whole request, matching the project's existing safe-fallback philosophy — the raw
  * text becomes the "task" field so nothing the model produced is silently discarded. */
-export function parseCompiledSpec(raw: string, fallbackTask: string): CompiledSpec {
+export function parseCompiledSpec(
+  raw: string,
+  fallbackTask: string,
+  fields: ReadonlyArray<keyof CompiledSpec> = SPEC_KEYS
+): CompiledSpec {
   const jsonText = extractJsonObject(raw);
   if (jsonText) {
     try {
@@ -430,9 +442,38 @@ export function parseCompiledSpec(raw: string, fallbackTask: string): CompiledSp
         output_requirements: asStringArray(parsed.output_requirements),
       };
     } catch {
-      // fall through to the raw-text fallback below
+      // fall through to the salvage path below
     }
   }
+
+  // Salvage. A generation that hits its token cap stops mid-object, so there is no balanced
+  // `{...}` for `extractJsonObject` to find — and discarding the whole payload for a missing
+  // closing brace threw away every field that HAD completed. That is what made the later sections
+  // vanish instead of filling. Re-use the streaming parser, which reads field by field and does
+  // not need the object to be closed.
+  const { complete, active } = parseStreamingSpec(raw, fields);
+  const salvaged: Partial<CompiledSpec> = { ...complete };
+  // The field that was mid-write when the cap hit still has whole items behind it; keeping four
+  // of five beats discarding the section.
+  if (active?.isList && active.completedItems.length > 0) {
+    (salvaged as Record<string, unknown>)[active.field] = active.completedItems;
+  }
+
+  if (Object.keys(salvaged).length > 0) {
+    return {
+      directive: salvaged.directive ?? '',
+      task: salvaged.task?.trim() ? salvaged.task : fallbackTask,
+      context: salvaged.context ?? '',
+      known_requirements: salvaged.known_requirements ?? [],
+      inferred_requirements: salvaged.inferred_requirements ?? [],
+      implementation_strategy: salvaged.implementation_strategy ?? [],
+      constraints: salvaged.constraints ?? [],
+      quality_expectations: salvaged.quality_expectations ?? [],
+      validation_checklist: salvaged.validation_checklist ?? [],
+      output_requirements: salvaged.output_requirements ?? [],
+    };
+  }
+
   return {
     directive: '',
     task: fallbackTask,

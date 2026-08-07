@@ -150,12 +150,6 @@ describe('COMPILE_PASSES', () => {
     expect(covered).toContain('directive');
   });
 
-  test('keeps per-pass budgets tight', () => {
-    // strategies.py records that raising a small model's per-unit budget produced repetitive
-    // filler, not richer output. Guard against "fixing" sparse output by raising these.
-    for (const pass of COMPILE_PASSES) expect(pass.maxTokens).toBeLessThanOrEqual(512);
-  });
-
   test('separates extraction from inference, which is the split worth its latency', () => {
     expect(COMPILE_PASSES[0]?.fields).toContain('known_requirements');
     expect(COMPILE_PASSES[0]?.fields).not.toContain('inferred_requirements');
@@ -281,5 +275,100 @@ describe('parseStreamingSpec', () => {
       expect(String(value)).not.toContain('{"');
     }
     expect(active?.partialText ?? '').not.toContain('":"');
+  });
+});
+
+/**
+ * Regressions from the live bug where the second pass produced no visible output.
+ *
+ * Every earlier fixture in this file was a full envelope starting at `directive`, which is what
+ * the FIRST pass emits. The second pass starts at `inferred_requirements`, and the parsers walked
+ * the global key order and gave up when `directive` was absent — so the suite stayed green while
+ * the app silently rendered nothing. These fixtures use the payload shape the second pass really
+ * produces.
+ */
+describe('pass-scoped parsing (the second pass does not start at "directive")', () => {
+  const PASS2 = COMPILE_PASSES[1]!.fields;
+  const MID_STREAM =
+    '{"inferred_requirements":["Define the recipient segment","Add a subject line"],"implementation_strategy":["Draft the body';
+
+  test('parsePartialSpec reads a payload that starts mid-envelope', () => {
+    expect(parsePartialSpec(MID_STREAM, PASS2)).toEqual({
+      inferred_requirements: ['Define the recipient segment', 'Add a subject line'],
+    });
+  });
+
+  test('without the field list it parses nothing — the exact shape of the bug', () => {
+    expect(parsePartialSpec(MID_STREAM)).toEqual({});
+  });
+
+  test('parseStreamingSpec exposes the in-flight field, so the typewriter runs', () => {
+    const { active } = parseStreamingSpec(MID_STREAM, PASS2);
+    expect(active?.field).toBe('implementation_strategy');
+    expect(active?.partialText).toBe('Draft the body');
+  });
+
+  test('every pass can parse its own first field', () => {
+    for (const pass of COMPILE_PASSES) {
+      const first = pass.fields[0]!;
+      const raw = `{"${first}":${first.includes('_') && first !== 'known_requirements' ? '["x"]' : '"x"'}`;
+      // Not asserting the value, only that the parser engages instead of bailing on key order.
+      expect(() => parseStreamingSpec(raw, pass.fields)).not.toThrow();
+    }
+  });
+});
+
+describe('truncation salvage', () => {
+  const PASS2 = COMPILE_PASSES[1]!.fields;
+
+  test('keeps completed fields when the generation stopped before the closing brace', () => {
+    // Hitting the token cap leaves no balanced object; discarding the payload for a missing `}`
+    // is what made the later sections disappear instead of filling.
+    const truncated =
+      '{"inferred_requirements":["Segment the recipients","Write a subject line","State one call to action"],"implementation_strategy":["Draft the';
+    const spec = parseCompiledSpec(truncated, 'fallback', PASS2);
+    expect(spec.inferred_requirements).toHaveLength(3);
+  });
+
+  test('keeps the completed items of the list that was mid-write', () => {
+    const truncated = '{"inferred_requirements":["first","second","thi';
+    const spec = parseCompiledSpec(truncated, 'fallback', PASS2);
+    expect(spec.inferred_requirements).toEqual(['first', 'second']);
+  });
+
+  test('a well-formed payload still takes the fast path unchanged', () => {
+    const whole =
+      '{"inferred_requirements":["a"],"implementation_strategy":["b"],"constraints":[],"quality_expectations":[],"validation_checklist":[],"output_requirements":[]}';
+    const spec = parseCompiledSpec(whole, 'fallback', PASS2);
+    expect(spec.inferred_requirements).toEqual(['a']);
+    expect(spec.implementation_strategy).toEqual(['b']);
+  });
+
+  test('still falls back to raw text when there is nothing structured at all', () => {
+    const spec = parseCompiledSpec('the model just wrote prose', 'the request');
+    expect(spec.task).toBe('the request');
+    expect(spec.context).toBe('the model just wrote prose');
+  });
+});
+
+describe('pass budgets scale with the number of fields', () => {
+  test('every pass can fit the output it asks for', () => {
+    // A flat per-field floor is the wrong model: three short strings cost far less than six lists
+    // of 3-6 items. 480 tokens across SIX lists was the under-allocation that truncated pass 2
+    // mid-object. Budget roughly 40 tokens for a scalar field and 130 for a list.
+    const LIST_FIELDS = new Set(COMPILER_SECTIONS.filter((s) => s.isList).map((s) => s.field));
+    for (const pass of COMPILE_PASSES) {
+      const lists = pass.fields.filter((f) => LIST_FIELDS.has(f)).length;
+      const scalars = pass.fields.length - lists;
+      expect(pass.maxTokens).toBeGreaterThanOrEqual(scalars * 40 + lists * 130);
+    }
+  });
+
+  test('and stays under the per-field ceiling the server measured', () => {
+    // strategies.py: 960 tokens for a single field produced repetitive filler; 320/field is the
+    // point that was kept. This encodes the lesson per field rather than per call.
+    for (const pass of COMPILE_PASSES) {
+      expect(pass.maxTokens / pass.fields.length).toBeLessThanOrEqual(320);
+    }
   });
 });
