@@ -1,4 +1,6 @@
-import { applyDismissals, type CompiledSpec, renderSpec, SECTION_META } from '../prompt';
+import { type ActiveField, applyDismissals, type CompiledSpec, renderSpec, SECTION_META } from '../prompt';
+import { copyIcon, checkIcon } from './icons';
+import { renderInlineMarkdown } from './markdown';
 
 /**
  * Renders a compiled spec as inspectable section cards.
@@ -18,6 +20,7 @@ export interface SpecViewOptions {
 
 export class SpecView {
   private spec: Partial<CompiledSpec> = {};
+  private active: ActiveField | null = null;
   private readonly dismissed = new Set<string>();
 
   constructor(
@@ -29,11 +32,21 @@ export class SpecView {
    * already rejected stays rejected across a re-compile that produces it again. */
   setSpec(spec: Partial<CompiledSpec>): void {
     this.spec = spec;
+    this.active = null;
+    this.render();
+  }
+
+  /** Streaming update: `active` is the field currently being written, rendered mid-sentence with a
+   * caret so text appears as it is produced rather than a card at a time. */
+  setStreaming(spec: Partial<CompiledSpec>, active: ActiveField | null): void {
+    this.spec = spec;
+    this.active = active;
     this.render();
   }
 
   clear(): void {
     this.spec = {};
+    this.active = null;
     this.dismissed.clear();
     this.root.replaceChildren();
   }
@@ -52,19 +65,33 @@ export class SpecView {
     const cards: HTMLElement[] = [];
 
     const directive = visible.directive?.trim();
-    if (directive) cards.push(this.buildCard('Directive', 'neutral', directive, directive));
+    if (directive) cards.push(this.buildCard('Directive', 'neutral', directive, directive, false));
 
     for (const { label, field, isList, provenance } of SECTION_META) {
+      const streaming = this.active?.field === field;
       const value = visible[field];
+
       if (isList) {
-        const items = (value as string[] | undefined) ?? [];
-        if (items.length === 0) continue;
-        cards.push(this.buildCard(label, provenance, items, `# ${label}\n${items.map((i) => `- ${i}`).join('\n')}`));
-      } else {
-        const text = (value as string | undefined)?.trim() ?? '';
-        if (!text) continue;
-        cards.push(this.buildCard(label, provenance, text, `# ${label}\n${text}`));
+        const items = [...(((value as string[] | undefined) ?? []) as string[])];
+        if (streaming && this.active) items.push(...this.active.completedItems);
+        const partial = streaming ? this.active?.partialText : '';
+        if (items.length === 0 && !partial) continue;
+        cards.push(
+          this.buildCard(
+            label,
+            provenance,
+            items,
+            `# ${label}\n${items.map((i) => `- ${i}`).join('\n')}`,
+            streaming,
+            partial
+          )
+        );
+        continue;
       }
+
+      const text = streaming && this.active ? this.active.partialText : ((value as string | undefined)?.trim() ?? '');
+      if (!text) continue;
+      cards.push(this.buildCard(label, provenance, text, `# ${label}\n${text}`, streaming));
     }
 
     this.root.replaceChildren(...cards);
@@ -74,11 +101,14 @@ export class SpecView {
     label: string,
     provenance: 'explicit' | 'inferred' | 'neutral',
     content: string | string[],
-    copyText: string
+    copyText: string,
+    streaming: boolean,
+    partial = ''
   ): HTMLElement {
     const card = document.createElement('section');
     card.className = 'card';
     card.dataset.provenance = provenance;
+    if (streaming) card.dataset.streaming = 'true';
 
     const head = document.createElement('div');
     head.className = 'card-head';
@@ -100,28 +130,51 @@ export class SpecView {
     spacer.className = 'card-head-spacer';
     head.append(spacer);
 
-    const copy = document.createElement('button');
-    copy.type = 'button';
-    copy.className = 'icon-button';
-    copy.textContent = 'copy';
-    copy.setAttribute('aria-label', `Copy ${label}`);
-    copy.addEventListener('click', () => this.options.onCopyText(copyText, label));
-    head.append(copy);
+    // Icon-only while streaming would be misleading (the text is incomplete), so the copy control
+    // only appears once the section has settled.
+    if (!streaming) head.append(this.buildCopyButton(copyText, label));
 
     card.append(head);
 
     if (typeof content === 'string') {
       const p = document.createElement('p');
-      p.textContent = content;
+      renderInlineMarkdown(p, content);
+      if (streaming) p.append(this.caret());
       card.append(p);
     } else {
-      card.append(this.buildList(content, provenance === 'inferred'));
+      card.append(this.buildList(content, provenance === 'inferred', partial, streaming));
     }
 
     return card;
   }
 
-  private buildList(items: string[], dismissable: boolean): HTMLElement {
+  private buildCopyButton(copyText: string, label: string): HTMLButtonElement {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'icon-button';
+    button.title = `Copy ${label}`;
+    button.setAttribute('aria-label', `Copy ${label}`);
+    button.append(copyIcon());
+    button.addEventListener('click', () => {
+      this.options.onCopyText(copyText, label);
+      button.replaceChildren(checkIcon());
+      button.dataset.confirmed = 'true';
+      window.setTimeout(() => {
+        button.replaceChildren(copyIcon());
+        delete button.dataset.confirmed;
+      }, 1200);
+    });
+    return button;
+  }
+
+  private caret(): HTMLElement {
+    const caret = document.createElement('span');
+    caret.className = 'caret';
+    caret.setAttribute('aria-hidden', 'true');
+    return caret;
+  }
+
+  private buildList(items: string[], dismissable: boolean, partial: string, streaming: boolean): HTMLElement {
     const list = document.createElement('ul');
 
     for (const item of items) {
@@ -129,7 +182,7 @@ export class SpecView {
 
       const text = document.createElement('span');
       text.className = 'item-text';
-      text.textContent = item;
+      renderInlineMarkdown(text, item);
       li.append(text);
 
       if (dismissable) {
@@ -137,6 +190,7 @@ export class SpecView {
         drop.type = 'button';
         drop.className = 'dismiss';
         drop.textContent = '✕';
+        drop.title = 'Remove this assumption';
         drop.setAttribute('aria-label', `Remove inferred requirement: ${item}`);
         drop.addEventListener('click', () => {
           this.dismissed.add(item);
@@ -146,6 +200,16 @@ export class SpecView {
         li.append(drop);
       }
 
+      list.append(li);
+    }
+
+    if (streaming && partial) {
+      const li = document.createElement('li');
+      const text = document.createElement('span');
+      text.className = 'item-text';
+      renderInlineMarkdown(text, partial);
+      text.append(this.caret());
+      li.append(text);
       list.append(li);
     }
 

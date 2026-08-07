@@ -52,7 +52,7 @@ export class LocalEngine implements Engine {
     try {
       await model.generate({
         ...inputs,
-        max_new_tokens: MAX_NEW_TOKENS,
+        max_new_tokens: handlers.maxTokens ?? MAX_NEW_TOKENS,
         do_sample: false,
         streamer,
       });

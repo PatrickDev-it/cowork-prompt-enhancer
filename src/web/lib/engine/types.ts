@@ -60,6 +60,13 @@ export interface CompileHandlers {
   onToken?: (token: string) => void;
   onProgress?: (event: EngineProgress) => void;
   signal?: AbortSignal;
+  /** Output cap for this call. Compilation runs as several small passes rather than one large
+   * generation, and each pass sets its own tight budget — `strategies.py` records that giving a
+   * small model *more* room per unit of output makes it emit repetitive filler, not better
+   * content. Engines fall back to their own default when this is unset. */
+  maxTokens?: number;
+  /** Restricts schema-constrained decoding to the fields this pass is responsible for. */
+  fields?: readonly string[];
 }
 
 export interface Engine {
@@ -74,6 +81,17 @@ export interface Engine {
  * no constrained-decoding path and keeps relying on `parseCompiledSpec`, which stays the
  * universal fallback (RFC-0011 § grammar: structural validity by construction where available).
  */
+/** Narrows the full schema to one pass's fields, so a constrained engine is asked for exactly the
+ * keys that pass owns rather than the whole envelope. */
+export function schemaForFields(fields: readonly string[]): Record<string, unknown> {
+  const properties: Record<string, unknown> = {};
+  for (const field of fields) {
+    const property = (SPEC_JSON_SCHEMA.properties as Record<string, unknown>)[field];
+    if (property) properties[field] = property;
+  }
+  return { type: 'object', additionalProperties: false, required: [...fields], properties };
+}
+
 export const SPEC_JSON_SCHEMA = {
   type: 'object',
   additionalProperties: false,

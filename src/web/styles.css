@@ -13,24 +13,28 @@
   color-scheme: dark light;
 
   /* Surfaces */
-  --bg: #0b0d0e;
-  --surface: #131719;
-  --surface-raised: #191e21;
-  --border: #1f2528;
-  --border-strong: #2c3438;
+  --bg: #0a0c0d;
+  --surface: #14191b;
+  --surface-raised: #1c2225;
+  /* Raised from #1f2528: at ~1.2:1 against the canvas the old hairlines were effectively
+     invisible, which is most of why the page read as one flat grey field. */
+  --border: #2b3337;
+  --border-strong: #3d484d;
 
   /* Text */
-  --fg: #e6edf3;
-  --fg-muted: #7d8590;
-  --fg-faint: #56606a;
+  --fg: #edf3f8;
+  --fg-muted: #9aa5ae;
+  /* #56606a sat at roughly 4:1 — technically passing, practically illegible for the labels and
+     metadata that carry the interface's structure. */
+  --fg-faint: #78848d;
 
   /* Signal */
-  --accent: #4ec9b0;
-  --accent-dim: #2a6b5f;
-  --accent-wash: rgba(78, 201, 176, 0.09);
-  --inferred: #e3b341;
-  --inferred-dim: #7a6224;
-  --inferred-wash: rgba(227, 179, 65, 0.08);
+  --accent: #5cdcc2;
+  --accent-dim: #35887a;
+  --accent-wash: rgba(92, 220, 194, 0.14);
+  --inferred: #f0c250;
+  --inferred-dim: #8f722a;
+  --inferred-wash: rgba(240, 194, 80, 0.13);
   --error: #f85149;
   --error-wash: rgba(248, 81, 73, 0.1);
   --success: #3fb950;
@@ -69,12 +73,12 @@
     --bg: #fbfcfc;
     --surface: #ffffff;
     --surface-raised: #f4f6f7;
-    --border: #e1e6e8;
-    --border-strong: #cbd3d7;
+    --border: #d4dcdf;
+    --border-strong: #aab6bb;
 
     --fg: #11181c;
     --fg-muted: #5c6a72;
-    --fg-faint: #8b979e;
+    --fg-faint: #6b767d;
 
     --accent: #157a63;
     --accent-dim: #9fd8cb;
@@ -216,6 +220,36 @@ a {
   border-color: var(--border-strong);
 }
 
+/* Square, icon-only. The primary control on the right of the Compiled header — a wordy
+   "copy markdown" label there competed with the section titles for attention. */
+.square-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--fg-muted);
+  transition:
+    color var(--dur) var(--ease),
+    border-color var(--dur) var(--ease),
+    background var(--dur) var(--ease);
+}
+
+.square-button:hover {
+  color: var(--accent);
+  border-color: var(--accent-dim);
+  background: var(--accent-wash);
+}
+
+.square-button[data-confirmed="true"],
+.icon-button[data-confirmed="true"] {
+  color: var(--success);
+  border-color: var(--success);
+}
+
 /* ---------------------------------------------------------------- layout */
 
 .workbench {
@@ -342,7 +376,7 @@ a {
 .card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-left: 2px solid var(--border-strong);
+  border-left: 3px solid var(--border-strong);
   border-radius: var(--radius);
   padding: var(--s4);
   animation: rise var(--dur) var(--ease) both;
@@ -370,15 +404,29 @@ a {
   display: flex;
   align-items: center;
   gap: var(--s2);
-  margin-bottom: var(--s3);
+  margin: calc(var(--s4) * -1) calc(var(--s4) * -1) var(--s3);
+  padding: var(--s2) var(--s4);
+  background: var(--surface-raised);
+  border-bottom: 1px solid var(--border);
+  border-radius: var(--radius) var(--radius) 0 0;
+  min-height: 2.25rem;
 }
 
 .card-title {
   font-family: var(--font-mono);
   font-size: var(--text-xs);
-  letter-spacing: 0.08em;
+  font-weight: 600;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--fg-muted);
+  color: var(--fg);
+}
+
+.card[data-provenance="explicit"] .card-title {
+  color: var(--accent);
+}
+
+.card[data-provenance="inferred"] .card-title {
+  color: var(--inferred);
 }
 
 .chip {
@@ -386,8 +434,16 @@ a {
   border-radius: 999px;
   font-family: var(--font-mono);
   font-size: var(--text-xs);
-  line-height: 1.5;
+  line-height: 1.6;
   border: 1px solid currentcolor;
+}
+
+.chip[data-kind="explicit"] {
+  background: var(--accent-wash);
+}
+
+.chip[data-kind="inferred"] {
+  background: var(--inferred-wash);
 }
 
 .chip[data-kind="explicit"] {
@@ -748,4 +804,58 @@ li:hover .dismiss,
   #request {
     min-height: 7rem;
   }
+}
+
+/* ---------------------------------------------------------------- streaming */
+
+/* The typewriter caret. Marks the field the model is writing right now, so a pause reads as
+   "still generating" rather than "stopped". */
+.caret {
+  display: inline-block;
+  width: 0.5em;
+  height: 1em;
+  margin-left: 1px;
+  vertical-align: text-bottom;
+  background: var(--accent);
+  animation: blink 1s steps(2, start) infinite;
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .caret {
+    animation: none;
+    opacity: 0.6;
+  }
+}
+
+/* The card currently being written gets the accent rule regardless of provenance, so the eye
+   tracks generation down the column. */
+.card[data-streaming="true"] {
+  border-left-color: var(--accent);
+}
+
+/* Inline markdown inside spec text — the compiler prompt asks the model to use `code` for paths
+   and identifiers, and those need to read as code rather than prose. */
+.card code {
+  padding: 0.1em 0.35em;
+  border-radius: var(--radius-sm);
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  color: var(--accent);
+}
+
+.card strong {
+  color: var(--fg);
+  font-weight: 600;
+}
+
+.card a {
+  text-underline-offset: 2px;
 }
