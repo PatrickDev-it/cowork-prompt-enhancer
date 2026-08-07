@@ -14,7 +14,7 @@
  * the model has nothing to expand from and emits filler.
  */
 
-import { classifyTaskKind, type TaskKind } from './task-kind';
+import { classifyDomain, DOMAIN_DIMENSIONS } from './domain';
 
 export interface CompiledSpec {
   directive: string;
@@ -69,21 +69,24 @@ export const COMPILER_SECTIONS: Array<{ header: string; field: keyof CompiledSpe
 /* ------------------------------------------------------------------ pass definitions */
 
 /**
- * Compilation runs as three focused passes rather than one ten-field call.
+ * Compilation runs as two focused passes rather than one ten-field call.
  *
- * A 1.7B model asked for ten fields at once produces a structurally valid but empty spec — the
- * observed failure was every list collapsing to exactly one generic item. The server solves the
- * same problem with `run_enhancement_field_loop` (one field per call, RFC-0005), but ten sequential
- * on-device generations is too slow; three grouped passes keep the decomposition benefit at a
- * third of the round trips. Each pass sees the previous passes' output.
+ * A 1.7B model asked for the whole envelope at once returns a structurally valid but empty spec —
+ * the first observed failure was every list collapsing to one generic item. Splitting extraction
+ * from inference is the part worth paying for: it is what stops the model blending what the user
+ * said with what it assumed, which is the product's entire claim.
  *
- * Per-pass budgets stay tight on purpose. `strategies.py` records a measured amendment
- * (2026-07-07): raising a single field's budget from 320 to 960 tokens was reverted because the
- * real model, given more room, "fills with repetitive filler … instead of stopping". More tokens
- * is not the fix here.
+ * Two rather than three, because prefill is compute-bound and each pass pays it again. The
+ * previous three-pass version tripled the prompt count while also tripling prompt length, which is
+ * the latency the user felt. `constraints` / `quality_expectations` / `validation_checklist` /
+ * `output_requirements` are *derived* from the inference rather than independently inferred, so
+ * they ride along with the expand pass at almost no quality cost.
+ *
+ * Budgets stay tight: `strategies.py` records a measured amendment where raising a small model's
+ * per-unit budget produced repetitive filler instead of richer content.
  */
 export interface CompilePass {
-  id: 'ground' | 'expand' | 'bound';
+  id: 'ground' | 'expand';
   label: string;
   fields: Array<keyof CompiledSpec>;
   maxTokens: number;
@@ -94,222 +97,144 @@ export const COMPILE_PASSES: CompilePass[] = [
     id: 'ground',
     label: 'Reading the request',
     fields: ['directive', 'task', 'context', 'known_requirements'],
-    maxTokens: 360,
+    maxTokens: 320,
   },
   {
     id: 'expand',
-    label: 'Inferring requirements',
-    fields: ['inferred_requirements', 'implementation_strategy'],
-    maxTokens: 420,
-  },
-  {
-    id: 'bound',
-    label: 'Setting bounds and checks',
-    fields: ['constraints', 'quality_expectations', 'validation_checklist', 'output_requirements'],
-    maxTokens: 420,
+    label: 'Inferring what it needs',
+    fields: [
+      'inferred_requirements',
+      'implementation_strategy',
+      'constraints',
+      'quality_expectations',
+      'validation_checklist',
+      'output_requirements',
+    ],
+    maxTokens: 480,
   },
 ];
 
-/* ------------------------------------------------------------------ shared rule blocks */
+/* ------------------------------------------------------------------ rule blocks */
 
-/** Built from the actual filler the 1.7B model emitted on a live request. Naming the offenders
- * beats an abstract "be specific" instruction, which a model this size cannot operationalise. */
-const ANTI_FILLER = `NEVER write empty filler. These exact phrases are banned:
-"follows best practices", "well-structured", "as needed", "if necessary", "create a new directory",
-"ensure it works correctly", "proper implementation", "appropriate structure".
-Test every item: if it could be pasted unchanged into a completely different request, it is filler —
-delete it and write something that only makes sense for THIS request.`;
+/** Built from filler this model actually emitted. Naming the offenders beats an abstract
+ * "be specific", which a model this size cannot operationalise. */
+const ANTI_FILLER = `Banned phrases: "follows best practices", "well-structured", "as needed",
+"if necessary", "ensure it works correctly", "proper implementation". If an item would fit an
+unrelated request unchanged, it is filler — replace it.`;
 
-/** Targets an observed hallucination: the model asserted the framework was "already installed and
- * configured" when the user had said nothing of the kind. */
-const ANTI_INVENTION = `NEVER claim something already exists, is already installed, or is already configured
-unless the user said so. If you do not know, do not assert it.`;
+/** Targets two observed hallucinations: asserting a framework was "already installed and
+ * configured", and importing an unrelated technology stack wholesale. The second sentence is the
+ * direct guard against copying anything technology-shaped that is not in the request. */
+const ANTI_INVENTION = `Never claim something already exists or is already set up unless the request said so.
+Never mention a tool, framework, file type or technology the request did not mention.`;
 
-/** The server's CAPABILITY OVER IMPLEMENTATION rule (prompts.py), condensed. Keeps the compiler
- * from naming vendors the user did not choose, while still allowing the framework they DID name. */
-const CAPABILITY_RULE = `Describe capabilities, not vendor products. Do not name a specific library or service
-(ORM, auth provider, state manager) unless the user named it. The framework or language the user named
-is theirs to keep — use it and its real vocabulary.`;
-
-function densityRule(kind: TaskKind): string {
-  // Deliberately NOT the server's "prefer few precise items over many vague ones / never pad".
-  // That rule is calibrated for an 8B model whose failure mode is padding; this model's failure
-  // mode is the opposite, so the same words would reinforce the bug.
-  return kind === 'technical'
-    ? `Produce 3 to 6 items per list. One item, or a single generic sentence, means you did not do the work.
-Every item must be concrete enough that a developer could act on it without asking a follow-up question.`
-    : `Produce 2 to 4 items per list, each specific to this request.`;
-}
-
-function expansionPolicy(kind: TaskKind): string {
-  if (kind !== 'technical') {
-    return `DOMAIN EXPANSION: if the request names a field (legal, healthcare, finance, education, ...),
-infer that field's standard concepts, terminology and expectations.`;
-  }
-  return `TECHNICAL EXPANSION POLICY — this is the part that makes the specification worth reading.
-Infer the implementation dimensions a senior engineer would assume but the user did not spell out:
-project structure, routing, data modelling, error and empty states, responsive behaviour,
-accessibility, typing, testing, performance, maintainability.
-
-NAME THE REAL PRIMITIVES. When the request names a framework, library or language, infer the concrete
-artefacts THAT technology actually uses — its own file extensions, directory conventions, routing model,
-configuration files and APIs. Use its real vocabulary. A generic answer that would fit any technology
-means you have not applied this rule.
-
-${CAPABILITY_RULE}`;
-}
-
-/* ------------------------------------------------------------------ few-shots */
+const SLOT: Record<keyof CompiledSpec, string> = {
+  directive: '"<one imperative sentence to the AI that will do the work>"',
+  task: '"<one sentence naming the actual work — different wording from directive>"',
+  context: '"<only background the request itself gives; empty string if none>"',
+  known_requirements: '["<something the request literally said>", ...]',
+  inferred_requirements: '["<3-6 items the request did NOT say but this deliverable needs>", ...]',
+  implementation_strategy: '["<3-5 concrete ordered steps for this deliverable>", ...]',
+  constraints: '["<limits this request implies>", ...]',
+  quality_expectations: '["<observable properties of a good result, not adjectives>", ...]',
+  validation_checklist: '["<checks that pass or fail>", ...]',
+  output_requirements: '["<what the executing AI hands back>", ...]',
+};
 
 /**
- * Two worked examples, both showing dense, technology-specific lists — the property the model was
- * failing to reproduce from a single thin example.
+ * The output shape, expressed as slot descriptions instead of content.
  *
- * Neither is a static-site generator, and neither is Astro. That is deliberate: the request that
- * exposed this bug was an Astro one, and few-shotting the same tool would turn the next test into a
- * recall check rather than a test of generalisation. These teach the *pattern* (framework → its own
- * primitives) and leave the real test honest.
+ * The previous version used two rich worked examples. A 1.7B model reproduced them verbatim — an
+ * email-template request came back with `app/dashboard/page.tsx` and `loading.tsx` boundaries.
+ * Nothing here is worth copying because nothing here is content, and it costs a fraction of the
+ * tokens, which is also most of the prefill saving.
  */
-const FEW_SHOTS: Array<{ request: string; output: Partial<CompiledSpec> }> = [
-  {
-    request: 'add login and make it secure, use the db we already have',
-    output: {
-      directive: 'Implement a secure login and logout flow on the existing database, and report how you verified it.',
-      task: 'Add credential-based authentication with session invalidation to the current application.',
-      context: 'A database already exists and must be reused; no new datastore is in scope.',
-      known_requirements: ['Add a login feature.', 'Make it secure.', 'Use the existing database.'],
-      inferred_requirements: [
-        'Store passwords as salted hashes, never plain text, and never log them.',
-        'Invalidate the session or token server-side on logout, not only in the client.',
-        'Return an identical error for unknown user and wrong password, so the response does not reveal which accounts exist.',
-        'Rate-limit repeated failed attempts against the same account or address.',
-        'Mark the session cookie HttpOnly and Secure, with a documented expiry.',
-      ],
-      implementation_strategy: [
-        'Add a credentials table keyed to the existing user record, holding the hash and its algorithm parameters.',
-        'Add a login handler that verifies the hash in constant time and issues a session on success.',
-        'Add a logout handler that deletes the server-side session record.',
-        'Add middleware that rejects unauthenticated requests to protected routes.',
-      ],
-    },
-  },
-  {
-    request: 'make me a dashboard page in nextjs',
-    output: {
-      directive: 'Build a dashboard route in the existing Next.js application and report how you verified it renders.',
-      task: 'Add a dashboard page with data loading, loading and empty states to the Next.js app.',
-      context: 'The application uses Next.js; no data source or auth model was specified.',
-      known_requirements: ['Add a dashboard page.', 'Build it in Next.js.'],
-      inferred_requirements: [
-        'Place the route under `app/dashboard/page.tsx` following the App Router convention.',
-        'Fetch data in a Server Component and keep client-side JavaScript to what interactivity requires.',
-        'Provide `loading.tsx` and `error.tsx` boundaries for the route segment.',
-        'Render an explicit empty state when the query returns no rows.',
-        'Type the data shape and export it, rather than passing untyped objects to the view.',
-      ],
-      implementation_strategy: [
-        'Create the `app/dashboard/` segment with `page.tsx`, `loading.tsx` and `error.tsx`.',
-        'Define the typed data-access function the page awaits, isolated from the component.',
-        'Compose the page from presentational components that receive typed props.',
-        'Add responsive layout rules so the panels reflow on narrow viewports.',
-      ],
-    },
-  },
-];
-
-function fewShotBlock(fields: Array<keyof CompiledSpec>): string {
-  return FEW_SHOTS.map(({ request, output }) => {
-    const slice: Record<string, unknown> = {};
-    for (const field of fields) if (output[field] !== undefined) slice[field] = output[field];
-    return `Request: "${request}"\nOutput: ${JSON.stringify(slice)}`;
-  }).join('\n\n');
+function shapeFor(fields: Array<keyof CompiledSpec>): string {
+  const slots = fields.map((field) => `  "${field}": ${SLOT[field]}`).join(',\n');
+  return `{\n${slots}\n}`;
 }
 
 /* ------------------------------------------------------------------ pass prompts */
 
-const FIELD_RULES: Record<keyof CompiledSpec, string> = {
-  directive: 'one imperative sentence addressed to the AI that will do the work, opening with a verb.',
-  task: 'one sentence naming the actual engineering work. It must NOT repeat "directive" — if both would be the same sentence, rewrite this one to say what is being built rather than what to do.',
-  context:
-    'the minimal background needed to execute. State only what the user gave you. Empty string if they gave none.',
-  known_requirements: 'ONLY things the user literally said. Nothing you inferred. Usually 1-4 items.',
-  inferred_requirements: 'what the user did NOT say but a senior engineer would assume. This is where the value is.',
-  implementation_strategy: 'ordered, concrete steps naming real files, modules or components.',
-  constraints: 'genuine limits implied by the request. Empty array if the request implies none.',
-  quality_expectations: 'observable properties of a good result, not adjectives.',
-  validation_checklist: 'checks whose outcome is pass or fail, each naming what is being checked.',
-  output_requirements: 'what the executing AI must hand back.',
-};
-
-/** Builds the prompt for one pass. `prior` carries the already-compiled fields so later passes stay
- * consistent with earlier ones instead of re-deriving the request from scratch. */
-export function buildPassPrompt(pass: CompilePass, userInput: string, prior: Partial<CompiledSpec>): string {
-  const kind = classifyTaskKind(userInput);
-  const fieldList = pass.fields.map((field) => `- "${field}": ${FIELD_RULES[field]}`).join('\n');
-  const priorBlock = Object.keys(prior).length
-    ? `\nAlready compiled — stay consistent with it and do not repeat it:\n${JSON.stringify(prior)}\n`
-    : '';
-
-  const policy =
-    pass.id === 'expand'
-      ? `\n${expansionPolicy(kind)}\n\n${densityRule(kind)}\n`
-      : pass.id === 'bound'
-        ? `\n${densityRule(kind)}\n`
-        : `\nExtract only. Do not infer anything in this step — inferences come later.\n`;
-
-  return `You are an intent-to-specification compiler. You turn an incomplete request into a specification another AI executes without asking questions.
-
-TASK KIND: ${kind}
+function groundPrompt(userInput: string, fields: Array<keyof CompiledSpec>): string {
+  return `You turn a rough request into a specification another AI executes.
+This step is EXTRACTION ONLY. Do not infer or add anything — that comes next.
 
 REQUEST:
 "${userInput}"
-${priorBlock}${policy}
+
 ${ANTI_INVENTION}
 
-${ANTI_FILLER}
+Return ONE JSON object, this shape:
+${shapeFor(fields)}
 
-Return ONE JSON object and nothing else, with exactly these keys:
-${fieldList}
-
-Write the output in English regardless of the language of the request.
-
-Examples of the expected density and specificity:
-${fewShotBlock(pass.fields)}
-
-Now produce the JSON for the request above.
+Write in English whatever language the request uses.
 Output:`;
 }
 
-/** Kept as the single-call path for engines with schema-constrained decoding, where the model
- * cannot drift structurally and the decomposition buys much less. */
-export function buildPrompt(userInput: string): string {
-  const kind = classifyTaskKind(userInput);
-  const fieldList = SPEC_KEYS.map((field) => `- "${field}": ${FIELD_RULES[field]}`).join('\n');
-
-  return `You are an intent-to-specification compiler. You turn an incomplete request into a specification another AI executes without asking questions.
-
-TASK KIND: ${kind}
+function expandPrompt(userInput: string, prior: Partial<CompiledSpec>, fields: Array<keyof CompiledSpec>): string {
+  const domain = classifyDomain(userInput);
+  return `You turn a rough request into a specification another AI executes.
+This step adds what the request did NOT say but the deliverable needs.
 
 REQUEST:
 "${userInput}"
 
-${expansionPolicy(kind)}
+Already extracted:
+${JSON.stringify(prior)}
 
-${densityRule(kind)}
+Think about what this specific deliverable requires. For a request like this one, consider:
+${DOMAIN_DIMENSIONS[domain]}.
+Those are dimensions to think about, not words to copy — infer what THIS request needs.
+
+Produce 3 to 6 items per list. One generic item means you did not do the work.
+Every item must be specific enough to act on without asking a follow-up question.
+Describe capabilities, not brand-name products, unless the request named one.
 
 ${ANTI_INVENTION}
 
 ${ANTI_FILLER}
 
-Return ONE JSON object and nothing else, with exactly these keys:
-${fieldList}
+Return ONE JSON object, this shape:
+${shapeFor(fields)}
 
-Write the output in English regardless of the language of the request.
+Write in English whatever language the request uses.
+Output:`;
+}
 
-Examples of the expected density and specificity:
-${fewShotBlock([...SPEC_KEYS])}
+/** Builds the prompt for one pass. `prior` carries the already-extracted fields so the inference
+ * step stays anchored to the deliverable rather than re-deriving it from the raw request. */
+export function buildPassPrompt(pass: CompilePass, userInput: string, prior: Partial<CompiledSpec>): string {
+  return pass.id === 'ground' ? groundPrompt(userInput, pass.fields) : expandPrompt(userInput, prior, pass.fields);
+}
 
-Now produce the JSON for the request above.
+/** Single-call path, kept for engines with schema-constrained decoding where the model cannot
+ * drift structurally and the decomposition buys much less. */
+export function buildPrompt(userInput: string): string {
+  const domain = classifyDomain(userInput);
+  return `You are an intent-to-specification compiler. You turn an incomplete request into a
+specification another AI executes without asking questions.
+
+REQUEST:
+"${userInput}"
+
+Separate what the request literally said (known_requirements) from what you added
+(inferred_requirements). Never mix them.
+
+Think about what this deliverable requires. For a request like this one, consider:
+${DOMAIN_DIMENSIONS[domain]}.
+Those are dimensions to think about, not words to copy.
+
+Produce 3 to 6 items per list. One generic item means you did not do the work.
+
+${ANTI_INVENTION}
+
+${ANTI_FILLER}
+
+Return ONE JSON object, this shape:
+${shapeFor([...SPEC_KEYS])}
+
+Write in English whatever language the request uses.
 Output:`;
 }
 
