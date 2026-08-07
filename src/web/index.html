@@ -3,139 +3,76 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AI Prompt Optimizer — browser demo</title>
+    <title>AI Prompt Optimizer — intent-to-specification compiler</title>
     <meta
       name="description"
-      content="Compile a rough request into a structured, implementation-ready prompt — entirely on-device, no server, no account."
+      content="Compile a rough request into a structured, implementation-ready specification. Runs on your device by default — no server, no account."
     />
-    <style>
-      :root {
-        color-scheme: light dark;
-        --fg: #1a1a1a;
-        --bg: #ffffff;
-        --muted: #666666;
-        --border: #d8d8d8;
-        --accent: #2f6fed;
-      }
-      @media (prefers-color-scheme: dark) {
-        :root {
-          --fg: #e8e8e8;
-          --bg: #121212;
-          --muted: #9a9a9a;
-          --border: #3a3a3a;
-        }
-      }
-      * {
-        box-sizing: border-box;
-      }
-      body {
-        margin: 0;
-        padding: 2rem 1rem 4rem;
-        background: var(--bg);
-        color: var(--fg);
-        font-family:
-          system-ui,
-          -apple-system,
-          'Segoe UI',
-          sans-serif;
-        line-height: 1.5;
-      }
-      main {
-        max-width: 760px;
-        margin: 0 auto;
-      }
-      h1 {
-        font-size: 1.4rem;
-        margin-bottom: 0.25rem;
-      }
-      p.tagline {
-        color: var(--muted);
-        margin-top: 0;
-      }
-      textarea {
-        width: 100%;
-        min-height: 6rem;
-        padding: 0.75rem;
-        font: inherit;
-        border: 1px solid var(--border);
-        border-radius: 8px;
-        background: transparent;
-        color: inherit;
-        resize: vertical;
-      }
-      .row {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        margin-top: 0.75rem;
-      }
-      button {
-        font: inherit;
-        padding: 0.6rem 1.2rem;
-        border-radius: 8px;
-        border: none;
-        background: var(--accent);
-        color: white;
-        cursor: pointer;
-      }
-      button:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-      }
-      #status {
-        color: var(--muted);
-        font-size: 0.9rem;
-      }
-      #result {
-        margin-top: 1.5rem;
-        white-space: pre-wrap;
-        font-size: 0.95rem;
-      }
-      #result:empty {
-        display: none;
-      }
-      .notice {
-        margin-top: 1.5rem;
-        padding: 0.75rem 1rem;
-        border: 1px solid var(--border);
-        border-radius: 8px;
-        font-size: 0.85rem;
-        color: var(--muted);
-      }
-      .privacy {
-        margin-top: 0.5rem;
-        font-size: 0.8rem;
-        color: var(--muted);
-      }
-    </style>
+    <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
-    <main>
-      <h1>AI Prompt Optimizer — try it in the browser</h1>
-      <p class="tagline">
-        Write a rough request. It compiles into a structured, implementation-ready specification —
-        entirely on your device, no server, no account.
-      </p>
+    <header class="masthead">
+      <div class="mark"><strong>ai-prompt-optimizer</strong> <span>intent → specification</span></div>
+      <div class="masthead-spacer"></div>
+      <button id="open-settings" class="ghost-button" type="button" aria-haspopup="dialog">engine ·&nbsp;<span id="engine-label">on device</span></button>
+    </header>
 
-      <textarea id="request" placeholder="add login and make it secure, use the db we already have"></textarea>
-      <div class="row">
-        <button id="compile" type="button">Compile</button>
-        <span id="status"></span>
-      </div>
+    <main class="workbench">
+      <section class="pane source-pane" aria-labelledby="source-heading">
+        <div class="pane-head"><span id="source-heading">Source</span></div>
+        <div class="pane-body">
+          <label class="visually-hidden" for="request">Your rough request</label>
+          <textarea
+            id="request"
+            spellcheck="false"
+            placeholder="add login and make it secure, use the db we already have"
+          ></textarea>
+          <div class="source-actions">
+            <button id="compile" class="compile-button" type="button">Compile <kbd>⌘↵</kbd></button>
+            <span class="hint">Write it rough. The compiler does the formalizing.</span>
+          </div>
+        </div>
+      </section>
 
-      <div id="result"></div>
-
-      <p class="privacy">
-        Nothing you type ever leaves this browser tab: the model downloads once from Hugging Face and runs
-        entirely on your device from then on.
-      </p>
-
-      <div id="unsupported" class="notice" hidden>
-        This browser does not support WebGPU, or the fallback failed to load. Try a recent Chrome, Edge or
-        Firefox on desktop. The terminal client works everywhere in the meantime — see the
-        <a href="https://github.com/PatrickDev-it/ai-prompt-optimizer">repository</a>.
-      </div>
+      <section class="pane spec-pane" aria-labelledby="spec-heading">
+        <div class="pane-head">
+          <span id="spec-heading">Compiled</span>
+          <div class="pane-head-spacer"></div>
+          <button id="copy-all" class="ghost-button" type="button" hidden>copy markdown</button>
+          <button id="download" class="ghost-button" type="button" hidden>.md</button>
+        </div>
+        <div class="pane-body">
+          <div id="notice" class="notice" role="alert" hidden>
+            <h2 id="notice-title">Error</h2>
+            <p id="notice-body"></p>
+          </div>
+          <div id="spec" aria-live="polite"></div>
+          <div id="placeholder" class="placeholder">
+            <strong>No specification yet.</strong>
+            <span>Describe a task on the left and compile it.</span>
+          </div>
+        </div>
+      </section>
     </main>
+
+    <div class="rail" id="rail" data-state="idle">
+      <span class="rail-dot"></span>
+      <span class="rail-item" id="rail-status">Starting…</span>
+      <div class="rail-spacer"></div>
+      <span class="rail-item" id="rail-engine"></span>
+      <div class="rail-progress" id="rail-progress" style="width: 0"></div>
+    </div>
+
+    <div class="scrim" id="scrim" data-open="false"></div>
+    <aside class="panel" id="panel" data-open="false" role="dialog" aria-modal="true" aria-label="Engine settings">
+      <div class="panel-head">
+        <span>Engine</span>
+        <div class="masthead-spacer"></div>
+        <button id="close-settings" class="icon-button" type="button" aria-label="Close settings">esc</button>
+      </div>
+      <div class="panel-body" id="panel-body"></div>
+    </aside>
+
     <script type="module" src="./index.ts"></script>
   </body>
 </html>
