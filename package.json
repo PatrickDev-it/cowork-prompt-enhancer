@@ -24,7 +24,7 @@
     "lint": "biome lint . && ruff check src/server/modules/prompt_enhancer evaluation",
     "typecheck": "bun run --workspaces --sequential typecheck",
     "test": "bun run test:unit && bun run test:integration",
-    "test:unit": "bun test src/protocol src/server src/client scripts && python -m pytest src/server/modules/prompt_enhancer evaluation/tests",
+    "test:unit": "bun test src/protocol src/server src/client src/web scripts && python -m pytest src/server/modules/prompt_enhancer evaluation/tests",
     "test:integration": "bun test tests/integration",
     "test:providers": "python -m pytest src/server/modules/prompt_enhancer/tests/test_providers.py",
     "test:protocol": "bun test src/protocol src/server/config.test.ts src/server/lib/auth.test.ts src/server/lib/ws.test.ts src/server/lib/scheduler.test.ts src/client/lib/ws.test.ts src/client/events/fileop.test.ts",

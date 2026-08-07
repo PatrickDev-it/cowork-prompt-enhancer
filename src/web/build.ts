@@ -20,6 +20,11 @@ const result = await Bun.build({
   outdir: './dist',
   minify: true,
   publicPath,
+  // Load-bearing, not a default: `lib/engine/index.ts` reaches each provider SDK through a
+  // dynamic `import()` precisely so the on-device tier — what every first-time visitor gets —
+  // never downloads three vendor SDKs it will not call. Without splitting, Bun inlines them all
+  // into the entry chunk and that separation silently disappears.
+  splitting: true,
 });
 
 if (!result.success) {

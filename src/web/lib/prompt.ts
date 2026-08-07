@@ -33,6 +33,16 @@ const SPEC_KEYS = [
   'output_requirements',
 ] as const;
 
+const LIST_FIELDS = new Set<string>([
+  'known_requirements',
+  'inferred_requirements',
+  'implementation_strategy',
+  'constraints',
+  'quality_expectations',
+  'validation_checklist',
+  'output_requirements',
+]);
+
 /** Rendering order, mirroring `COMPILER_SECTIONS` on the server: empty sections are skipped, no
  * dangling headers. `directive` renders before the sections, not as one of its own (RFC-0019). */
 export const COMPILER_SECTIONS: Array<{ header: string; field: keyof CompiledSpec; isList: boolean }> = [
@@ -117,6 +127,55 @@ function asStringArray(value: unknown): string[] {
   return value.filter((item): item is string => typeof item === 'string' && item.trim().length > 0);
 }
 
+/** Finds the structural start of `"key"` as a JSON object key — preceded by `,` or `{`, not just
+ * anywhere the substring happens to occur (which free-text field content could otherwise trigger,
+ * e.g. a requirement that mentions "the task"). Returns the index of the opening `"`. */
+function findKeyStart(raw: string, key: string, from = 0): number {
+  const afterComma = raw.indexOf(`,"${key}"`, from);
+  if (afterComma !== -1) return afterComma + 1;
+  const afterBrace = raw.indexOf(`{"${key}"`, from);
+  return afterBrace === -1 ? -1 : afterBrace + 1;
+}
+
+/** Streaming-time parse: returns only the fields whose value is fully present in the buffer so
+ * far, bounded by the next field's key marker (or the closing `}` for the last field). A field
+ * that has started but not yet closed is left unset rather than guessed at. This is what lets the
+ * UI render completed sections as they arrive instead of the raw JSON buffer while generation is
+ * still in progress. */
+export function parsePartialSpec(raw: string): Partial<CompiledSpec> {
+  const result: Partial<CompiledSpec> = {};
+  for (const [i, key] of SPEC_KEYS.entries()) {
+    const keyStart = findKeyStart(raw, key);
+    if (keyStart === -1) break;
+
+    const colonIndex = raw.indexOf(':', keyStart);
+    if (colonIndex === -1) break;
+    const valueStart = colonIndex + 1;
+
+    const nextKey = SPEC_KEYS[i + 1];
+    let segment: string | null;
+    if (nextKey) {
+      const nextKeyStart = findKeyStart(raw, nextKey, valueStart);
+      if (nextKeyStart === -1) break; // this field is still streaming — stop, don't guess
+      const commaIndex = raw.lastIndexOf(',', nextKeyStart);
+      segment = raw.slice(valueStart, commaIndex > valueStart ? commaIndex : nextKeyStart);
+    } else {
+      const closeIndex = raw.lastIndexOf('}');
+      if (closeIndex === -1 || closeIndex < valueStart) break;
+      segment = raw.slice(valueStart, closeIndex);
+    }
+
+    try {
+      const value = JSON.parse(segment.trim());
+      if (LIST_FIELDS.has(key)) (result as Record<string, unknown>)[key] = asStringArray(value);
+      else if (typeof value === 'string') (result as Record<string, unknown>)[key] = value;
+    } catch {
+      break; // malformed so far — stop rather than render a guess
+    }
+  }
+  return result;
+}
+
 /** Best-effort parse: a valid JSON object wins outright; anything else still renders instead of
  * failing the whole request, matching the project's existing safe-fallback philosophy — the raw
  * text becomes the "task" field so nothing the model produced is silently discarded. */
@@ -155,24 +214,61 @@ export function parseCompiledSpec(raw: string, fallbackTask: string): CompiledSp
   };
 }
 
-/** Renders a compiled spec to Markdown in COMPILER_SECTIONS order. Empty sections are skipped —
- * no dangling headers — mirroring `workflow.build_specification` on the server. */
-export function renderSpec(spec: CompiledSpec): string {
+/** Renders a compiled spec to Markdown in COMPILER_SECTIONS order. Empty or not-yet-present
+ * sections are skipped — no dangling headers — mirroring `workflow.build_specification` on the
+ * server. Accepts a `Partial<CompiledSpec>` so the same renderer serves both the live streaming
+ * parse (fields arrive incrementally) and the final full parse. */
+export function renderSpec(spec: Partial<CompiledSpec>): string {
   const parts: string[] = [];
-  if (spec.directive.trim()) parts.push(spec.directive.trim(), '');
+  const directive = spec.directive?.trim();
+  if (directive) parts.push(directive, '');
 
   for (const { header, field, isList } of COMPILER_SECTIONS) {
     const value = spec[field];
     if (isList) {
-      const items = value as string[];
+      const items = (value as string[] | undefined) ?? [];
       if (items.length === 0) continue;
       parts.push(header, ...items.map((item) => `- ${item}`), '');
     } else {
-      const text = (value as string).trim();
+      const text = (value as string | undefined)?.trim() ?? '';
       if (!text) continue;
       parts.push(header, text, '');
     }
   }
 
   return parts.join('\n').trim();
+}
+
+/** Provenance of a section's contents — the distinction the compiler actually tracks
+ * (RFC-0017 § 5): what the user stated, versus what the compiler supplied on their behalf.
+ * The UI renders these differently; `neutral` sections are derived from both. */
+export type Provenance = 'explicit' | 'inferred' | 'neutral';
+
+export interface SectionMeta {
+  /** Human label for the UI. `COMPILER_SECTIONS` carries the Markdown header for the export. */
+  label: string;
+  field: keyof CompiledSpec;
+  isList: boolean;
+  provenance: Provenance;
+}
+
+/** UI-facing view of `COMPILER_SECTIONS`, same order and same fields — derived from it rather
+ * than restated, so the two can never drift apart. */
+export const SECTION_META: SectionMeta[] = COMPILER_SECTIONS.map(({ header, field, isList }) => ({
+  label: header.replace(/^#\s*/, ''),
+  field,
+  isList,
+  provenance: field === 'known_requirements' ? 'explicit' : field === 'inferred_requirements' ? 'inferred' : 'neutral',
+}));
+
+/**
+ * Drops the inferences the user rejected. Only `inferred_requirements` is filtered: the explicit
+ * requirements are theirs and are never dropped, and the derived sections stay as compiled.
+ * Applied before both rendering and export so what is copied always matches what is on screen.
+ */
+export function applyDismissals(spec: Partial<CompiledSpec>, dismissed: ReadonlySet<string>): Partial<CompiledSpec> {
+  if (dismissed.size === 0) return spec;
+  const inferred = spec.inferred_requirements;
+  if (!inferred?.length) return spec;
+  return { ...spec, inferred_requirements: inferred.filter((item) => !dismissed.has(item)) };
 }
