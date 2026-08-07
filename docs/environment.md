@@ -36,15 +36,15 @@ and `openai_compatible` maps to `openai-compatible`; conflicts are rejected.
 | `COWORK_METRICS` | `false` | Expose bounded, credential-free request traces at loopback-only `/metrics`. |
 | `COWORK_ROOT` | current working directory | Session capability root. |
 | `COWORK_INPUT_DIR` | profile-specific | Optional project input root. |
-| `COWORK_PYTHON` | `server/modules/.venv/.../python` | Python worker executable. |
+| `COWORK_PYTHON` | `src/server/modules/.venv/.../python` | Python worker executable. |
 | `COWORK_PROMPT_ENHANCER_DIR` | bundled module | Python compiler module directory. |
 
 ## Local inference
 
 | Variable | Default | Purpose |
 |---|---|---|
-| `COWORK_PROMPT_MODEL` | `server/models/Qwen3-8B-Q4_K_M.gguf` | Model path. |
-| `COWORK_LLAMA_SERVER_BIN` | `server/bin/llama-server.exe` | Inference-server executable. |
+| `COWORK_PROMPT_MODEL` | `src/server/models/Qwen3-8B-Q4_K_M.gguf` | Model path. |
+| `COWORK_LLAMA_SERVER_BIN` | `src/server/bin/llama-server.exe` | Inference-server executable. |
 | `COWORK_LLAMA_SERVER_HOST` | `127.0.0.1` | llama-server host. |
 | `COWORK_LLAMA_SERVER_PORT` | `8081` | llama-server port. |
 | `COWORK_LLAMA_SERVER_URL` | `http://127.0.0.1:8081` | Python provider URL. |
@@ -55,7 +55,7 @@ and `openai_compatible` maps to `openai-compatible`; conflicts are rejected.
 
 `LLAMA_N_CTX`, `LLAMA_N_GPU_LAYERS`, `LLAMA_N_BATCH`, `LLAMA_N_UBATCH`, `LLAMA_N_THREADS`,
 `LLAMA_KV_TYPE`, `LLAMA_FLASH_ATTN`, `LLAMA_PARALLEL`, `LLAMA_CACHE_REUSE`, and `LLAMA_REASONING`
-override llama.cpp flags. Their defaults are measured and documented in `server/config.ts`.
+override llama.cpp flags. Their defaults are measured and documented in `src/server/config.ts`.
 
 ## Compiler and scan controls
 

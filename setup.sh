@@ -10,9 +10,9 @@ if [[ "${1:-}" != "--local" ]]; then
   exit 0
 fi
 
-TEMP="$ROOT/server/.setup"
-BIN="$ROOT/server/bin"
-MODELS="$ROOT/server/models"
+TEMP="$ROOT/src/server/.setup"
+BIN="$ROOT/src/server/bin"
+MODELS="$ROOT/src/server/models"
 mkdir -p "$TEMP" "$BIN" "$MODELS"
 
 ARCHIVE="$TEMP/llama-b9893-bin-ubuntu-x64.tar.gz"

@@ -7,16 +7,18 @@
   },
   "files": {
     "includes": [
-      "client/**",
-      "server/**",
+      "src/client/**",
+      "src/server/**",
+      "src/web/**",
       "scripts/**",
       "tests/**",
-      "protocol/**",
+      "src/protocol/**",
       "evaluation/**",
       "*.json",
       "!**/node_modules",
       "!**/.venv",
-      "!**/*.gguf"
+      "!**/*.gguf",
+      "!src/web/coi-serviceworker.js"
     ]
   },
   "formatter": {

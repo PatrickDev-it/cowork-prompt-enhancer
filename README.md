@@ -271,12 +271,9 @@ infrastructure selected by the operator.
 
 ## Engineering record
 
-Deep implementation guidance lives in [docs/DEV.md](docs/DEV.md). The decisions needed to understand the
-product boundary are the [compiler](.sinapsi/rfc/0018-intent-to-specification-compiler.md),
-[provider profiles](.sinapsi/rfc/0026-provider-profiles-and-configuration.md),
-[protocol/security model](.sinapsi/rfc/0027-authenticated-versioned-protocol-and-resource-bounds.md) and
-[evaluation evidence](.sinapsi/rfc/0028-versioned-evaluation-evidence.md). Reconstructed decisions retain
-their original reconstructed label.
+Deep implementation guidance lives in [docs/DEV.md](docs/DEV.md) and [RFC.md](RFC.md). The decisions
+needed to understand the product boundary cover the compiler, provider profiles, the protocol/security
+model and evaluation evidence; the full internal decision log is kept out of the public tree.
 
 [MIT](LICENSE) licensed. See [support](SUPPORT.md), [contributing](CONTRIBUTING.md),
 [changelog](CHANGELOG.md) and [release policy](docs/release-policy.md).

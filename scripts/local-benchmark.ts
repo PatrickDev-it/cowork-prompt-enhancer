@@ -6,7 +6,7 @@ import {
   PROMPT_MODEL_PATH,
   assertValidConfig,
   llamaServerArgs,
-} from '../server/config';
+} from '../src/server/config';
 
 if (PROFILE !== 'local') throw new Error('Set COWORK_PROFILE=local to run the local benchmark');
 assertValidConfig();

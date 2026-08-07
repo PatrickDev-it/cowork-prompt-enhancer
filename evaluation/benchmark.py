@@ -15,13 +15,14 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-ENGINE_DIR = ROOT / "server" / "modules" / "prompt_enhancer"
+ENGINE_DIR = ROOT / "src" / "server" / "modules" / "prompt_enhancer"
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ENGINE_DIR))
 
-from engine import LLMEngine  # noqa: E402
-from evaluation.metrics import score_output, summarize  # noqa: E402
-import workflow  # noqa: E402
+import workflow
+from engine import LLMEngine
+
+from evaluation.metrics import score_output, summarize
 
 SCHEMA_VERSION = "cowork-eval/v1"
 DATASET = ROOT / "evaluation" / "datasets" / "v1" / "cases.jsonl"
@@ -219,7 +220,7 @@ def run_case(engine: LLMEngine, case: dict, strategy: str) -> dict:
     debug = {"generation_mode": strategy, "grounded": False}
     try:
         output, debug = execute_strategy(engine, case, strategy)
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001 -- benchmark harness must survive any provider failure
         error = {
             "type": type(exc).__name__,
             "code": getattr(exc, "code", "evaluation_error"),
@@ -286,16 +287,20 @@ def write_report(path: Path, metadata: dict, summary: dict) -> None:
         "",
         "## Methodology",
         "",
-        f"`{SCHEMA_VERSION}` uses deterministic anchor, contradiction, specificity, ambiguity, structure and "
-        "executability checks. These automated metrics are primary evidence; no model-assisted or human judge was used.",
+        (
+            f"`{SCHEMA_VERSION}` uses deterministic anchor, contradiction, specificity, ambiguity, structure and "
+            "executability checks. These automated metrics are primary evidence; no model-assisted or human judge was used."
+        ),
         "",
         "## Dataset and environment",
         "",
         f"- Tier: `{metadata['tier']}` ({metadata['case_count']} cases; {', '.join(metadata['categories'])}).",
         f"- Provider: `{metadata['provider']['profile']}` / `{metadata['provider']['model']}`.",
         f"- Benchmark commit: `{metadata['benchmark_commit']}`.",
-        "- Raw evidence: [`records.jsonl`](records.jsonl); environment: [`environment.json`](environment.json); "
-        "machine summary: [`summary.json`](summary.json).",
+        (
+            "- Raw evidence: [`records.jsonl`](records.jsonl); environment: [`environment.json`](environment.json); "
+            "machine summary: [`summary.json`](summary.json)."
+        ),
         "",
         "## Deterministic results",
         "",
@@ -313,8 +318,10 @@ def write_report(path: Path, metadata: dict, summary: dict) -> None:
     lines.extend(
         [
             "",
-            "Compiler success and fallback-delivered success are stored separately in `summary.json`; a successful "
-            "fallback is never counted as compiler success.",
+            (
+                "Compiler success and fallback-delivered success are stored separately in `summary.json`; a successful "
+                "fallback is never counted as compiler success."
+            ),
             "",
             "## Limitations",
             "",
