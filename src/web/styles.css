@@ -859,3 +859,59 @@ li:hover .dismiss,
 .card a {
   text-underline-offset: 2px;
 }
+
+/* ---------------------------------------------------------------- skeletons */
+
+/* Placeholders for sections a running pass has not reached. Without them the longest section
+   (Inferred Requirements, which is also the slowest) left the column looking finished while the
+   model was still working. */
+.card-skeleton {
+  border-style: dashed;
+}
+
+.card-skeleton .card-title {
+  opacity: 0.55;
+}
+
+.skeleton-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+}
+
+.skeleton-line {
+  height: 0.7rem;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(90deg, var(--surface-raised) 0%, var(--border) 50%, var(--surface-raised) 100%);
+  background-size: 200% 100%;
+  animation: sweep 1.4s ease-in-out infinite;
+}
+
+/* Ragged widths read as text; three equal bars read as a loading bar. */
+.skeleton-line:nth-child(1) {
+  width: 92%;
+}
+.skeleton-line:nth-child(2) {
+  width: 78%;
+}
+.skeleton-line:nth-child(3) {
+  width: 85%;
+}
+
+@keyframes sweep {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+/* Static but still visible: the point is conveying "not finished", which the dashed border and
+   placeholder bars do on their own. */
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-line {
+    animation: none;
+    background: var(--surface-raised);
+  }
+}

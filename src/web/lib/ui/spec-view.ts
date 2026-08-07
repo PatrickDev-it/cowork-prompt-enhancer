@@ -21,6 +21,7 @@ export interface SpecViewOptions {
 export class SpecView {
   private spec: Partial<CompiledSpec> = {};
   private active: ActiveField | null = null;
+  private pending: ReadonlyArray<keyof CompiledSpec> = [];
   private readonly dismissed = new Set<string>();
 
   constructor(
@@ -33,20 +34,33 @@ export class SpecView {
   setSpec(spec: Partial<CompiledSpec>): void {
     this.spec = spec;
     this.active = null;
+    this.pending = [];
     this.render();
   }
 
-  /** Streaming update: `active` is the field currently being written, rendered mid-sentence with a
-   * caret so text appears as it is produced rather than a card at a time. */
-  setStreaming(spec: Partial<CompiledSpec>, active: ActiveField | null): void {
+  /**
+   * Streaming update. `active` is the field currently being written, rendered mid-sentence with a
+   * caret; `pending` are fields this pass will produce but has not reached yet, drawn as pulsing
+   * skeletons.
+   *
+   * The skeletons exist because the longest section (`inferred_requirements`) can generate for
+   * many seconds on-device, and with nothing below it the page looked finished when it was not.
+   */
+  setStreaming(
+    spec: Partial<CompiledSpec>,
+    active: ActiveField | null,
+    pending: ReadonlyArray<keyof CompiledSpec> = []
+  ): void {
     this.spec = spec;
     this.active = active;
+    this.pending = pending;
     this.render();
   }
 
   clear(): void {
     this.spec = {};
     this.active = null;
+    this.pending = [];
     this.dismissed.clear();
     this.root.replaceChildren();
   }
@@ -94,7 +108,47 @@ export class SpecView {
       cards.push(this.buildCard(label, provenance, text, `# ${label}\n${text}`, streaming));
     }
 
+    for (const field of this.pending) {
+      const meta = SECTION_META.find((section) => section.field === field);
+      if (!meta) continue;
+      const hasContent = Array.isArray(visible[field])
+        ? (visible[field] as string[]).length > 0
+        : Boolean((visible[field] as string | undefined)?.trim());
+      if (hasContent || this.active?.field === field) continue;
+      cards.push(this.buildSkeleton(meta.label, meta.provenance, meta.isList));
+    }
+
+    this.root.setAttribute('aria-busy', String(this.pending.length > 0 || this.active !== null));
     this.root.replaceChildren(...cards);
+  }
+
+  /** Placeholder for a section this pass will produce but has not started. Carries the real title
+   * and provenance colour so the layout does not shift when content replaces it. */
+  private buildSkeleton(label: string, provenance: 'explicit' | 'inferred' | 'neutral', isList: boolean): HTMLElement {
+    const card = document.createElement('section');
+    card.className = 'card card-skeleton';
+    card.dataset.provenance = provenance;
+
+    const head = document.createElement('div');
+    head.className = 'card-head';
+    const title = document.createElement('span');
+    title.className = 'card-title';
+    title.textContent = label;
+    head.append(title);
+    card.append(head);
+
+    const body = document.createElement('div');
+    body.className = 'skeleton-body';
+    // Two lines for prose, three for a list — enough to read as "more is coming" without
+    // pretending to know how long the real content will be.
+    for (let i = 0; i < (isList ? 3 : 2); i++) {
+      const line = document.createElement('span');
+      line.className = 'skeleton-line';
+      body.append(line);
+    }
+    card.append(body);
+
+    return card;
   }
 
   private buildCard(

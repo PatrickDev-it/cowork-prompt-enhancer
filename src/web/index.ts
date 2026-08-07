@@ -175,6 +175,10 @@ async function compile(): Promise<void> {
 
     for (const [index, pass] of COMPILE_PASSES.entries()) {
       rail.set('busy', `${pass.label} · ${index + 1}/${COMPILE_PASSES.length}`);
+      // Draw the pass's sections as skeletons immediately, so the wait before the first token
+      // reads as work in progress rather than a finished page.
+      specView.setStreaming(spec, null, pass.fields);
+      updateExportState();
 
       let raw = '';
       const text = await engine.compile(buildPassPrompt(pass, userInput, spec), {
@@ -185,9 +189,11 @@ async function compile(): Promise<void> {
         onToken: (token) => {
           raw += token;
           // Includes the field mid-write, so text appears character by character rather than a
-          // card at a time.
+          // card at a time, plus skeletons for what this pass has not reached yet.
           const streaming = parseStreamingSpec(raw);
-          specView.setStreaming({ ...spec, ...streaming.complete }, streaming.active);
+          const merged = { ...spec, ...streaming.complete };
+          const pending = pass.fields.filter((field) => !(field in merged) && field !== streaming.active?.field);
+          specView.setStreaming(merged, streaming.active, pending);
           updateExportState();
         },
       });
@@ -200,7 +206,7 @@ async function compile(): Promise<void> {
           (spec as Record<string, unknown>)[field] = value;
         }
       }
-      specView.setStreaming(spec, null);
+      specView.setStreaming(spec, null, []);
       updateExportState();
     }
 

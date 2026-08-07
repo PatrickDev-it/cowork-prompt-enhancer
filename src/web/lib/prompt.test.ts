@@ -143,74 +143,106 @@ describe('SECTION_META', () => {
 });
 
 describe('COMPILE_PASSES', () => {
-  test('covers every spec field exactly once, in schema order', () => {
+  test('covers every spec field exactly once', () => {
     const covered = COMPILE_PASSES.flatMap((p) => p.fields);
     expect(new Set(covered).size).toBe(covered.length);
-    expect(covered).toEqual(COMPILER_SECTIONS.map((s) => s.field).length ? covered : covered);
     for (const { field } of COMPILER_SECTIONS) expect(covered).toContain(field);
     expect(covered).toContain('directive');
   });
 
   test('keeps per-pass budgets tight', () => {
     // strategies.py records that raising a small model's per-unit budget produced repetitive
-    // filler, not richer output. Guard against someone "fixing" sparse output by raising these.
+    // filler, not richer output. Guard against "fixing" sparse output by raising these.
     for (const pass of COMPILE_PASSES) expect(pass.maxTokens).toBeLessThanOrEqual(512);
+  });
+
+  test('separates extraction from inference, which is the split worth its latency', () => {
+    expect(COMPILE_PASSES[0]?.fields).toContain('known_requirements');
+    expect(COMPILE_PASSES[0]?.fields).not.toContain('inferred_requirements');
+    expect(COMPILE_PASSES[1]?.fields).toContain('inferred_requirements');
   });
 });
 
-describe('buildPassPrompt', () => {
+describe('buildPassPrompt — no technology may leak from the prompt itself', () => {
+  const EMAIL = 'creare un template di email riusabile da mandare a candidati di possibili lead per un progetto';
   const ASTRO = 'creami una static blog page in astro framework';
 
-  test('marks a technical request and carries the expansion policy in the expand pass', () => {
-    const expand = COMPILE_PASSES.find((p) => p.id === 'expand')!;
-    const prompt = buildPassPrompt(expand, ASTRO, {});
-    expect(prompt).toContain('TASK KIND: technical');
-    expect(prompt).toContain('TECHNICAL EXPANSION POLICY');
-    expect(prompt).toContain('NAME THE REAL PRIMITIVES');
+  // The live regression: every inferred requirement came back copied verbatim from a Next.js
+  // few-shot. Nothing technology-shaped may appear in a prompt unless the request put it there.
+  const LEAKED = [
+    'app/dashboard',
+    'page.tsx',
+    'loading.tsx',
+    'error.tsx',
+    'App Router',
+    'Server Component',
+    'nextjs',
+    'Next.js',
+  ];
+
+  test.each(COMPILE_PASSES)('pass $id leaks nothing into a non-software request', (pass) => {
+    const prompt = buildPassPrompt(pass, EMAIL, { task: 'Create a reusable outreach email template.' });
+    for (const token of LEAKED) expect(prompt).not.toContain(token);
   });
 
-  test('carries the anti-filler and anti-invention rules built from the observed failure', () => {
-    const prompt = buildPassPrompt(COMPILE_PASSES[0]!, ASTRO, {});
-    expect(prompt).toContain('follows best practices');
-    expect(prompt).toContain('well-structured');
-    expect(prompt).toContain('already installed');
+  test('carries communication dimensions for an email request, not software ones', () => {
+    const expand = COMPILE_PASSES.find((p) => p.id === 'expand')!;
+    const prompt = buildPassPrompt(expand, EMAIL, {});
+    expect(prompt).toContain('subject line');
+    expect(prompt).toContain('opt out');
+    expect(prompt).not.toContain('routing');
   });
 
-  test('asks for density instead of the server’s never-pad rule', () => {
+  test('carries software dimensions for a software request', () => {
     const expand = COMPILE_PASSES.find((p) => p.id === 'expand')!;
     const prompt = buildPassPrompt(expand, ASTRO, {});
-    expect(prompt).toContain('3 to 6 items');
-    // The 8B-calibrated wording would reinforce this model's failure mode.
-    expect(prompt).not.toContain('never pad');
+    expect(prompt).toContain('project structure');
+    expect(prompt).not.toContain('subject line');
+  });
+
+  test('contains no full example sentence a model could copy as an answer', () => {
+    const expand = COMPILE_PASSES.find((p) => p.id === 'expand')!;
+    const prompt = buildPassPrompt(expand, EMAIL, {});
+    // Slot descriptions are angle-bracketed placeholders, never finished sentences.
+    expect(prompt).toContain('<3-6 items');
+    expect(prompt).not.toMatch(/Output: \{"inferred_requirements":\["[A-Z]/);
   });
 
   test('the ground pass forbids inference, the expand pass requires it', () => {
-    expect(buildPassPrompt(COMPILE_PASSES[0]!, ASTRO, {})).toContain('Do not infer anything in this step');
-    expect(buildPassPrompt(COMPILE_PASSES[1]!, ASTRO, {})).not.toContain('Do not infer anything in this step');
+    expect(buildPassPrompt(COMPILE_PASSES[0]!, EMAIL, {})).toContain('EXTRACTION ONLY');
+    expect(buildPassPrompt(COMPILE_PASSES[1]!, EMAIL, {})).toContain('did NOT say');
   });
 
-  test('feeds prior passes forward so later fields stay consistent', () => {
-    const prompt = buildPassPrompt(COMPILE_PASSES[1]!, ASTRO, { task: 'Build an Astro blog.' });
-    expect(prompt).toContain('Already compiled');
-    expect(prompt).toContain('Build an Astro blog.');
-  });
-
-  test('few-shots avoid the technology under test, so the next run measures generalisation', () => {
-    const prompt = buildPassPrompt(COMPILE_PASSES[1]!, ASTRO, {});
-    // Scope the check to the worked examples: the request itself naturally names Astro, and
-    // asserting over the whole prompt would only prove that.
-    const examples = prompt.slice(prompt.indexOf('Examples of the expected density'));
-    expect(examples.toLowerCase()).not.toContain('astro');
-    // The frontend example must demonstrate real framework primitives, which is the behaviour
-    // the expand pass is trying to elicit — not just mention a framework by name.
-    expect(examples).toContain('app/dashboard');
-    expect(examples).toContain('nextjs');
+  test('feeds the extracted fields forward so inference is anchored to the deliverable', () => {
+    const prompt = buildPassPrompt(COMPILE_PASSES[1]!, EMAIL, { task: 'Create an outreach email template.' });
+    expect(prompt).toContain('Already extracted');
+    expect(prompt).toContain('Create an outreach email template.');
   });
 
   test('asks only for the fields the pass owns', () => {
-    const ground = buildPassPrompt(COMPILE_PASSES[0]!, ASTRO, {});
+    const ground = buildPassPrompt(COMPILE_PASSES[0]!, EMAIL, {});
     expect(ground).toContain('"known_requirements"');
     expect(ground).not.toContain('"validation_checklist"');
+  });
+
+  test('stays far shorter than the version that caused the latency complaint', () => {
+    // The three-pass version ran ~700-950 tokens per prompt; ~4 chars/token puts a lean prompt
+    // well under 2500 characters. This is a rough guard against prompts creeping back up.
+    for (const pass of COMPILE_PASSES) {
+      expect(buildPassPrompt(pass, EMAIL, {}).length).toBeLessThan(2500);
+    }
+  });
+});
+
+describe('buildPrompt (single-call path)', () => {
+  test('adapts its dimensions to the request domain', () => {
+    expect(buildPrompt('write a newsletter for our clients')).toContain('subject line');
+    expect(buildPrompt('add a fastapi endpoint')).toContain('project structure');
+  });
+
+  test('leaks no technology into a non-software request', () => {
+    const prompt = buildPrompt('creare un template di email per possibili lead');
+    for (const token of ['page.tsx', 'app/dashboard', 'Next.js']) expect(prompt).not.toContain(token);
   });
 });
 
