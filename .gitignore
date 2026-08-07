@@ -1,11 +1,16 @@
-.sinapsi/graph.json
-.sinapsi/.watcher
-.sinapsi/orchestration.jsonl
-.sinapsi/journal
+# Local AI-agent tooling — never tracked, machine-local only
+.sinapsi/
+.claude/
+.codex/
+.gemini/
+.mcp.json
+AGENTS.md
+.github/copilot-instructions.md
+
 .tools/
 .artifacts/
 __pycache__/
 *.py[cod]
 node_modules/
 demo-output/
-server/.setup/
+src/server/.setup/
