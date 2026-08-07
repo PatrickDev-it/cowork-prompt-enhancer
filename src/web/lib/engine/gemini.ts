@@ -5,6 +5,7 @@ import {
   type Engine,
   EngineError,
   type EngineInfo,
+  schemaForFields,
   SPEC_JSON_SCHEMA,
 } from './types';
 
@@ -32,9 +33,9 @@ export class GeminiEngine implements Engine {
         model: this.modelId,
         contents: prompt,
         config: {
-          maxOutputTokens: MAX_TOKENS,
+          maxOutputTokens: handlers.maxTokens ?? MAX_TOKENS,
           responseMimeType: 'application/json',
-          responseJsonSchema: SPEC_JSON_SCHEMA,
+          responseJsonSchema: handlers.fields ? schemaForFields(handlers.fields) : SPEC_JSON_SCHEMA,
           abortSignal: handlers.signal,
         },
       });

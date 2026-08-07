@@ -5,6 +5,7 @@ import {
   type Engine,
   EngineError,
   type EngineInfo,
+  schemaForFields,
   SPEC_JSON_SCHEMA,
 } from './types';
 
@@ -37,14 +38,17 @@ export class AnthropicEngine implements Engine {
       const stream = this.client.messages.stream(
         {
           model: this.modelId,
-          max_tokens: MAX_TOKENS,
+          max_tokens: handlers.maxTokens ?? MAX_TOKENS,
           // Adaptive rather than disabled: on current models, disabling thinking is what causes
           // stray `<thinking>` text to leak into the visible response. Low effort keeps a
           // structured-extraction task cheap and fast without that failure mode.
           thinking: { type: 'adaptive' },
           output_config: {
             effort: 'low',
-            format: { type: 'json_schema', schema: SPEC_JSON_SCHEMA },
+            format: {
+              type: 'json_schema',
+              schema: handlers.fields ? schemaForFields(handlers.fields) : SPEC_JSON_SCHEMA,
+            },
           },
           messages: [{ role: 'user', content: prompt }],
         },

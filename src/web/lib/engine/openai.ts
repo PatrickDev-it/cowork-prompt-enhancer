@@ -5,6 +5,7 @@ import {
   type Engine,
   EngineError,
   type EngineInfo,
+  schemaForFields,
   SPEC_JSON_SCHEMA,
 } from './types';
 
@@ -31,11 +32,15 @@ export class OpenAiEngine implements Engine {
       const stream = await this.client.chat.completions.create(
         {
           model: this.modelId,
-          max_completion_tokens: MAX_TOKENS,
+          max_completion_tokens: handlers.maxTokens ?? MAX_TOKENS,
           stream: true,
           response_format: {
             type: 'json_schema',
-            json_schema: { name: 'compiled_spec', strict: true, schema: SPEC_JSON_SCHEMA },
+            json_schema: {
+              name: 'compiled_spec',
+              strict: true,
+              schema: handlers.fields ? schemaForFields(handlers.fields) : SPEC_JSON_SCHEMA,
+            },
           },
           messages: [{ role: 'user', content: prompt }],
         },

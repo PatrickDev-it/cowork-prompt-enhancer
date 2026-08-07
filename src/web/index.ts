@@ -2,8 +2,15 @@ import { detectCapability } from './lib/capability';
 import { createEngine } from './lib/engine';
 import { type EngineErrorCode, EngineError } from './lib/engine/types';
 import { customChoice, LIGHT_PRESET_ID, type LocalModelChoice, presetById } from './lib/models';
-import { buildPrompt, type CompiledSpec, parseCompiledSpec, parsePartialSpec } from './lib/prompt';
+import {
+  buildPassPrompt,
+  COMPILE_PASSES,
+  type CompiledSpec,
+  parseCompiledSpec,
+  parseStreamingSpec,
+} from './lib/prompt';
 import { clearStoredKeys, isEngineReady, loadSettings, saveSettings, type Settings } from './lib/settings';
+import { checkIcon, copyIcon, downloadIcon } from './lib/ui/icons';
 import { SettingsPanel } from './lib/ui/settings-panel';
 import { SpecView } from './lib/ui/spec-view';
 import { StatusRail } from './lib/ui/status-rail';
@@ -161,20 +168,42 @@ async function compile(): Promise<void> {
     const engine = await createEngine(settings, localChoice());
     rail.setEngine(engine.info());
 
-    rail.set('busy', 'Compiling…');
-    let raw = '';
-    const text = await engine.compile(buildPrompt(userInput), {
-      signal: run.signal,
-      onProgress: (event) => rail.reportProgress(event),
-      onToken: (token) => {
-        raw += token;
-        // Render only the fields that have fully arrived — never the raw JSON buffer.
-        specView.setSpec(parsePartialSpec(raw));
-        updateExportState();
-      },
-    });
+    // Three focused passes rather than one ten-field generation: asked for the whole envelope at
+    // once, a 1.7B model returns a structurally valid spec whose every list holds one generic
+    // sentence. Each pass sees what the previous ones produced.
+    const spec: Partial<CompiledSpec> = {};
 
-    const spec: Partial<CompiledSpec> = parseCompiledSpec(text || raw, userInput);
+    for (const [index, pass] of COMPILE_PASSES.entries()) {
+      rail.set('busy', `${pass.label} · ${index + 1}/${COMPILE_PASSES.length}`);
+
+      let raw = '';
+      const text = await engine.compile(buildPassPrompt(pass, userInput, spec), {
+        signal: run.signal,
+        maxTokens: pass.maxTokens,
+        fields: pass.fields,
+        onProgress: (event) => rail.reportProgress(event),
+        onToken: (token) => {
+          raw += token;
+          // Includes the field mid-write, so text appears character by character rather than a
+          // card at a time.
+          const streaming = parseStreamingSpec(raw);
+          specView.setStreaming({ ...spec, ...streaming.complete }, streaming.active);
+          updateExportState();
+        },
+      });
+
+      // Each pass returns only its own keys; merge rather than replace.
+      const passSpec = parseCompiledSpec(text || raw, userInput);
+      for (const field of pass.fields) {
+        const value = passSpec[field];
+        if (Array.isArray(value) ? value.length > 0 : String(value ?? '').trim().length > 0) {
+          (spec as Record<string, unknown>)[field] = value;
+        }
+      }
+      specView.setStreaming(spec, null);
+      updateExportState();
+    }
+
     specView.setSpec(spec);
     updateExportState();
     rail.set('ready', 'Compiled');
@@ -196,7 +225,16 @@ requestEl.addEventListener('keydown', (event) => {
   }
 });
 
-copyAllBtn.addEventListener('click', () => void copyToClipboard(specView.toMarkdown(), 'Specification'));
+// Icon-only copy, with a brief checkmark instead of a wordy label.
+copyAllBtn.append(copyIcon());
+copyAllBtn.addEventListener('click', () => {
+  void copyToClipboard(specView.toMarkdown(), 'Specification');
+  copyAllBtn.replaceChildren(checkIcon());
+  window.setTimeout(() => copyAllBtn.replaceChildren(copyIcon()), 1200);
+});
+
+// The bare ".md" label read as a filename, not an action — the icon makes the affordance explicit.
+downloadBtn.prepend(downloadIcon());
 
 downloadBtn.addEventListener('click', () => {
   const blob = new Blob([specView.toMarkdown()], { type: 'text/markdown' });

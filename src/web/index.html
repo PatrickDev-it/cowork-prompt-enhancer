@@ -38,8 +38,10 @@
         <div class="pane-head">
           <span id="spec-heading">Compiled</span>
           <div class="pane-head-spacer"></div>
-          <button id="copy-all" class="ghost-button" type="button" hidden>copy markdown</button>
-          <button id="download" class="ghost-button" type="button" hidden>.md</button>
+          <button id="copy-all" class="square-button" type="button" hidden aria-label="Copy specification" title="Copy specification"></button>
+          <button id="download" class="ghost-button" type="button" hidden title="Download as Markdown">
+            <span id="download-label">Download</span>
+          </button>
         </div>
         <div class="pane-body">
           <div id="notice" class="notice" role="alert" hidden>
