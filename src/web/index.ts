@@ -177,7 +177,7 @@ async function compile(): Promise<void> {
       rail.set('busy', `${pass.label} · ${index + 1}/${COMPILE_PASSES.length}`);
       // Draw the pass's sections as skeletons immediately, so the wait before the first token
       // reads as work in progress rather than a finished page.
-      specView.setStreaming(spec, null, pass.fields);
+      specView.setStreaming(spec, null, pass.fields.slice(0, 1));
       updateExportState();
 
       let raw = '';
@@ -190,16 +190,18 @@ async function compile(): Promise<void> {
           raw += token;
           // Includes the field mid-write, so text appears character by character rather than a
           // card at a time, plus skeletons for what this pass has not reached yet.
-          const streaming = parseStreamingSpec(raw);
+          const streaming = parseStreamingSpec(raw, pass.fields);
           const merged = { ...spec, ...streaming.complete };
-          const pending = pass.fields.filter((field) => !(field in merged) && field !== streaming.active?.field);
-          specView.setStreaming(merged, streaming.active, pending);
+          // Only the next section, not every remaining one — four bars pulsing at once read as
+          // a stalled page rather than as progress.
+          const next = pass.fields.find((field) => !(field in merged) && field !== streaming.active?.field);
+          specView.setStreaming(merged, streaming.active, next ? [next] : []);
           updateExportState();
         },
       });
 
       // Each pass returns only its own keys; merge rather than replace.
-      const passSpec = parseCompiledSpec(text || raw, userInput);
+      const passSpec = parseCompiledSpec(text || raw, userInput, pass.fields);
       for (const field of pass.fields) {
         const value = passSpec[field];
         if (Array.isArray(value) ? value.length > 0 : String(value ?? '').trim().length > 0) {
