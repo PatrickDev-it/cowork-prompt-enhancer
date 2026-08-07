@@ -11,7 +11,7 @@ _ACTION = re.compile(
 )
 _VALIDATION = re.compile(
     r"\b(test|tests|validate|validation|verify|verification|acceptance|check|checks)\b",
-    re.I,
+    re.IGNORECASE,
 )
 
 
@@ -137,7 +137,7 @@ def summarize(records: list[dict]) -> dict:
         metric_rows = [item["metrics"] for item in items]
         provider_calls = [call for item in items for call in item["provider_calls"]]
 
-        def average(name: str) -> float:
+        def average(name: str, metric_rows: list[dict] = metric_rows) -> float:
             return round(
                 sum(float(row[name]) for row in metric_rows) / len(metric_rows), 6
             )
