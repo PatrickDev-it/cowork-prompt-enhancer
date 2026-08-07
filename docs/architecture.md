@@ -44,7 +44,7 @@ record for local diagnostics.
 
 ## Protocol and request lifecycle
 
-All application frames are discriminated protocol-v1 envelopes defined once in `protocol/index.ts`:
+All application frames are discriminated protocol-v1 envelopes defined once in `src/protocol/index.ts`:
 
 - client command: `{version:1, kind:"command", id, event, payload}`;
 - client cancellation: `{version:1, kind:"cancel", id}`;
@@ -131,16 +131,16 @@ and checksums every asset. Tag validation rebuilds that bundle from the tagged c
 
 | Module | Responsibility |
 |---|---|
-| `protocol/index.ts` | Shared v1 envelopes, stable errors, frame/payload validation. |
-| `server/lib/auth.ts` | Single-use challenge issuance and constant-time proof verification. |
-| `server/lib/ws.ts` | Per-connection dispatch, replay rejection, outbound backpressure. |
-| `server/lib/scheduler.ts` | Queue/concurrency limits, deadlines and cancellation. |
-| `server/lib/metrics.ts` | Bounded, sanitized request timing and outcome traces. |
-| `server/tools/runtime.ts` | Compression head, scheduled tool execution and public errors. |
-| `server/tools/fs.ts` | Client-advertised capability enforcement. |
-| `client/events/fileop.ts` | Canonical path confinement and local mutation. |
-| `server/modules/llm/supervisor.ts` | Local inference process ownership and recovery. |
-| `server/modules/prompt_enhancer/` | Intent compiler, deterministic fallbacks and provider adapters. |
+| `src/protocol/index.ts` | Shared v1 envelopes, stable errors, frame/payload validation. |
+| `src/server/lib/auth.ts` | Single-use challenge issuance and constant-time proof verification. |
+| `src/server/lib/ws.ts` | Per-connection dispatch, replay rejection, outbound backpressure. |
+| `src/server/lib/scheduler.ts` | Queue/concurrency limits, deadlines and cancellation. |
+| `src/server/lib/metrics.ts` | Bounded, sanitized request timing and outcome traces. |
+| `src/server/tools/runtime.ts` | Compression head, scheduled tool execution and public errors. |
+| `src/server/tools/fs.ts` | Client-advertised capability enforcement. |
+| `src/client/events/fileop.ts` | Canonical path confinement and local mutation. |
+| `src/server/modules/llm/supervisor.ts` | Local inference process ownership and recovery. |
+| `src/server/modules/prompt_enhancer/` | Intent compiler, deterministic fallbacks and provider adapters. |
 
 ## Threat model and residual limitations
 

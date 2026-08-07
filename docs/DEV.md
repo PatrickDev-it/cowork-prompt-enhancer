@@ -10,12 +10,12 @@ bun run install:frozen
 ```
 
 The command installs the Bun workspace from `bun.lock` and Python dependencies from the
-hash-verified `server/modules/requirements-dev.lock`. Regenerate Python locks only after an
+hash-verified `src/server/modules/requirements-dev.lock`. Regenerate Python locks only after an
 intentional dependency change:
 
 ```bash
 python -m pip install pip==24.2 pip-tools==7.5.0
-cd server/modules
+cd src/server/modules
 python -m piptools compile --generate-hashes -o requirements.lock requirements.txt
 python -m piptools compile --generate-hashes -o requirements-dev.lock requirements.txt requirements-dev.txt
 ```
@@ -58,12 +58,12 @@ bun --cwd server run dev
 bun --cwd client run dev
 ```
 
-Copy `client/.env.example` to `client/.env` only when overriding client connection settings. Never
+Copy `src/client/.env.example` to `src/client/.env` only when overriding client connection settings. Never
 commit `.env` files. The complete variable reference is in [`environment.md`](environment.md).
 
 ## Local GPU artifacts
 
-`server/bin/`, `server/models/*.gguf`, and `server/modules/.venv/` are ignored and never distributed.
+`src/server/bin/`, `src/server/models/*.gguf`, and `src/server/modules/.venv/` are ignored and never distributed.
 Run `setup.ps1` or `setup.sh` for explicit local provisioning, then `bun run preflight`. Versions,
 checksums, source links, and license boundaries are recorded in [`../THIRD_PARTY.md`](../THIRD_PARTY.md).
 

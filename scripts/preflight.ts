@@ -1,5 +1,11 @@
 import { platform, release } from 'node:os';
-import { LLAMA_SERVER_BIN, LLAMA_SERVER_URL, PROFILE, PROMPT_MODEL_PATH, assertValidConfig } from '../server/config';
+import {
+  LLAMA_SERVER_BIN,
+  LLAMA_SERVER_URL,
+  PROFILE,
+  PROMPT_MODEL_PATH,
+  assertValidConfig,
+} from '../src/server/config';
 
 async function version(command: string, args: string[] = ['--version']): Promise<string | null> {
   try {

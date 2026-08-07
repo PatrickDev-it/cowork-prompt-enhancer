@@ -15,7 +15,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-ENGINE_DIR = ROOT / "server" / "modules" / "prompt_enhancer"
+ENGINE_DIR = ROOT / "src" / "server" / "modules" / "prompt_enhancer"
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ENGINE_DIR))
 

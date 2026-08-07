@@ -24,7 +24,7 @@ jobs:
         with:
           python-version: "3.12.4"
           cache: pip
-          cache-dependency-path: server/modules/requirements-dev.lock
+          cache-dependency-path: src/server/modules/requirements-dev.lock
 
       - name: Frozen install
         run: bun run install:frozen

@@ -4,8 +4,9 @@
   "private": true,
   "type": "module",
   "workspaces": [
-    "client",
-    "server"
+    "src/client",
+    "src/server",
+    "src/web"
   ],
   "packageManager": "bun@1.3.12",
   "engines": {
@@ -13,19 +14,19 @@
     "node": "22.13.0"
   },
   "scripts": {
-    "install:frozen": "bun install --frozen-lockfile && python -m pip install --require-hashes -r server/modules/requirements-dev.lock",
-    "format": "biome format --write . && ruff format server/modules/prompt_enhancer evaluation",
-    "format:check": "biome format . && ruff format --check server/modules/prompt_enhancer evaluation",
-    "lint": "biome lint . && ruff check server/modules/prompt_enhancer evaluation",
+    "install:frozen": "bun install --frozen-lockfile && python -m pip install --require-hashes -r src/server/modules/requirements-dev.lock",
+    "format": "biome format --write . && ruff format src/server/modules/prompt_enhancer evaluation",
+    "format:check": "biome format . && ruff format --check src/server/modules/prompt_enhancer evaluation",
+    "lint": "biome lint . && ruff check src/server/modules/prompt_enhancer evaluation",
     "typecheck": "bun run --workspaces --sequential typecheck",
     "test": "bun run test:unit && bun run test:integration",
-    "test:unit": "bun test protocol server client scripts && python -m pytest server/modules/prompt_enhancer evaluation/tests",
+    "test:unit": "bun test src/protocol src/server src/client scripts && python -m pytest src/server/modules/prompt_enhancer evaluation/tests",
     "test:integration": "bun test tests/integration",
-    "test:providers": "python -m pytest server/modules/prompt_enhancer/tests/test_providers.py",
-    "test:protocol": "bun test protocol server/config.test.ts server/lib/auth.test.ts server/lib/ws.test.ts server/lib/scheduler.test.ts client/lib/ws.test.ts client/events/fileop.test.ts",
-    "test:supervisor": "bun test server/modules/llm/supervisor.test.ts",
+    "test:providers": "python -m pytest src/server/modules/prompt_enhancer/tests/test_providers.py",
+    "test:protocol": "bun test src/protocol src/server/config.test.ts src/server/lib/auth.test.ts src/server/lib/ws.test.ts src/server/lib/scheduler.test.ts src/client/lib/ws.test.ts src/client/events/fileop.test.ts",
+    "test:supervisor": "bun test src/server/modules/llm/supervisor.test.ts",
     "test:e2e": "bun test tests/integration/websocket-mock-e2e.test.ts",
-    "audit": "bun audit && python -m pip_audit --disable-pip -r server/modules/requirements-dev.lock",
+    "audit": "bun audit && python -m pip_audit --disable-pip -r src/server/modules/requirements-dev.lock",
     "preflight": "bun run scripts/preflight.ts",
     "demo:mock": "bun run scripts/mock-demo.ts",
     "demo:record": "bun run scripts/demo-recording.ts",

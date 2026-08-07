@@ -5,7 +5,7 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $Root = [IO.Path]::GetFullPath((Split-Path -Parent $MyInvocation.MyCommand.Path))
-$Temp = [IO.Path]::GetFullPath((Join-Path $Root 'server/.setup'))
+$Temp = [IO.Path]::GetFullPath((Join-Path $Root 'src/server/.setup'))
 if (-not $Temp.StartsWith($Root, [StringComparison]::OrdinalIgnoreCase)) { throw 'Unsafe setup path' }
 
 Push-Location $Root
@@ -16,8 +16,8 @@ try {
     return
   }
 
-  $Bin = Join-Path $Root 'server/bin'
-  $Models = Join-Path $Root 'server/models'
+  $Bin = Join-Path $Root 'src/server/bin'
+  $Models = Join-Path $Root 'src/server/models'
   $Executable = Join-Path $Bin 'llama-server.exe'
   $Model = Join-Path $Models 'Qwen3-8B-Q4_K_M.gguf'
   New-Item -ItemType Directory -Force -Path $Temp, $Bin, $Models | Out-Null

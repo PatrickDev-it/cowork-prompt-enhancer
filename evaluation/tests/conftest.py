@@ -3,4 +3,4 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
-sys.path.insert(0, str(ROOT / "server" / "modules" / "prompt_enhancer"))
+sys.path.insert(0, str(ROOT / "src" / "server" / "modules" / "prompt_enhancer"))

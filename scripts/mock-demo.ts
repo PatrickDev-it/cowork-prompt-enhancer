@@ -3,7 +3,7 @@ import { join } from 'node:path';
 
 const request = process.argv.slice(2).join(' ').trim() || 'Build a typed task API with validation and tests';
 const python = process.env.COWORK_PYTHON ?? (process.platform === 'win32' ? 'python' : 'python3');
-const moduleDir = join(import.meta.dir, '..', 'server', 'modules', 'prompt_enhancer');
+const moduleDir = join(import.meta.dir, '..', 'src', 'server', 'modules', 'prompt_enhancer');
 const processResult = Bun.spawnSync([python, 'cli.py', '--prompt', request], {
   cwd: moduleDir,
   env: {

@@ -137,14 +137,14 @@ export async function buildRelease(options: ReleaseOptions): Promise<string> {
 
   const dependencies = [
     ...parseBunLock(await readFile(resolve(root, 'bun.lock'), 'utf8')),
-    ...parsePythonLock(await readFile(resolve(root, 'server/modules/requirements-dev.lock'), 'utf8')),
+    ...parsePythonLock(await readFile(resolve(root, 'src/server/modules/requirements-dev.lock'), 'utf8')),
   ];
   const inventory = {
     schemaVersion: 1,
     project: 'PatrickDev-it/ai-prompt-optimizer',
     version: options.version,
     commit,
-    generatedFrom: ['bun.lock', 'server/modules/requirements-dev.lock'],
+    generatedFrom: ['bun.lock', 'src/server/modules/requirements-dev.lock'],
     components: dependencies,
   };
   await writeFile(resolve(output, `${prefix}-dependency-inventory.json`), `${JSON.stringify(inventory, null, 2)}\n`);

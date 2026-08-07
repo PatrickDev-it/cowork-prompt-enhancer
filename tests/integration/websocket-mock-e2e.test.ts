@@ -3,10 +3,10 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { confinePath } from '../../client/events/fileop';
-import { $WS, type ConnectionState } from '../../client/lib/ws';
-import { decodeServerEnvelope, PROTOCOL_VERSION, type ServerEnvelope } from '../../protocol';
-import { createChallengeProof, type SessionChallenge } from '../../server/lib/auth';
+import { confinePath } from '../../src/client/events/fileop';
+import { $WS, type ConnectionState } from '../../src/client/lib/ws';
+import { decodeServerEnvelope, PROTOCOL_VERSION, type ServerEnvelope } from '../../src/protocol';
+import { createChallengeProof, type SessionChallenge } from '../../src/server/lib/auth';
 
 const ROOT = fileURLToPath(new URL('../..', import.meta.url));
 
@@ -28,7 +28,7 @@ async function waitUntil(predicate: () => boolean | Promise<boolean>, timeoutMs 
 test('WebSocket -> tool runtime -> Python worker -> mock provider -> confined artifact', async () => {
   const port = await freePort();
   const outputRoot = mkdtempSync(join(tmpdir(), 'cowork-e2e-'));
-  const server = Bun.spawn(['bun', 'run', 'server/index.ts'], {
+  const server = Bun.spawn(['bun', 'run', 'src/server/index.ts'], {
     cwd: ROOT,
     env: {
       ...process.env,
@@ -173,7 +173,7 @@ async function connect(url: string): Promise<WebSocket> {
 test('non-loopback operation rejects anonymous and replayed upgrades while accepting one valid challenge', async () => {
   const port = await freePort();
   const secret = 'integration-auth-secret-1234567890';
-  const server = Bun.spawn(['bun', 'run', 'server/index.ts'], {
+  const server = Bun.spawn(['bun', 'run', 'src/server/index.ts'], {
     cwd: ROOT,
     env: {
       ...process.env,
@@ -225,7 +225,7 @@ test('non-loopback operation rejects anonymous and replayed upgrades while accep
 
 test('cancellation terminates the delayed Python/provider request and returns a stable error', async () => {
   const port = await freePort();
-  const server = Bun.spawn(['bun', 'run', 'server/index.ts'], {
+  const server = Bun.spawn(['bun', 'run', 'src/server/index.ts'], {
     cwd: ROOT,
     env: {
       ...process.env,
@@ -292,7 +292,7 @@ test('cancellation terminates the delayed Python/provider request and returns a 
 test('client reconnects after server restart without replaying a completed command', async () => {
   const port = await freePort();
   const spawnServer = () =>
-    Bun.spawn(['bun', 'run', 'server/index.ts'], {
+    Bun.spawn(['bun', 'run', 'src/server/index.ts'], {
       cwd: ROOT,
       env: {
         ...process.env,
