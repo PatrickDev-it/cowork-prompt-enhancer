@@ -3,7 +3,7 @@ import type { EngineInfo, EngineProgress } from '../engine/types';
 export type RailState = 'idle' | 'busy' | 'ready' | 'error';
 
 /**
- * The persistent bottom rail: what engine is active, what it is doing, and how far along a
+ * The persistent runtime rail: what engine is active, what it is doing, and how far along a
  * determinate download is. It exists because the old UI had a single status string that went
  * silent for minutes during a multi-hundred-megabyte model fetch.
  */
@@ -12,12 +12,14 @@ export class StatusRail {
     private readonly root: HTMLElement,
     private readonly statusEl: HTMLElement,
     private readonly engineEl: HTMLElement,
-    private readonly progressEl: HTMLElement
+    private readonly progressEl: HTMLElement,
+    private readonly onStateChange?: (state: RailState, message: string) => void
   ) {}
 
   set(state: RailState, message: string): void {
     this.root.dataset.state = state;
     this.statusEl.textContent = message;
+    this.onStateChange?.(state, message);
     if (state !== 'busy') this.setProgress(null);
   }
 
@@ -33,8 +35,12 @@ export class StatusRail {
       this.setProgress(event.progress);
       return;
     }
-    if (event.status === 'ready' || event.status === 'done') return;
-    this.set('busy', event.status);
+    if (event.status === 'ready') {
+      this.set('busy', event.message ?? 'Model ready');
+      return;
+    }
+    if (event.status === 'done') return;
+    this.set('busy', event.message ?? event.status);
   }
 
   setEngine(info: EngineInfo): void {

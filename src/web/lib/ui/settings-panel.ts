@@ -19,6 +19,9 @@ export interface SettingsPanelOptions {
   getSettings: () => Settings;
   onChange: (next: Settings) => void;
   onClearKeys: () => void;
+  onReleaseLocalModel: () => Promise<void>;
+  onInspectLocalMemory: () => Promise<string>;
+  onLocalModelSelected: (value: string) => void;
 }
 
 /**
@@ -92,25 +95,24 @@ export class SettingsPanel {
     field.className = 'field';
     field.append(this.label('Model'));
 
-    const select = document.createElement('select');
-    for (const preset of LOCAL_MODEL_PRESETS) {
-      const option = document.createElement('option');
-      option.value = preset.id;
-      option.textContent = `${preset.label} · ${preset.size}`;
-      option.selected = settings.localPreset === preset.id;
-      select.append(option);
-    }
-    const custom = document.createElement('option');
-    custom.value = 'custom';
-    custom.textContent = 'Custom Hugging Face repo…';
-    custom.selected = settings.localPreset === 'custom';
-    select.append(custom);
+    const choices = document.createElement('div');
+    choices.className = 'model-options';
+    choices.setAttribute('role', 'radiogroup');
+    choices.setAttribute('aria-label', 'On-device model');
 
-    select.addEventListener('change', () => {
-      this.options.onChange({ ...this.options.getSettings(), localPreset: select.value });
-      this.render();
-    });
-    field.append(select);
+    for (const preset of LOCAL_MODEL_PRESETS) {
+      choices.append(this.buildModelOption(preset.id, preset.label, preset.note, preset.size, settings));
+    }
+    choices.append(
+      this.buildModelOption(
+        'custom',
+        'Custom model',
+        'Use a transformers.js-compatible Hugging Face repository.',
+        'variable',
+        settings
+      )
+    );
+    field.append(choices);
 
     if (settings.localPreset === 'custom') {
       const input = document.createElement('input');
@@ -122,12 +124,76 @@ export class SettingsPanel {
       });
       field.append(input);
       field.append(this.note('Any transformers.js-compatible repo. Larger models need a capable GPU.'));
-    } else {
-      const preset = LOCAL_MODEL_PRESETS.find((entry) => entry.id === settings.localPreset);
-      if (preset) field.append(this.note(preset.note));
     }
 
+    const release = document.createElement('button');
+    release.type = 'button';
+    release.className = 'ghost-button';
+    release.textContent = 'release model from memory';
+    release.addEventListener('click', async () => {
+      release.disabled = true;
+      release.textContent = 'releasing…';
+      await this.options.onReleaseLocalModel();
+      release.textContent = 'model released';
+    });
+    field.append(
+      release,
+      this.note('Downloaded files remain in the browser cache; this only releases active model memory.')
+    );
+
+    const inspectMemory = document.createElement('button');
+    inspectMemory.type = 'button';
+    inspectMemory.className = 'ghost-button';
+    inspectMemory.textContent = 'measure browser memory';
+    const memoryNote = this.note(
+      'Uses a browser-provided measurement when available; it does not estimate GPU memory.'
+    );
+    inspectMemory.addEventListener('click', async () => {
+      inspectMemory.disabled = true;
+      memoryNote.textContent = 'Measuring…';
+      memoryNote.textContent = await this.options.onInspectLocalMemory();
+      inspectMemory.disabled = false;
+    });
+    field.append(inspectMemory, memoryNote);
+
     return field;
+  }
+
+  private buildModelOption(
+    value: string,
+    title: string,
+    description: string,
+    size: string,
+    settings: Settings
+  ): HTMLLabelElement {
+    const option = document.createElement('label');
+    option.className = 'model-option';
+
+    const radio = document.createElement('input');
+    radio.type = 'radio';
+    radio.name = 'local-model';
+    radio.value = value;
+    radio.checked = settings.localPreset === value;
+    radio.addEventListener('change', () => {
+      if (!radio.checked) return;
+      this.options.onChange({ ...this.options.getSettings(), engine: 'local', localPreset: value });
+      if (value === 'custom') this.render();
+      this.options.onLocalModelSelected(value);
+    });
+
+    const copy = document.createElement('span');
+    copy.className = 'model-option-copy';
+    const strong = document.createElement('strong');
+    strong.textContent = title;
+    const note = document.createElement('small');
+    note.textContent = description;
+    copy.append(strong, note);
+
+    const footprint = document.createElement('span');
+    footprint.className = 'model-option-size';
+    footprint.textContent = size;
+    option.append(radio, copy, footprint);
+    return option;
   }
 
   private buildProviderSection(settings: Settings, provider: ApiProvider): HTMLElement {

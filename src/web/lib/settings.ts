@@ -1,4 +1,4 @@
-import { ANTHROPIC_DEFAULT_MODEL, DEFAULT_PRESET_ID } from './models';
+import { ANTHROPIC_DEFAULT_MODEL, DEFAULT_PRESET_ID, LIGHT_PRESET_ID } from './models';
 
 /**
  * Settings persistence. API keys live in `localStorage` and nowhere else: they are sent only to
@@ -18,6 +18,8 @@ export interface Settings {
   customModelId: string;
   keys: Record<ApiProvider, string>;
   models: Record<ApiProvider, string>;
+  /** Bumps when a persisted default must be made safer for existing browsers. */
+  memoryPolicyVersion: 2;
 }
 
 const STORAGE_KEY = 'ai-prompt-optimizer/settings/v1';
@@ -29,6 +31,7 @@ export function defaultSettings(): Settings {
     customModelId: '',
     keys: { anthropic: '', openai: '', gemini: '' },
     models: { anthropic: ANTHROPIC_DEFAULT_MODEL, openai: '', gemini: '' },
+    memoryPolicyVersion: 2,
   };
 }
 
@@ -65,12 +68,17 @@ export function loadSettings(): Settings {
 
   try {
     const parsed = JSON.parse(raw) as Record<string, unknown>;
+    const storedPreset = typeof parsed.localPreset === 'string' ? parsed.localPreset : fallback.localPreset;
+    // v1 had no way to distinguish a manual 1.7B choice from its automatic default. Resetting
+    // that one legacy value is the only safe migration; users can opt back in from Settings.
+    const isCurrentMemoryPolicy = parsed.memoryPolicyVersion === 2;
     return {
       engine: isEngineKind(parsed.engine) ? parsed.engine : fallback.engine,
-      localPreset: typeof parsed.localPreset === 'string' ? parsed.localPreset : fallback.localPreset,
+      localPreset: !isCurrentMemoryPolicy && storedPreset === 'smollm2-1.7b' ? LIGHT_PRESET_ID : storedPreset,
       customModelId: typeof parsed.customModelId === 'string' ? parsed.customModelId : fallback.customModelId,
       keys: readStringMap(parsed.keys, API_PROVIDERS, fallback.keys),
       models: readStringMap(parsed.models, API_PROVIDERS, fallback.models),
+      memoryPolicyVersion: 2,
     };
   } catch {
     return fallback;
@@ -94,6 +102,6 @@ export function clearStoredKeys(settings: Settings): Settings {
 
 /** Whether the chosen engine has everything it needs to run. */
 export function isEngineReady(settings: Settings): boolean {
-  if (settings.engine === 'local') return true;
+  if (settings.engine === 'local') return settings.localPreset !== 'custom' || Boolean(settings.customModelId);
   return Boolean(settings.keys[settings.engine] && settings.models[settings.engine]);
 }
