@@ -51,6 +51,8 @@ export interface EngineInfo {
 export interface EngineProgress {
   status: string;
   file?: string;
+  /** Human-readable runtime detail emitted by a local engine lifecycle event. */
+  message?: string;
   /** 0–100 when the engine can report determinate progress (model shard downloads). */
   progress?: number;
 }

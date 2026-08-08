@@ -11,7 +11,18 @@ interface NavigatorWithExtras extends Navigator {
   deviceMemory?: number;
 }
 
-const LOW_MEMORY_THRESHOLD_GB = 4;
+const MIN_CONFIRMED_WEBGPU_MEMORY_GB = 8;
+
+/**
+ * `deviceMemory` is absent on several browsers. Absence means "unknown", not "enough": only a
+ * measured browser with a substantial budget can be classified as WebGPU-capable. The fresh
+ * settings default remains light regardless; this tier prevents legacy GPU selections from being
+ * retained on a browser that cannot establish a safe budget.
+ */
+export function selectModelTier(webgpu: boolean, deviceMemoryGB: number | null): ModelTier {
+  if (!webgpu || deviceMemoryGB === null || deviceMemoryGB < MIN_CONFIRMED_WEBGPU_MEMORY_GB) return 'light';
+  return 'default';
+}
 
 /**
  * Probes WebGPU availability and reported device memory to pick a model tier before any
@@ -24,8 +35,7 @@ export async function detectCapability(): Promise<Capability> {
   const webgpu = await probeWebGpuAdapter(nav);
   const deviceMemoryGB = typeof nav.deviceMemory === 'number' ? nav.deviceMemory : null;
 
-  const tier: ModelTier =
-    webgpu && (deviceMemoryGB === null || deviceMemoryGB >= LOW_MEMORY_THRESHOLD_GB) ? 'default' : 'light';
+  const tier = selectModelTier(webgpu, deviceMemoryGB);
 
   return { webgpu, deviceMemoryGB, tier };
 }

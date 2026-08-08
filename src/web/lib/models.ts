@@ -25,7 +25,7 @@ export const LOCAL_MODEL_PRESETS: LocalModelPreset[] = [
     modelId: 'HuggingFaceTB/SmolLM2-360M-Instruct',
     label: 'SmolLM2 360M',
     size: '~180 MB',
-    note: 'Fastest to load. Weakest at holding the output format.',
+    note: 'Default. The conservative on-device path for browsers with an unknown memory budget.',
     dtype: 'q8',
     device: 'wasm',
   },
@@ -34,7 +34,7 @@ export const LOCAL_MODEL_PRESETS: LocalModelPreset[] = [
     modelId: 'HuggingFaceTB/SmolLM2-1.7B-Instruct',
     label: 'SmolLM2 1.7B',
     size: '~1.0 GB',
-    note: 'Default. Best instruction-following in its size class.',
+    note: 'Higher-quality WebGPU option. Select it deliberately after confirming this browser has headroom.',
     dtype: 'q4',
     device: 'webgpu',
   },
@@ -67,7 +67,8 @@ export const LOCAL_MODEL_PRESETS: LocalModelPreset[] = [
   },
 ];
 
-export const DEFAULT_PRESET_ID = 'smollm2-1.7b';
+/** Fresh browsers start on the small, conservative tier. Larger WebGPU models are opt-in. */
+export const DEFAULT_PRESET_ID = 'smollm2-360m';
 
 /** Fallback for a device that reports little memory or no WebGPU adapter. */
 export const LIGHT_PRESET_ID = 'smollm2-360m';

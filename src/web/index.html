@@ -12,65 +12,120 @@
   </head>
   <body>
     <header class="masthead">
-      <div class="mark"><strong>ai-prompt-optimizer</strong> <span>intent → specification</span></div>
-      <div class="masthead-spacer"></div>
-      <button id="open-settings" class="ghost-button" type="button" aria-haspopup="dialog">engine ·&nbsp;<span id="engine-label">on device</span></button>
+      <div class="masthead-primary">
+        <div class="mark">
+          <strong><span class="mark-full">ai-prompt-optimizer</span><span class="mark-short">optimizer</span></strong>
+          <span class="mark-tagline">intent → specification</span>
+        </div>
+        <div class="masthead-spacer"></div>
+        <button
+          id="open-model-drawer"
+          class="model-switcher"
+          type="button"
+          aria-haspopup="dialog"
+          aria-expanded="false"
+          aria-label="Change active model"
+        >
+          <span class="model-switcher-caption">Active model</span>
+          <span class="model-select-shell">
+            <span class="model-active-dot" aria-hidden="true"></span>
+            <span id="header-model-label" class="header-model-label"></span>
+            <svg class="model-chevron" viewBox="0 0 16 16" aria-hidden="true">
+              <path d="m4.5 6 3.5 3.5L11.5 6" />
+            </svg>
+          </span>
+        </button>
+        <button
+          id="open-settings"
+          class="settings-button"
+          type="button"
+          aria-haspopup="dialog"
+          aria-label="Open advanced engine settings"
+          title="Advanced engine settings"
+        >
+          <svg viewBox="0 0 20 20" aria-hidden="true">
+            <path d="M4 6h12M4 14h12M7 3v6M13 11v6" />
+          </svg>
+        </button>
+      </div>
+      <div class="rail" id="rail" data-state="idle" role="status" aria-label="Runtime status">
+        <span class="rail-dot"></span>
+        <span class="rail-item" id="rail-status">Starting…</span>
+        <div class="rail-spacer"></div>
+        <span class="rail-item" id="rail-engine"></span>
+        <div class="rail-progress" id="rail-progress" style="width: 0"></div>
+      </div>
     </header>
 
-    <main class="workbench">
-      <section class="pane source-pane" aria-labelledby="source-heading">
-        <div class="pane-head"><span id="source-heading">Source</span></div>
-        <div class="pane-body">
-          <label class="visually-hidden" for="request">Your rough request</label>
-          <textarea
-            id="request"
-            spellcheck="false"
-            placeholder="add login and make it secure, use the db we already have"
-          ></textarea>
-          <div class="source-actions">
-            <button id="compile" class="compile-button" type="button">Compile <kbd>⌘↵</kbd></button>
-            <span class="hint">Write it rough. The compiler does the formalizing.</span>
-          </div>
+    <main class="conversation" aria-label="Prompt compiler conversation">
+      <section class="conversation-stream" aria-labelledby="conversation-heading">
+        <h1 id="conversation-heading" class="visually-hidden">Prompt compiler conversation</h1>
+        <div id="placeholder" class="empty-state">
+          <span class="empty-kicker">intent → specification</span>
+          <strong>What should the next AI deliver?</strong>
+          <span>Write the rough request. The compiler will separate what you stated from what it infers.</span>
         </div>
-      </section>
-
-      <section class="pane spec-pane" aria-labelledby="spec-heading">
-        <div class="pane-head">
-          <span id="spec-heading">Compiled</span>
-          <div class="pane-head-spacer"></div>
-          <button id="copy-all" class="square-button" type="button" hidden aria-label="Copy specification" title="Copy specification"></button>
-          <button id="download" class="ghost-button" type="button" hidden title="Download as Markdown">
-            <span id="download-label">Download</span>
-          </button>
+        <article id="user-turn" class="turn turn-user" hidden>
+          <span class="turn-label">You</span>
+          <p id="user-turn-text"></p>
+        </article>
+        <div id="notice" class="notice" role="alert" hidden>
+          <h2 id="notice-title">Error</h2>
+          <p id="notice-body"></p>
         </div>
-        <div class="pane-body">
-          <div id="notice" class="notice" role="alert" hidden>
-            <h2 id="notice-title">Error</h2>
-            <p id="notice-body"></p>
+        <section class="turn turn-assistant" aria-labelledby="compiled-heading">
+          <div class="turn-head">
+            <span id="compiled-heading" class="turn-label">Compiled specification</span>
+            <div class="turn-head-spacer"></div>
+            <button id="copy-all" class="square-button" type="button" hidden aria-label="Copy specification" title="Copy specification"></button>
+            <button id="download" class="ghost-button" type="button" hidden title="Download as Markdown">Download</button>
           </div>
           <div id="spec" aria-live="polite"></div>
-          <div id="placeholder" class="placeholder">
-            <strong>No specification yet.</strong>
-            <span>Describe a task on the left and compile it.</span>
-          </div>
-        </div>
+        </section>
       </section>
     </main>
 
-    <div class="rail" id="rail" data-state="idle">
-      <span class="rail-dot"></span>
-      <span class="rail-item" id="rail-status">Starting…</span>
-      <div class="rail-spacer"></div>
-      <span class="rail-item" id="rail-engine"></span>
-      <div class="rail-progress" id="rail-progress" style="width: 0"></div>
-    </div>
+    <form id="composer" class="composer" novalidate>
+      <label class="visually-hidden" for="request">Your rough request</label>
+      <div class="composer-box">
+        <textarea
+          id="request"
+          rows="1"
+          spellcheck="false"
+          placeholder="Message the prompt compiler…"
+          aria-describedby="composer-help composer-status"
+        ></textarea>
+        <div id="composer-status" class="composer-status" role="status" aria-live="polite" hidden></div>
+        <span id="composer-help" class="visually-hidden">Press Command Enter to compile</span>
+        <button id="compile" class="compile-button" type="submit" aria-label="Compile prompt">
+          <svg viewBox="0 0 20 20" aria-hidden="true">
+            <path d="M10 15V5m0 0L5.75 9.25M10 5l4.25 4.25" />
+          </svg>
+        </button>
+      </div>
+    </form>
 
     <div class="scrim" id="scrim" data-open="false"></div>
-    <aside class="panel" id="panel" data-open="false" role="dialog" aria-modal="true" aria-label="Engine settings">
+    <aside
+      class="panel"
+      id="panel"
+      data-open="false"
+      role="dialog"
+      aria-modal="true"
+      aria-hidden="true"
+      aria-labelledby="drawer-title"
+      inert
+    >
+      <div id="drawer-grab" class="drawer-grab" aria-hidden="true"><span></span></div>
       <div class="panel-head">
-        <span>Engine</span>
+        <div class="panel-title">
+          <span>Configuration</span>
+          <strong id="drawer-title">Model &amp; engine</strong>
+        </div>
         <div class="masthead-spacer"></div>
-        <button id="close-settings" class="icon-button" type="button" aria-label="Close settings">esc</button>
+        <button id="close-settings" class="drawer-close" type="button" aria-label="Close model drawer">
+          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5 5 10 10M15 5 5 15" /></svg>
+        </button>
       </div>
       <div class="panel-body" id="panel-body"></div>
     </aside>

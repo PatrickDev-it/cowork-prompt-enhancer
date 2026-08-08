@@ -1,5 +1,7 @@
 import { AutoModelForCausalLM, AutoTokenizer, TextStreamer } from '@huggingface/transformers';
+import { measureBrowserMemory, memoryDescription } from '../memory';
 import type { LocalModelChoice } from '../models';
+import { disposeModelSession } from './local-session';
 import { type CompileHandlers, type Engine, EngineError, type EngineInfo } from './types';
 
 const MAX_NEW_TOKENS = 768;
@@ -16,6 +18,18 @@ interface CachedModel {
  * enough (a multi-hundred-MB download plus WebGPU compile) that re-entering the same choice must
  * never re-pay it. */
 let cached: CachedModel | null = null;
+
+/** Release resident WebGPU/ORT state before a model replacement or when local inference is left. */
+export async function releaseLocalModel(): Promise<void> {
+  const current = cached;
+  cached = null;
+  await disposeModelSession(current?.model as unknown as { dispose?: () => unknown });
+}
+
+/** A diagnostic for the settings panel; it reports only browser measurements that actually exist. */
+export async function inspectLocalMemory(): Promise<string> {
+  return memoryDescription(await measureBrowserMemory());
+}
 
 /**
  * On-device engine: weights come from the Hugging Face CDN straight into this browser and are
@@ -68,7 +82,7 @@ export class LocalEngine implements Engine {
     if (cached && cached.modelId === modelId && cached.dtype === dtype && cached.device === device) {
       return cached;
     }
-    cached = null;
+    await releaseLocalModel();
 
     const progress_callback = handlers.onProgress
       ? (event: unknown) => handlers.onProgress?.(event as never)
@@ -78,6 +92,10 @@ export class LocalEngine implements Engine {
       const tokenizer = await AutoTokenizer.from_pretrained(modelId, { progress_callback });
       const model = await AutoModelForCausalLM.from_pretrained(modelId, { dtype, device, progress_callback });
       cached = { modelId, dtype, device, tokenizer, model };
+      handlers.onProgress?.({
+        status: 'ready',
+        message: `Model ready · ${memoryDescription(await measureBrowserMemory())}`,
+      });
       return cached;
     } catch (error) {
       // A load failure is either "this browser can't" or "that repo isn't loadable" — both are
